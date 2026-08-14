@@ -1,0 +1,9 @@
+name: masjid_you_workspace
+description: Workspace for Masjid You TV Display and Mobile Remote Flutter Apps
+environment:
+  sdk: '>=3.5.0 <4.0.0'
+
+workspace:
+  - packages/shared_models
+  - apps/tv_display
+  - apps/mobile_remote

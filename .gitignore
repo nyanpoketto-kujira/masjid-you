@@ -1,0 +1,40 @@
+# --- Flutter/Dart ---
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+build/
+.packages
+
+# --- Native build artifacts (apps) ---
+apps/*/build/
+apps/*/.dart_tool/
+apps/*/android/.gradle/
+apps/*/android/local.properties
+apps/*/android/app/debug/
+apps/*/android/app/profile/
+apps/*/android/app/release/
+*.iml
+*.apk
+*.aab
+*.h
+*.i
+
+# --- IDE / editor ---
+.idea/
+*.iml
+.vscode/
+*.swp
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+
+# --- Testing / coverage ---
+coverage/
+test_cache/
+unit_test_assets/
+native_assets/
+
+# --- Local/generated ---
+.gstack/
+*.log

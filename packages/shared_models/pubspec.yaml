@@ -1,0 +1,16 @@
+name: shared_models
+description: Shared models, prayer calculation, and sync protocol for Masjid You.
+version: 1.0.0
+
+environment:
+  sdk: ^3.5.0
+
+resolution: workspace
+
+dependencies:
+  adhan: ^2.0.0
+  intl: ^0.19.0
+
+dev_dependencies:
+  lints: ^6.0.0
+  test: ^1.25.6
