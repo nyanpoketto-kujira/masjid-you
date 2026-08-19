@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:tv_display/main.dart';
+import 'package:tv_display/theme/app_theme.dart';
 
 void main() {
   testWidgets('MasjidYouTVApp loads smoke test', (WidgetTester tester) async {
@@ -30,7 +31,14 @@ void main() {
     tester.view.devicePixelRatio = 2.0;
     addTearDown(tester.view.resetPhysicalSize);
 
-    await tester.pumpWidget(const MasjidYouTVApp());
+    // autoPrayerCycle:false membuat test deterministik terlepas dari waktu nyata
+    // (state machine tidak pernah menampilkan overlay saat normal).
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.darkTheme,
+        home: const MasjidDisplayScreen(autoPrayerCycle: false),
+      ),
+    );
     await tester.pump(const Duration(seconds: 2));
 
     expect(tester.takeException(), isNull);

@@ -24,6 +24,17 @@ extension PrayerTypeX on PrayerType {
         return 'Isya';
     }
   }
+
+  /// Nama tampilan yang peka tanggal: `dhuhr` menjadi "Jumat" pada hari Jumat.
+  ///
+  /// Dipakai untuk kartu jadwal & overlay supaya shalat Jumat tampil sebagai
+  /// "Jumat" (bukan "Dzuhur") hanya saat hari Jumat.
+  String displayNameForDate(DateTime date) {
+    if (this == PrayerType.dhuhr && date.weekday == DateTime.friday) {
+      return 'Jumat';
+    }
+    return displayName;
+  }
 }
 
 const List<PrayerType> kAllPrayerTypes = [

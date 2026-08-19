@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_models/shared_models.dart';
 
+import '../theme/m3_shape_border.dart';
+
 class HeaderClock extends StatelessWidget {
   final MosqueConfig config;
   final DateTime currentTime;
@@ -41,7 +43,7 @@ class HeaderClock extends StatelessWidget {
       ),
       elevation: 1,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -119,10 +121,10 @@ class HeaderClock extends StatelessWidget {
   
             // Right: Real-time Large Clock & Date in Capsule/Pill Shape
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
+              padding: const EdgeInsets.only(top: 20, bottom: 12, left: 28, right: 28),
               decoration: ShapeDecoration(
                 color: colorScheme.surfaceContainerHighest,
-                shape: const StadiumBorder(),
+                shape: const ArchBorder(),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,

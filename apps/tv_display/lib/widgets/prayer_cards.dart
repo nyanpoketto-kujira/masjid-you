@@ -1,6 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:material_new_shapes/material_new_shapes.dart';
 import 'package:shared_models/shared_models.dart';
+
+import '../theme/m3_shape_border.dart';
 
 class PrayerCardsRow extends StatelessWidget {
   final PrayerSchedule schedule;
@@ -25,42 +28,26 @@ class PrayerCardsRow extends StatelessWidget {
             child: Card(
               color: isNext ? colorScheme.primaryContainer : colorScheme.surfaceContainer,
               elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(28),
-                side: BorderSide(
-                  color: isNext
-                      ? colorScheme.primary
-                      : colorScheme.outlineVariant.withValues(alpha: 0.2),
-                  width: isNext ? 2 : 1,
-                ),
-              ),
+              shape: isNext
+                  ? RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(28),
+                      side: BorderSide(color: colorScheme.primary, width: 2),
+                    )
+                  : M3ShapeBorder(
+                      MaterialShapes.slanted,
+                      side: BorderSide(
+                        color: colorScheme.outlineVariant.withValues(alpha: 0.2),
+                        width: 1,
+                      ),
+                    ),
               child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Badge "SELANJUTNYA" in pill shape (StadiumBorder)
-                    if (isNext)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 8.0),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                          decoration: ShapeDecoration(
-                            color: colorScheme.primary,
-                            shape: const StadiumBorder(),
-                          ),
-                          child: Text(
-                            'SELANJUTNYA',
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              color: colorScheme.onPrimary,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                        ),
-                      ),
                     Text(
-                      item.type.displayName,
+                      item.type.displayNameForDate(item.time),
+                      textAlign: TextAlign.center,
                       style: theme.textTheme.titleMedium?.copyWith(
                         color: isNext
                             ? colorScheme.onPrimaryContainer
@@ -68,14 +55,15 @@ class PrayerCardsRow extends StatelessWidget {
                         fontWeight: isNext ? FontWeight.bold : FontWeight.w600,
                       ),
                     ),
-                    const SizedBox(height: 6),
-                    if (isNext && schedule.timeUntilNextPrayer != null)
+                    if (isNext && schedule.timeUntilNextPrayer != null) ...[
+                      const SizedBox(height: 8),
                       _NextPrayerTimer(
                         formattedTime: item.formattedTime,
                         remaining: schedule.timeUntilNextPrayer!,
                         progress: _remainingFraction(schedule),
-                      )
-                    else ...[
+                      ),
+                    ] else ...[
+                      const SizedBox(height: 6),
                       FittedBox(
                         fit: BoxFit.scaleDown,
                         child: Text(
@@ -89,7 +77,7 @@ class PrayerCardsRow extends StatelessWidget {
                           ),
                         ),
                       ),
-                    ]
+                    ],
                   ],
                 ),
               ),

@@ -8,6 +8,11 @@ enum SyncAction {
   triggerBeep,
   getInitialState,
   stateUpdate,
+  skipAdhan,
+  startIqomah,
+  startShalat,
+  finishShalat,
+  forcePhase,
 }
 
 class SyncPacket {

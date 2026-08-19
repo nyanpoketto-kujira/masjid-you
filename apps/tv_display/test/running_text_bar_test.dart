@@ -31,14 +31,14 @@ void main() {
       findsNothing,
     );
 
-    // Container fills the width (800 wide test surface).
-    final container = tester.widget<Container>(
+    // Bar fills the width (800 wide test surface).
+    final bar = tester.widget<Card>(
       find.ancestor(
         of: find.text('INFORMASI'),
-        matching: find.byType(Container),
+        matching: find.byType(Card),
       ).first,
     );
-    expect(tester.getSize(find.byWidget(container)).width, 800);
+    expect(tester.getSize(find.byWidget(bar)).width, 800);
   });
 
   testWidgets('Inactive (all off) messages behave like empty', (

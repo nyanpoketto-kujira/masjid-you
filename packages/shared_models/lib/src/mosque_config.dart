@@ -44,6 +44,27 @@ class MosqueConfig {
   final IqamahDuration iqamahDuration;
   final Map<PrayerType, int> prayerOffsets;
 
+  /// Durasi fase "Menjelang Azan" (countdown sebelum azan berkumandang).
+  final int preAdhanMinutes;
+
+  /// Durasi fase "Azan" (azan berkumandang).
+  final int adhanMinutes;
+
+  /// Durasi fase "Jeda Ikamah" (himbauan merapatkan shaf sebelum shalat).
+  final int preIqomahMinutes;
+
+  /// Durasi fase "Shalat Berlangsung" (layar redup total).
+  final int shalatMinutes;
+
+  /// Durasi fase "Khutbah" (khusus Jumat, menggantikan Jeda Ikamah).
+  final int khutbahMinutes;
+
+  /// Nama Khatib shalat Jumat (ditampilkan di TV).
+  final String fridayKhatib;
+
+  /// Nama Muadzin shalat Jumat (ditampilkan di TV).
+  final String fridayMuadzin;
+
   const MosqueConfig({
     this.name = 'Masjid Al-Ikhlas',
     this.address = 'Jl. Raya Masjid No. 123',
@@ -52,6 +73,13 @@ class MosqueConfig {
     this.utcOffsetHours = 7,
     this.iqamahDuration = const IqamahDuration(),
     this.prayerOffsets = const {},
+    this.preAdhanMinutes = 15,
+    this.adhanMinutes = 2,
+    this.preIqomahMinutes = 1,
+    this.shalatMinutes = 10,
+    this.khutbahMinutes = 20,
+    this.fridayKhatib = 'Ustadz Khatib',
+    this.fridayMuadzin = 'Ustadz Bilal',
   });
 
   int offsetFor(PrayerType type) => prayerOffsets[type] ?? 0;
@@ -66,6 +94,13 @@ class MosqueConfig {
         'prayerOffsets': {
           for (final type in kAllPrayerTypes) type.name: prayerOffsets[type] ?? 0,
         },
+        'preAdhanMinutes': preAdhanMinutes,
+        'adhanMinutes': adhanMinutes,
+        'preIqomahMinutes': preIqomahMinutes,
+        'shalatMinutes': shalatMinutes,
+        'khutbahMinutes': khutbahMinutes,
+        'fridayKhatib': fridayKhatib,
+        'fridayMuadzin': fridayMuadzin,
       };
 
   factory MosqueConfig.fromMap(Map<String, dynamic> map) {
@@ -102,6 +137,13 @@ class MosqueConfig {
           ? IqamahDuration.fromMap(Map<String, dynamic>.from(map['iqamahDuration']))
           : const IqamahDuration(),
       prayerOffsets: parseOffsets(),
+      preAdhanMinutes: (map['preAdhanMinutes'] as num?)?.toInt() ?? 15,
+      adhanMinutes: (map['adhanMinutes'] as num?)?.toInt() ?? 2,
+      preIqomahMinutes: (map['preIqomahMinutes'] as num?)?.toInt() ?? 1,
+      shalatMinutes: (map['shalatMinutes'] as num?)?.toInt() ?? 10,
+      khutbahMinutes: (map['khutbahMinutes'] as num?)?.toInt() ?? 20,
+      fridayKhatib: (map['fridayKhatib'] as String?) ?? 'Ustadz Khatib',
+      fridayMuadzin: (map['fridayMuadzin'] as String?) ?? 'Ustadz Bilal',
     );
   }
 
@@ -118,6 +160,13 @@ class MosqueConfig {
     int? utcOffsetHours,
     IqamahDuration? iqamahDuration,
     Map<PrayerType, int>? prayerOffsets,
+    int? preAdhanMinutes,
+    int? adhanMinutes,
+    int? preIqomahMinutes,
+    int? shalatMinutes,
+    int? khutbahMinutes,
+    String? fridayKhatib,
+    String? fridayMuadzin,
   }) {
     return MosqueConfig(
       name: name ?? this.name,
@@ -127,6 +176,13 @@ class MosqueConfig {
       utcOffsetHours: utcOffsetHours ?? this.utcOffsetHours,
       iqamahDuration: iqamahDuration ?? this.iqamahDuration,
       prayerOffsets: prayerOffsets ?? this.prayerOffsets,
+      preAdhanMinutes: preAdhanMinutes ?? this.preAdhanMinutes,
+      adhanMinutes: adhanMinutes ?? this.adhanMinutes,
+      preIqomahMinutes: preIqomahMinutes ?? this.preIqomahMinutes,
+      shalatMinutes: shalatMinutes ?? this.shalatMinutes,
+      khutbahMinutes: khutbahMinutes ?? this.khutbahMinutes,
+      fridayKhatib: fridayKhatib ?? this.fridayKhatib,
+      fridayMuadzin: fridayMuadzin ?? this.fridayMuadzin,
     );
   }
 }

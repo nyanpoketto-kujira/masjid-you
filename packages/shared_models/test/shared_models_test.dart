@@ -73,6 +73,120 @@ void main() {
       expect(parsed.offsetFor(PrayerType.sunrise), equals(3));
     });
 
+    test('MosqueConfig duration defaults & round-trip', () {
+      const config = MosqueConfig(
+        preAdhanMinutes: 20,
+        adhanMinutes: 3,
+        preIqomahMinutes: 2,
+        shalatMinutes: 15,
+      );
+
+      final parsed = MosqueConfig.fromJson(config.toJson());
+
+      expect(parsed.preAdhanMinutes, equals(20));
+      expect(parsed.adhanMinutes, equals(3));
+      expect(parsed.preIqomahMinutes, equals(2));
+      expect(parsed.shalatMinutes, equals(15));
+    });
+
+    test('MosqueConfig duration falls back to defaults when absent', () {
+      final parsed = MosqueConfig.fromMap({'name': 'Masjid Baru'});
+
+      expect(parsed.preAdhanMinutes, equals(15));
+      expect(parsed.adhanMinutes, equals(2));
+      expect(parsed.preIqomahMinutes, equals(1));
+      expect(parsed.shalatMinutes, equals(10));
+    });
+
+    test('PrayerPhase durationFor maps to config durations', () {
+      const config = MosqueConfig(
+        preAdhanMinutes: 30,
+        adhanMinutes: 4,
+        preIqomahMinutes: 3,
+        shalatMinutes: 20,
+        khutbahMinutes: 25,
+      );
+
+      expect(PrayerPhase.preAdhan.durationFor(config),
+          equals(const Duration(minutes: 30)));
+      expect(PrayerPhase.adhan.durationFor(config),
+          equals(const Duration(minutes: 4)));
+      expect(PrayerPhase.khutbah.durationFor(config),
+          equals(const Duration(minutes: 25)));
+      expect(PrayerPhase.preIqomah.durationFor(config),
+          equals(const Duration(minutes: 3)));
+      expect(PrayerPhase.shalat.durationFor(config),
+          equals(const Duration(minutes: 20)));
+      expect(PrayerPhase.normal.durationFor(config), equals(Duration.zero));
+    });
+
+    test('MosqueConfig Friday fields round-trip & defaults', () {
+      const config = MosqueConfig(
+        khutbahMinutes: 30,
+        fridayKhatib: 'Ustadz Ahmad',
+        fridayMuadzin: 'Ustadz Bilal',
+      );
+
+      final parsed = MosqueConfig.fromJson(config.toJson());
+
+      expect(parsed.khutbahMinutes, equals(30));
+      expect(parsed.fridayKhatib, equals('Ustadz Ahmad'));
+      expect(parsed.fridayMuadzin, equals('Ustadz Bilal'));
+    });
+
+    test('MosqueConfig Friday fields fall back to defaults when absent', () {
+      final parsed = MosqueConfig.fromMap({'name': 'Masjid Baru'});
+
+      expect(parsed.khutbahMinutes, equals(20));
+      expect(parsed.fridayKhatib, equals('Ustadz Khatib'));
+      expect(parsed.fridayMuadzin, equals('Ustadz Bilal'));
+    });
+
+    test('PrayerType.displayNameForDate maps dhuhr to Jumat on Friday', () {
+      final friday = DateTime(2026, 8, 14); // Friday
+      final thursday = DateTime(2026, 8, 13); // Thursday
+
+      expect(PrayerType.dhuhr.displayNameForDate(friday), equals('Jumat'));
+      expect(PrayerType.dhuhr.displayNameForDate(thursday), equals('Dzuhur'));
+      expect(PrayerType.maghrib.displayNameForDate(friday), equals('Maghrib'));
+    });
+
+    test('SyncPacket carries quick-action (skip) actions', () {
+      const packet = SyncPacket(action: SyncAction.skipAdhan, payload: {});
+
+      final parsed = SyncPacket.fromJson(packet.toJson());
+
+      expect(parsed.action, equals(SyncAction.skipAdhan));
+    });
+
+    test('SyncPacket carries startIqomah action', () {
+      const packet = SyncPacket(action: SyncAction.startIqomah, payload: {});
+
+      final parsed = SyncPacket.fromJson(packet.toJson());
+
+      expect(parsed.action, equals(SyncAction.startIqomah));
+    });
+
+    test('SyncPacket carries forcePhase action with phase payload', () {
+      final packet = SyncPacket(
+        action: SyncAction.forcePhase,
+        payload: {'phase': 'adhan'},
+      );
+
+      final parsed = SyncPacket.fromJson(packet.toJson());
+
+      expect(parsed.action, equals(SyncAction.forcePhase));
+      expect(parsed.payload['phase'], equals('adhan'));
+    });
+
+    test('PrayerPhase.fromName parses valid names and falls back to normal', () {
+      expect(PrayerPhase.fromName('adhan'), equals(PrayerPhase.adhan));
+      expect(PrayerPhase.fromName('khutbah'), equals(PrayerPhase.khutbah));
+      expect(PrayerPhase.fromName('shalat'), equals(PrayerPhase.shalat));
+      expect(PrayerPhase.fromName(null), equals(PrayerPhase.normal));
+      expect(PrayerPhase.fromName('unknown'), equals(PrayerPhase.normal));
+    });
+
     test('SyncPacket serialization', () {
       final packet = SyncPacket(
         action: SyncAction.updateRunningText,
