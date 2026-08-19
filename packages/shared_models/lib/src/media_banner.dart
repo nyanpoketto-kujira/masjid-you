@@ -7,6 +7,7 @@ class MediaBanner {
   final String content;
   final String footer;
   final bool isActive;
+  final String? base64Image;
 
   const MediaBanner({
     required this.id,
@@ -15,6 +16,7 @@ class MediaBanner {
     required this.content,
     this.footer = '',
     this.isActive = true,
+    this.base64Image,
   });
 
   Map<String, dynamic> toMap() => {
@@ -24,6 +26,7 @@ class MediaBanner {
         'content': content,
         'footer': footer,
         'isActive': isActive,
+        'base64Image': base64Image,
       };
 
   factory MediaBanner.fromMap(Map<String, dynamic> map) {
@@ -34,6 +37,7 @@ class MediaBanner {
       content: map['content'] ?? map['subtitle'] ?? '',
       footer: map['footer'] ?? '',
       isActive: map['isActive'] ?? true,
+      base64Image: map['base64Image'],
     );
   }
 
@@ -49,6 +53,7 @@ class MediaBanner {
     String? content,
     String? footer,
     bool? isActive,
+    String? base64Image,
   }) {
     return MediaBanner(
       id: id ?? this.id,
@@ -57,6 +62,7 @@ class MediaBanner {
       content: content ?? this.content,
       footer: footer ?? this.footer,
       isActive: isActive ?? this.isActive,
+      base64Image: base64Image ?? this.base64Image,
     );
   }
 }

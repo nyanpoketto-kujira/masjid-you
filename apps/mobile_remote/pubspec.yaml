@@ -34,6 +34,8 @@ dependencies:
   flutter_p2p_connection: ^3.0.3
   geolocator: ^14.0.3
   shared_preferences: ^2.3.0
+  image_picker: ^1.1.2
+  flutter_image_compress: ^2.3.0
 
 dev_dependencies:
   flutter_test:

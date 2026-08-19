@@ -1,14 +1,17 @@
+import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:shared_models/shared_models.dart';
 import '../../widgets/m3_pressable.dart';
 
-class BannersSubtab extends StatelessWidget {
+class BannersSubtab extends StatefulWidget {
   final List<MediaBanner> banners;
   final TextEditingController headerController;
   final TextEditingController titleController;
   final TextEditingController contentController;
   final TextEditingController footerController;
-  final VoidCallback onAddBanner;
+  final Function(String? base64Image) onAddBanner;
   final Function(MediaBanner) onEditBanner;
   final Function(String) onRemoveBanner;
   final Function(String, bool) onToggleBanner;
@@ -27,6 +30,42 @@ class BannersSubtab extends StatelessWidget {
   });
 
   @override
+  State<BannersSubtab> createState() => _BannersSubtabState();
+}
+
+class _BannersSubtabState extends State<BannersSubtab> {
+  String? _selectedBase64Image;
+  File? _imagePreviewFile;
+  final ImagePicker _picker = ImagePicker();
+
+  Future<void> _pickImage() async {
+    try {
+      final XFile? pickedFile = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1920,
+        maxHeight: 1080,
+        imageQuality: 85,
+      );
+      if (pickedFile != null) {
+        final bytes = await pickedFile.readAsBytes();
+        setState(() {
+          _selectedBase64Image = base64Encode(bytes);
+          _imagePreviewFile = File(pickedFile.path);
+        });
+      }
+    } catch (e) {
+      debugPrint('Error picking image: $e');
+    }
+  }
+
+  void _clearImage() {
+    setState(() {
+      _selectedBase64Image = null;
+      _imagePreviewFile = null;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
@@ -42,7 +81,7 @@ class BannersSubtab extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           TextFormField(
-            controller: headerController,
+            controller: widget.headerController,
             decoration: const InputDecoration(
               labelText: 'Kategori / Header Banner',
               hintText: 'Misal: INFO MASJID, DONASI, KAJIAN',
@@ -50,24 +89,82 @@ class BannersSubtab extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           TextFormField(
-            controller: titleController,
+            controller: widget.titleController,
             decoration: const InputDecoration(labelText: 'Judul Utama'),
           ),
           const SizedBox(height: 12),
           TextFormField(
-            controller: contentController,
+            controller: widget.contentController,
             maxLines: 3,
             decoration: const InputDecoration(labelText: 'Isi Informasi (Max 3 Baris)'),
           ),
           const SizedBox(height: 12),
           TextFormField(
-            controller: footerController,
+            controller: widget.footerController,
             decoration: const InputDecoration(labelText: 'Kaki Banner / Catatan Bawah'),
           ),
+          const SizedBox(height: 12),
+          
+          // Image upload area
+          Card(
+            clipBehavior: Clip.antiAlias,
+            child: InkWell(
+              onTap: _pickImage,
+              child: Container(
+                height: 160,
+                decoration: BoxDecoration(
+                  color: colorScheme.surfaceContainerLow,
+                  border: Border.all(color: colorScheme.outlineVariant),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: _imagePreviewFile != null
+                    ? Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          Image.file(
+                            _imagePreviewFile!,
+                            fit: BoxFit.cover,
+                          ),
+                          Positioned(
+                            top: 8,
+                            right: 8,
+                            child: CircleAvatar(
+                              backgroundColor: Colors.black.withOpacity(0.6),
+                              child: IconButton(
+                                icon: const Icon(Icons.close, color: Colors.white),
+                                onPressed: _clearImage,
+                              ),
+                            ),
+                          ),
+                        ],
+                      )
+                    : Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.image, size: 40, color: colorScheme.primary),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Pilih Poster / Gambar (Maks 1080p)',
+                            style: theme.textTheme.bodyMedium,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Berjalan 100% Offline',
+                            style: theme.textTheme.labelSmall?.copyWith(color: colorScheme.outline),
+                          ),
+                        ],
+                      ),
+              ),
+            ),
+          ),
           const SizedBox(height: 16),
+          
           M3Pressable(
             child: FilledButton.icon(
-              onPressed: onAddBanner,
+              onPressed: () {
+                widget.onAddBanner(_selectedBase64Image);
+                _clearImage();
+              },
               icon: const Icon(Icons.add),
               label: const Text('Simpan Banner'),
             ),
@@ -78,7 +175,7 @@ class BannersSubtab extends StatelessWidget {
             style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 12),
-          if (banners.isEmpty)
+          if (widget.banners.isEmpty)
             Padding(
               padding: const EdgeInsets.all(24.0),
               child: Center(
@@ -88,7 +185,7 @@ class BannersSubtab extends StatelessWidget {
                 ),
               ),
             ),
-          ...banners.map((b) {
+          ...widget.banners.map((b) {
             return Card(
               margin: const EdgeInsets.only(bottom: 12),
               child: Padding(
@@ -105,11 +202,29 @@ class BannersSubtab extends StatelessWidget {
                         ),
                         Switch(
                           value: b.isActive,
-                          onChanged: (val) => onToggleBanner(b.id, val),
+                          onChanged: (val) => widget.onToggleBanner(b.id, val),
                         ),
                       ],
                     ),
                     const SizedBox(height: 8),
+                    if (b.base64Image != null && b.base64Image!.isNotEmpty) ...[
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Container(
+                          height: 120,
+                          width: double.infinity,
+                          color: colorScheme.surfaceContainerLow,
+                          child: Image.memory(
+                            base64Decode(b.base64Image!),
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return const Center(child: Icon(Icons.broken_image));
+                            },
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                    ],
                     Text(
                       b.title,
                       style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
@@ -132,14 +247,14 @@ class BannersSubtab extends StatelessWidget {
                       children: [
                         M3Pressable(
                           child: TextButton.icon(
-                            onPressed: () => onEditBanner(b),
+                            onPressed: () => widget.onEditBanner(b),
                             icon: const Icon(Icons.edit, size: 18),
                             label: const Text('Edit'),
                           ),
                         ),
                         M3Pressable(
                           child: TextButton.icon(
-                            onPressed: () => onRemoveBanner(b.id),
+                            onPressed: () => widget.onRemoveBanner(b.id),
                             icon: const Icon(Icons.delete, size: 18, color: Colors.red),
                             label: const Text('Hapus'),
                           ),

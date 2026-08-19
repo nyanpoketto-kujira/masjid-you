@@ -162,9 +162,8 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
       setState(() {
         _now = DateTime.now();
         _prayerSchedule = PrayerSchedule.calculate(_config, _now);
-        // Hari Jumat: kartu kanan bergantian tiap 10 detik.
-        _rightCardTick++;
-        if (_now.weekday == DateTime.friday && _rightCardTick % 10 == 0) {
+        // Hari Jumat: kartu kanan bergantian tiap 10 detik secara absolut.
+        if (_now.weekday == DateTime.friday && _now.second % 10 == 0) {
           _showKasCard = !_showKasCard;
         }
       });
@@ -214,24 +213,42 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
               break;
             case SyncAction.updateRunningText:
               final list = (packet.payload['messages'] as List?)
-                      ?.map((e) => RunningTextMessage.fromMap(
-                          Map<String, dynamic>.from(e)))
+                      ?.map((e) {
+                        if (e is Map) {
+                          return RunningTextMessage.fromMap(
+                              Map<String, dynamic>.from(e));
+                        }
+                        return null;
+                      })
+                      .whereType<RunningTextMessage>()
                       .toList() ??
                   [];
               _runningTexts = list;
               break;
             case SyncAction.updateBanners:
               final list = (packet.payload['banners'] as List?)
-                      ?.map((e) =>
-                          MediaBanner.fromMap(Map<String, dynamic>.from(e)))
+                      ?.map((e) {
+                        if (e is Map) {
+                          return MediaBanner.fromMap(
+                              Map<String, dynamic>.from(e));
+                        }
+                        return null;
+                      })
+                      .whereType<MediaBanner>()
                       .toList() ??
                   [];
               _banners = list;
               break;
             case SyncAction.updateKas:
               final list = (packet.payload['transactions'] as List?)
-                      ?.map((e) =>
-                          KasTransaction.fromMap(Map<String, dynamic>.from(e)))
+                      ?.map((e) {
+                        if (e is Map) {
+                          return KasTransaction.fromMap(
+                              Map<String, dynamic>.from(e));
+                        }
+                        return null;
+                      })
+                      .whereType<KasTransaction>()
                       .toList() ??
                   [];
               _kasTransactions = list;
@@ -333,8 +350,8 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
         fit: StackFit.expand,
         children: [
           // Background Mosque Wallpaper with dark overlay for readability
-          Image.network(
-            'https://images.unsplash.com/photo-1564507592333-c60657eea523?q=80&w=1920',
+          Image.asset(
+            'assets/images/bg_mosque.jpg',
             fit: BoxFit.cover,
             errorBuilder: (context, error, stackTrace) => Container(
               color: colorScheme.surfaceContainerLowest,

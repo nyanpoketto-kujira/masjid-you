@@ -627,10 +627,10 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
     );
   }
 
-  void _addBanner() {
+  void _addBanner(String? base64Image) {
     final title = _bannerTitleController.text.trim();
     final content = _bannerContentController.text.trim();
-    if (title.isEmpty && content.isEmpty) return;
+    if (title.isEmpty && content.isEmpty && (base64Image == null || base64Image.isEmpty)) return;
 
     setState(() {
       _banners.add(MediaBanner(
@@ -641,6 +641,7 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
         title: title,
         content: content,
         footer: _bannerFooterController.text.trim(),
+        base64Image: base64Image,
       ));
       _bannerHeaderController.clear();
       _bannerTitleController.clear();

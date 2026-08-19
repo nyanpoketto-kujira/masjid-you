@@ -5,6 +5,7 @@ import 'package:flutter_p2p_connection/flutter_p2p_connection.dart';
 class P2pHostService {
   FlutterP2pHost? _host;
   final _stateController = StreamController<HotspotHostState?>.broadcast();
+  StreamSubscription<HotspotHostState?>? _subscription;
   bool _started = false;
 
   HotspotHostState? _currentState;
@@ -19,9 +20,11 @@ class P2pHostService {
       _host = FlutterP2pHost();
       await _host!.initialize();
 
-      _host!.streamHotspotState().listen((state) {
+      _subscription = _host!.streamHotspotState().listen((state) {
         _currentState = state;
-        _stateController.add(state);
+        if (!_stateController.isClosed) {
+          _stateController.add(state);
+        }
       });
 
       if (!await _host!.checkP2pPermissions()) {
@@ -40,6 +43,8 @@ class P2pHostService {
   Future<void> stop() async {
     _started = false;
     try {
+      await _subscription?.cancel();
+      _subscription = null;
       await _host?.removeGroup();
       await _host?.dispose();
     } catch (_) {}

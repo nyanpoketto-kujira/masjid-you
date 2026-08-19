@@ -213,6 +213,7 @@ void main() {
         title: 'Infaq Pembangunan',
         content: 'Salurkan untuk ruang belajar',
         footer: 'Amal Jariyah',
+        base64Image: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
       );
 
       final parsed = MediaBanner.fromJson(banner.toJson());
@@ -222,6 +223,7 @@ void main() {
       expect(parsed.content, equals('Salurkan untuk ruang belajar'));
       expect(parsed.footer, equals('Amal Jariyah'));
       expect(parsed.isActive, isTrue);
+      expect(parsed.base64Image, equals('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='));
     });
 
     test('MediaBanner backward compat: subtitle maps to content', () {

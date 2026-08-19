@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:material_new_shapes/material_new_shapes.dart';
 import 'package:shared_models/shared_models.dart';
@@ -224,61 +225,88 @@ class _BannerPageState extends State<_BannerPage> {
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-      child: SingleChildScrollView(
-        controller: _scrollController,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header Badge Pill (StadiumBorder)
-            if (banner.header.isNotEmpty)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
-                decoration: ShapeDecoration(
-                  color: colorScheme.tertiaryContainer,
-                  shape: M3ShapeBorder(MaterialShapes.pill),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Banner Poster Image (if available)
+          if (banner.base64Image != null && banner.base64Image!.isNotEmpty) ...[
+            ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: Container(
+                width: 140,
+                height: double.infinity,
+                color: colorScheme.surfaceContainerHigh,
+                child: Image.memory(
+                  base64Decode(banner.base64Image!),
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return const Center(child: Icon(Icons.broken_image, size: 40));
+                  },
                 ),
-                child: Text(
-                  banner.header,
-                  style: theme.textTheme.labelMedium?.copyWith(
-                    color: colorScheme.onTertiaryContainer,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-              ),
-            const SizedBox(height: 8),
-            Text(
-              banner.title,
-              style: theme.textTheme.displayMedium?.copyWith(
-                color: colorScheme.onSurface,
-                fontWeight: FontWeight.bold,
-                fontSize: 26,
               ),
             ),
-            if (banner.content.isNotEmpty) ...[
-              const SizedBox(height: 4),
-              Text(
-                banner.content,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                  fontSize: 16,
-                  height: 1.3,
-                ),
-              ),
-            ],
-            if (banner.footer.isNotEmpty) ...[
-              const SizedBox(height: 6),
-              Text(
-                banner.footer,
-                style: theme.textTheme.labelLarge?.copyWith(
-                  color: colorScheme.primary,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 13,
-                ),
-              ),
-            ]
+            const SizedBox(width: 16),
           ],
-        ),
+          
+          Expanded(
+            child: SingleChildScrollView(
+              controller: _scrollController,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header Badge Pill (StadiumBorder)
+                  if (banner.header.isNotEmpty)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
+                      decoration: ShapeDecoration(
+                        color: colorScheme.tertiaryContainer,
+                        shape: M3ShapeBorder(MaterialShapes.pill),
+                      ),
+                      child: Text(
+                        banner.header,
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          color: colorScheme.onTertiaryContainer,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ),
+                  const SizedBox(height: 8),
+                  Text(
+                    banner.title,
+                    style: theme.textTheme.displayMedium?.copyWith(
+                      color: colorScheme.onSurface,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 26,
+                    ),
+                  ),
+                  if (banner.content.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      banner.content,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                        fontSize: 16,
+                        height: 1.3,
+                      ),
+                    ),
+                  ],
+                  if (banner.footer.isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    Text(
+                      banner.footer,
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        color: colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ]
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
