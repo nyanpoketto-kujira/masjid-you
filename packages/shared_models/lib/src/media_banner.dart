@@ -41,4 +41,22 @@ class MediaBanner {
 
   factory MediaBanner.fromJson(String source) =>
       MediaBanner.fromMap(json.decode(source));
+
+  MediaBanner copyWith({
+    String? id,
+    String? header,
+    String? title,
+    String? content,
+    String? footer,
+    bool? isActive,
+  }) {
+    return MediaBanner(
+      id: id ?? this.id,
+      header: header ?? this.header,
+      title: title ?? this.title,
+      content: content ?? this.content,
+      footer: footer ?? this.footer,
+      isActive: isActive ?? this.isActive,
+    );
+  }
 }
