@@ -1,6 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:material_new_shapes/material_new_shapes.dart';
 import 'package:shared_models/shared_models.dart';
+
+import '../theme/m3_shape_border.dart';
 
 class BannerCarousel extends StatefulWidget {
   final List<MediaBanner> banners;
@@ -51,6 +54,18 @@ class _BannerCarouselState extends State<BannerCarousel> {
   }
 
   @override
+  void didUpdateWidget(BannerCarousel oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final oldActiveBanners = oldWidget.banners.where((b) => b.isActive).toList();
+    final newActiveBanners = widget.banners.where((b) => b.isActive).toList();
+    
+    // Restart timer if active banners list changed
+    if (oldActiveBanners.length != newActiveBanners.length) {
+      _startTimer();
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
@@ -61,27 +76,30 @@ class _BannerCarouselState extends State<BannerCarousel> {
         color: colorScheme.surfaceContainer,
         elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(32),
+          borderRadius: BorderRadius.circular(28),
           side: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.3)),
         ),
-        child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.mosque_rounded,
-                size: 88,
-                color: colorScheme.primary.withValues(alpha: 0.65),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Jagalah Shaf dan Shalatlah Tepat Waktu',
-                style: theme.textTheme.headlineMedium?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                  fontWeight: FontWeight.bold,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          child: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.mosque_rounded,
+                  size: 88,
+                  color: colorScheme.primary.withValues(alpha: 0.65),
                 ),
-              ),
-            ],
+                const SizedBox(height: 16),
+                Text(
+                  'Jagalah Shaf dan Shalatlah Tepat Waktu',
+                  style: theme.textTheme.headlineMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       );
@@ -205,7 +223,7 @@ class _BannerPageState extends State<_BannerPage> {
     final banner = widget.banner;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       child: SingleChildScrollView(
         controller: _scrollController,
         child: Column(
@@ -217,7 +235,7 @@ class _BannerPageState extends State<_BannerPage> {
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
                 decoration: ShapeDecoration(
                   color: colorScheme.tertiaryContainer,
-                  shape: const StadiumBorder(),
+                  shape: M3ShapeBorder(MaterialShapes.pill),
                 ),
                 child: Text(
                   banner.header,

@@ -30,10 +30,27 @@ class _RunningTextBarState extends State<RunningTextBar> {
   @override
   void didUpdateWidget(RunningTextBar oldWidget) {
     super.didUpdateWidget(oldWidget);
-    final activeMessages = widget.messages.where((m) => m.isActive).toList();
-    if (activeMessages.isEmpty) {
+    
+    final oldActiveMessages = oldWidget.messages.where((m) => m.isActive).toList();
+    final newActiveMessages = widget.messages.where((m) => m.isActive).toList();
+    
+    // Check if active messages list changed (added/removed/toggled)
+    final activeCountChanged = oldActiveMessages.length != newActiveMessages.length;
+    
+    // Check if any active message content changed
+    final contentChanged = newActiveMessages.length == oldActiveMessages.length &&
+        newActiveMessages.asMap().entries.any((entry) {
+          final i = entry.key;
+          final newMsg = entry.value;
+          final oldMsg = oldActiveMessages[i];
+          return newMsg.id == oldMsg.id && 
+                 (newMsg.content != oldMsg.content || newMsg.category != oldMsg.category);
+        });
+    
+    if (newActiveMessages.isEmpty) {
       _timer?.cancel();
-    } else if (_timer == null || !_timer!.isActive) {
+    } else if (activeCountChanged || contentChanged || _timer == null || !_timer!.isActive) {
+      // Restart marquee when messages change or content updates
       _startAutoScroll();
     }
   }
@@ -77,46 +94,49 @@ class _RunningTextBarState extends State<RunningTextBar> {
   }
 
   Widget _buildEmptyState(ThemeData theme, ColorScheme colorScheme) {
-    return Container(
-      width: double.infinity,
-      height: 40,
-      padding: const EdgeInsets.symmetric(horizontal: 18),
-      decoration: BoxDecoration(
-        color: colorScheme.primary,
-        borderRadius: BorderRadius.circular(50),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            Icons.campaign_rounded,
-            color: colorScheme.onPrimary,
-            size: 24,
+    return Card(
+      color: colorScheme.primary,
+      elevation: 0,
+      margin: EdgeInsets.zero,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+        child: SizedBox(
+          height: 40,
+          child: Row(
+            children: [
+              Icon(
+                Icons.campaign_rounded,
+                color: colorScheme.onPrimary,
+                size: 24,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'INFORMASI',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  color: colorScheme.onPrimary,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.5,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Text(
+                '•',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  color: colorScheme.onPrimary.withValues(alpha: 0.7),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Text(
+                'Tidak ada informasi',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  color: colorScheme.onPrimary,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: 8),
-          Text(
-            'INFORMASI',
-            style: theme.textTheme.titleMedium?.copyWith(
-              color: colorScheme.onPrimary,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 0.5,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Text(
-            '•',
-            style: theme.textTheme.titleMedium?.copyWith(
-              color: colorScheme.onPrimary.withValues(alpha: 0.7),
-            ),
-          ),
-          const SizedBox(width: 16),
-          Text(
-            'Tidak ada informasi',
-            style: theme.textTheme.titleMedium?.copyWith(
-              color: colorScheme.onPrimary,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -138,18 +158,18 @@ class _RunningTextBarState extends State<RunningTextBar> {
       elevation: 0,
       margin: EdgeInsets.zero,
       child: Padding(
-        padding: const EdgeInsets.all(4.0),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
         child: SizedBox(
           height: 40,
           child: Row(
             children: [
-              // Fully rounded Pill (BorderRadius.circular(50)) for INFORMASI
+              // Fully rounded Pill (M3ShapeBorder pill) for INFORMASI
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 18),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 height: double.infinity,
-                decoration: BoxDecoration(
+                decoration: ShapeDecoration(
                   color: colorScheme.primary,
-                  borderRadius: BorderRadius.circular(50),
+                  shape: const StadiumBorder(),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -176,7 +196,7 @@ class _RunningTextBarState extends State<RunningTextBar> {
                   controller: _scrollController,
                   scrollDirection: Axis.horizontal,
                   physics: const NeverScrollableScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
                   children: [
                     Center(
                       child: Text(

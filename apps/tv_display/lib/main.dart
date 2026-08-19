@@ -11,7 +11,11 @@ import 'widgets/header_clock.dart';
 import 'widgets/prayer_cards.dart';
 import 'widgets/banner_carousel.dart';
 import 'widgets/kas_summary_card.dart';
+import 'widgets/friday_staff_card.dart';
 import 'widgets/running_text_bar.dart';
+import 'widgets/prayer_state_overlay.dart';
+import 'widgets/material_blob_background.dart';
+import 'state/prayer_state_machine.dart';
 import 'server/local_ws_server.dart';
 import 'server/p2p_host_service.dart';
 
@@ -46,7 +50,17 @@ class MasjidYouTVApp extends StatelessWidget {
 }
 
 class MasjidDisplayScreen extends StatefulWidget {
-  const MasjidDisplayScreen({super.key});
+  const MasjidDisplayScreen({
+    super.key,
+    this.initialConfig,
+    this.autoPrayerCycle = true,
+  });
+
+  /// Konfigurasi awal (untuk test deterministik / pratinjau).
+  final MosqueConfig? initialConfig;
+
+  /// Aktifkan siklus waktu shalat otomatis (NORMAL -> PRE_ADHAN -> ...).
+  final bool autoPrayerCycle;
 
   @override
   State<MasjidDisplayScreen> createState() => _MasjidDisplayScreenState();
@@ -66,6 +80,12 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
     latitude: -6.1754,
     longitude: 106.8272,
   );
+
+  final PrayerStateMachine _prayerStateMachine = PrayerStateMachine();
+
+  /// Bergantian antara Kartu Kas & Kartu Petugas Jumat (hari Jumat).
+  bool _showKasCard = true;
+  int _rightCardTick = 0;
 
   List<RunningTextMessage> _runningTexts = const [
     RunningTextMessage(
@@ -128,13 +148,27 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
   @override
   void initState() {
     super.initState();
+    if (widget.initialConfig != null) {
+      _config = widget.initialConfig!;
+    }
     _recalculateSchedule();
+    _prayerStateMachine.initialize(
+      _config,
+      autoCycle: widget.autoPrayerCycle,
+    );
+    _prayerStateMachine.addListener(_onStateMachineChanged);
 
     _clockTimer = Timer.periodic(const Duration(seconds: 1), (_) {
       setState(() {
         _now = DateTime.now();
         _prayerSchedule = PrayerSchedule.calculate(_config, _now);
+        // Hari Jumat: kartu kanan bergantian tiap 10 detik.
+        _rightCardTick++;
+        if (_now.weekday == DateTime.friday && _rightCardTick % 10 == 0) {
+          _showKasCard = !_showKasCard;
+        }
       });
+      _prayerStateMachine.tick(_now, _prayerSchedule);
     });
 
     _initLocalServer();
@@ -148,8 +182,20 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
           _p2pState = state;
         });
       }
+    }, onError: (error) {
+      // Handle P2P host errors gracefully
+      debugPrint('P2P Host error: $error');
+      if (mounted) {
+        setState(() {
+          _p2pState = null;
+        });
+      }
     });
-    _p2pHost.start();
+    try {
+      _p2pHost.start();
+    } catch (e) {
+      debugPrint('Failed to start P2P host: $e');
+    }
   }
 
   void _recalculateSchedule() {
@@ -164,6 +210,7 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
             case SyncAction.updateConfig:
               _config = MosqueConfig.fromMap(packet.payload);
               _recalculateSchedule();
+              _prayerStateMachine.updateConfig(_config, _now);
               break;
             case SyncAction.updateRunningText:
               final list = (packet.payload['messages'] as List?)
@@ -189,6 +236,28 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
                   [];
               _kasTransactions = list;
               break;
+            case SyncAction.skipAdhan:
+              _prayerStateMachine.skipAdhan(now: _now);
+              break;
+            case SyncAction.startIqomah:
+              _prayerStateMachine.startIqomah();
+              break;
+            case SyncAction.startShalat:
+              _prayerStateMachine.startShalat();
+              break;
+            case SyncAction.finishShalat:
+              _prayerStateMachine.finishShalat();
+              break;
+            case SyncAction.forcePhase:
+              _prayerStateMachine.forcePhase(
+                PrayerPhase.fromName(packet.payload['phase'] as String?),
+                now: _now,
+                schedule: _prayerSchedule,
+              );
+              break;
+            case SyncAction.getInitialState:
+              _broadcastState();
+              break;
             default:
               break;
           }
@@ -196,8 +265,12 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
       },
     );
 
-    await _localServer?.start(port: 8080);
-    _fetchLocalIp();
+    try {
+      await _localServer?.start(port: 8080);
+      _fetchLocalIp();
+    } catch (e) {
+      debugPrint('Failed to start local server: $e');
+    }
   }
 
   Future<void> _fetchLocalIp() async {
@@ -216,13 +289,35 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
           }
         }
       }
+      // No non-loopback IPv4 found
+      debugPrint('No non-loopback IPv4 address found');
     } catch (e) {
-      print('Failed to get IP: $e');
+      debugPrint('Failed to get IP: $e');
     }
+  }
+
+  /// Kirim status fase state machine ke Remote (untuk indikator tombol aksi cepat).
+  void _broadcastState() {
+    _localServer?.broadcast(SyncPacket(
+      action: SyncAction.stateUpdate,
+      payload: {
+        'phase': _prayerStateMachine.phase.name,
+        'prayer': _prayerStateMachine.prayer?.name,
+        'remainingSeconds': _prayerStateMachine.remaining.inSeconds,
+        'totalSeconds': _prayerStateMachine.total.inSeconds,
+      },
+    ));
+  }
+
+  void _onStateMachineChanged() {
+    if (!mounted) return;
+    _broadcastState();
   }
 
   @override
   void dispose() {
+    _prayerStateMachine.removeListener(_onStateMachineChanged);
+    _prayerStateMachine.dispose();
     _clockTimer?.cancel();
     _localServer?.stop();
     _p2pHost.stop();
@@ -248,6 +343,9 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
           Container(
             color: Colors.black.withValues(alpha: 0.85), // Soft dark filter for contrast
           ),
+
+          // Material You Dynamic Blob Background — di atas overlay, di bawah konten
+          const MaterialBlobBackground(),
 
           // Main Content Layer
           SafeArea(
@@ -279,9 +377,37 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
                         const SizedBox(width: 8),
                         Expanded(
                           flex: 2,
-                          child: KasSummaryCard(
-                            transactions: _kasTransactions,
-                          ),
+                          child: _now.weekday == DateTime.friday
+                              ? AnimatedSwitcher(
+                                  duration: const Duration(milliseconds: 500),
+                                  switchInCurve: Curves.easeOutCubic,
+                                  switchOutCurve: Curves.easeInCubic,
+                                  transitionBuilder: (child, animation) {
+                                    return FadeTransition(
+                                      opacity: animation,
+                                      child: SlideTransition(
+                                        position: Tween<Offset>(
+                                          begin: const Offset(0, 0.06),
+                                          end: Offset.zero,
+                                        ).animate(animation),
+                                        child: child,
+                                      ),
+                                    );
+                                  },
+                                  child: _showKasCard
+                                      ? KasSummaryCard(
+                                          key: const ValueKey('kas-summary'),
+                                          transactions: _kasTransactions,
+                                        )
+                                      : FridayStaffCard(
+                                          key: const ValueKey('friday-staff'),
+                                          khatib: _config.fridayKhatib,
+                                          muadzin: _config.fridayMuadzin,
+                                        ),
+                                )
+                              : KasSummaryCard(
+                                  transactions: _kasTransactions,
+                                ),
                         ),
                       ],
                     ),
@@ -299,6 +425,23 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
                 ],
               ),
             ),
+          ),
+
+          // Prayer State Machine Overlay (PRE_ADHAN / ADHAN / PRE_IQOMAH / SHALAT)
+          AnimatedBuilder(
+            animation: _prayerStateMachine,
+            builder: (context, _) {
+              return PrayerStateOverlay(
+                phase: _prayerStateMachine.phase,
+                prayerName:
+                    _prayerStateMachine.prayer?.displayNameForDate(_now),
+                remaining: _prayerStateMachine.remaining,
+                total: _prayerStateMachine.total,
+                deadline: _prayerStateMachine.deadline,
+                fridayKhatib: _config.fridayKhatib,
+                fridayMuadzin: _config.fridayMuadzin,
+              );
+            },
           ),
         ],
       ),
