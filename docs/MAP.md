@@ -125,7 +125,17 @@ flowchart LR
 
 | File | Fungsi Utama | Class / Method penting |
 |---|---|---|
-| `lib/main.dart` | Entrypoint Remote, navigasi 6 halaman swipe (4 menu bawah + 3 sub-tab Konten, dual `TabController`) + mikro-animasi ikon `PlayfulNavIcon`, koneksi WS & P2P, semua handler edit, durasi siklus shalat, aksi cepat, menu tes, tema M3 standar | `MasjidYouRemoteApp`, `RemoteHomeScreen` / `_RemoteHomeScreenState`, `_KasStatCard`, `M3Pressable`, `PlayfulNavIcon` (`_buildQuickActionsCard`, `_buildTestTab`, `_buildContentTabBar`, `_handleMainTabChange`, `_handleSubTabChange`, `_sendQuickAction`, `_sendForcePhase`, `_loadSavedDurations`, `_persistDurations`, `_handleTvPacket`) |
+| `lib/main.dart` | Entrypoint Remote, mengorkestrasikan navigasi dan menyelaraskan callback state serta form controllers | `MasjidYouRemoteApp`, `RemoteHomeScreen` / `_RemoteHomeScreenState` |
+| `lib/theme/remote_theme.dart` | Konfigurasi tersentralisasi tema Material 3 standar Remote | `buildRemoteTheme` |
+| `lib/widgets/m3_pressable.dart` | Widget interaktif dengan umpan balik gerakan spring M3 Expressive | `M3Pressable` |
+| `lib/widgets/playful_nav_icon.dart` | Ikon navigasi dinamis dengan mikro-animasi lompatan elastis dan putaran | `PlayfulNavIcon` |
+| `lib/widgets/kas_stat_card.dart` | Kartu visual untuk ringkasan nominal kas masuk, keluar, dan saldo | `KasStatCard` |
+| `lib/screens/settings/settings_tab.dart` | Layar pengaturan identitas masjid, GPS, durasi siklus shalat, aksi cepat, dan tombol simulasi | `SettingsTab` |
+| `lib/screens/content/running_text_subtab.dart` | Editor pesan running text berjalan berdasarkan kategori | `RunningTextSubtab` |
+| `lib/screens/content/banners_subtab.dart` | Editor banner informasi masjid multi-bidang dengan kendali sakelar aktif | `BannersSubtab` |
+| `lib/screens/content/kas_subtab.dart` | Manajemen data kas masuk/keluar, input nominal, dan riwayat transaksi | `KasSubtab` |
+| `lib/screens/connectivity/connectivity_tab.dart` | Pengaturan koneksi jaringan nirkabel WebSocket manual dan pencarian WiFi Direct TV | `ConnectivityTab` |
+| `lib/screens/simulation/simulation_tab.dart` | Menu tes simulasi untuk memicu paksa fase siklus shalat TV | `SimulationTab` |
 | `lib/services/ws_client.dart` | Client WebSocket + helper kirim per tipe data + listen paket masuk | `RemoteWsClient` (`connect`, `sendConfigUpdate`, `sendRunningTextsUpdate`, `sendBannersUpdate`, `sendKasUpdate`, `sendSkipAdhan`, `sendStartIqomah`, `sendStartShalat`, `sendFinishShalat`, `sendForcePhase`, `onPacket`, `disconnect`) |
 | `lib/services/p2p_client_service.dart` | Scan & konek WiFi Direct/BLE | `P2pClientService` (`startScan`, `stopScan`, `connectTo`, `disconnect`, `stateStream`) |
 | `test/widget_test.dart` | Smoke test | — |
