@@ -30,7 +30,7 @@ void main() async {
   try {
     await WakelockPlus.enable();
   } catch (e) {
-    print('Wakelock enable failed: $e');
+    debugPrint('Wakelock enable failed: $e');
   }
 
   runApp(const MasjidYouTVApp());
@@ -89,7 +89,6 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
 
   /// Bergantian antara Kartu Kas & Kartu Petugas Jumat (hari Jumat).
   bool _showKasCard = true;
-  int _rightCardTick = 0;
 
   List<RunningTextMessage> _runningTexts = const [
     RunningTextMessage(

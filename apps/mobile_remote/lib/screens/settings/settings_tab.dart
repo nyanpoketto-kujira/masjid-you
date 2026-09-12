@@ -297,7 +297,7 @@ class SettingsTab extends StatelessWidget {
     final shalatActive = tvPhase == PrayerPhase.shalat;
 
     return Card(
-      color: colorScheme.surfaceContainerHighest.withOpacity(0.5),
+      color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(

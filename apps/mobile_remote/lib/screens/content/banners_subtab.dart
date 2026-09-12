@@ -129,7 +129,7 @@ class _BannersSubtabState extends State<BannersSubtab> {
                             top: 8,
                             right: 8,
                             child: CircleAvatar(
-                              backgroundColor: Colors.black.withOpacity(0.6),
+                              backgroundColor: Colors.black.withValues(alpha: 0.6),
                               child: IconButton(
                                 icon: const Icon(Icons.close, color: Colors.white),
                                 onPressed: _clearImage,

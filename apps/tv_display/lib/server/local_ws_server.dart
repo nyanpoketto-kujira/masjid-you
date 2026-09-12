@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:shelf/shelf_io.dart' as init_io;
 import 'package:shelf_web_socket/shelf_web_socket.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
@@ -34,10 +35,10 @@ class LocalServer {
       });
 
       _server = await init_io.serve(handler, InternetAddress.anyIPv4, port);
-      print('Local TV WebSocket server running on port ${_server?.port}');
+      debugPrint('Local TV WebSocket server running on port ${_server?.port}');
       return _server?.port;
     } catch (e) {
-      print('Failed to start local server: $e');
+      debugPrint('Failed to start local server: $e');
       return null;
     }
   }

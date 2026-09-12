@@ -40,7 +40,7 @@ class ConnectivityTab extends StatelessWidget {
           Card(
             color: isConnected
                 ? colorScheme.primaryContainer
-                : colorScheme.surfaceContainerHighest.withOpacity(0.5),
+                : colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(

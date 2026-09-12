@@ -146,7 +146,7 @@ class KasSubtab extends StatelessWidget {
                 return Card(
                   child: ListTile(
                     leading: CircleAvatar(
-                      backgroundColor: isMasuk ? Colors.green.withOpacity(0.15) : Colors.red.withOpacity(0.15),
+                      backgroundColor: isMasuk ? Colors.green.withValues(alpha: 0.15) : Colors.red.withValues(alpha: 0.15),
                       child: Icon(
                         isMasuk ? Icons.arrow_downward : Icons.arrow_upward,
                         color: isMasuk ? Colors.green : Colors.red,

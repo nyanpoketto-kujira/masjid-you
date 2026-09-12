@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_p2p_connection/flutter_p2p_connection.dart';
 
 /// Status kesiapan perangkat untuk menjalankan mode WiFi Direct.
@@ -137,7 +138,7 @@ class P2pClientService {
       await enableBluetoothIfNeeded();
       await _client!.startScan(onDevices, onDone: onDone);
     } catch (e) {
-      print('P2P scan failed: $e');
+      debugPrint('P2P scan failed: $e');
     }
   }
 
@@ -154,7 +155,7 @@ class P2pClientService {
       await _client!.connectWithDevice(device);
       return true;
     } catch (e) {
-      print('P2P connect failed: $e');
+      debugPrint('P2P connect failed: $e');
       return false;
     }
   }
