@@ -1,5 +1,3 @@
-library shared_models;
-
 export 'src/mosque_config.dart';
 export 'src/prayer_phase.dart';
 export 'src/prayer_schedule.dart';

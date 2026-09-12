@@ -28,7 +28,7 @@
         android:maxSdkVersion="30" />
 
     <application
-        android:label="mobile_remote"
+        android:label="Remote Masjid"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

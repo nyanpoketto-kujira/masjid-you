@@ -1,6 +1,14 @@
 import 'dart:convert';
 import 'prayer_type.dart';
 
+/// Helper aman parsing numerik dari payload JSON yang tidak dipercaya.
+/// Mengembalikan [fallback] bila [raw] bukan angka, sehingga `fromMap`
+/// tidak pernah melempar `TypeError` dari cast `as num?`.
+int _intOf(Object? raw, int fallback) => raw is num ? raw.toInt() : fallback;
+
+double _doubleOf(Object? raw, double fallback) =>
+    raw is num ? raw.toDouble() : fallback;
+
 class IqamahDuration {
   final int fajr;
   final int dhuhr;
@@ -26,15 +34,40 @@ class IqamahDuration {
 
   factory IqamahDuration.fromMap(Map<String, dynamic> map) {
     return IqamahDuration(
-      fajr: map['fajr'] ?? 10,
-      dhuhr: map['dhuhr'] ?? 10,
-      asr: map['asr'] ?? 10,
-      maghrib: map['maghrib'] ?? 7,
-      isha: map['isha'] ?? 10,
+      fajr: _intOf(map['fajr'], 10),
+      dhuhr: _intOf(map['dhuhr'], 10),
+      asr: _intOf(map['asr'], 10),
+      maghrib: _intOf(map['maghrib'], 7),
+      isha: _intOf(map['isha'], 10),
     );
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is IqamahDuration &&
+          other.fajr == fajr &&
+          other.dhuhr == dhuhr &&
+          other.asr == asr &&
+          other.maghrib == maghrib &&
+          other.isha == isha;
+
+  @override
+  int get hashCode => Object.hash(fajr, dhuhr, asr, maghrib, isha);
+
+  @override
+  String toString() =>
+      'IqamahDuration(fajr: $fajr, dhuhr: $dhuhr, asr: $asr, maghrib: $maghrib, isha: $isha)';
 }
 
+/// Konfigurasi identitas & siklus waktu shalat masjid.
+///
+/// Objek ini dirancang immutable. Catatan: konstruktor utama tetap `const`
+/// agar bisa dipakai sebagai konstanta compile-time, sehingga [prayerOffsets]
+/// yang diberikan langsung ke konstruktor TIDAK dibungkus unmodifiable
+/// (pemanggil yang membuat instance sendiri bertanggung jawab untuk tidak
+/// memutak-ataikannya). Semua pembuatan lewat [fromMap] / [copyWith]
+/// membungkus map menjadi unmodifiable sehingga tidak bisa diubah dari luar.
 class MosqueConfig {
   final String name;
   final String address;
@@ -82,6 +115,25 @@ class MosqueConfig {
     this.fridayMuadzin = 'Ustadz Bilal',
   });
 
+  /// Konstruktor internal: selalu membungkus [prayerOffsets] menjadi
+  /// unmodifiable (dipakai `fromMap` & `copyWith`).
+  MosqueConfig._internal({
+    required this.name,
+    required this.address,
+    required this.latitude,
+    required this.longitude,
+    required this.utcOffsetHours,
+    required this.iqamahDuration,
+    required Map<PrayerType, int> prayerOffsets,
+    required this.preAdhanMinutes,
+    required this.adhanMinutes,
+    required this.preIqomahMinutes,
+    required this.shalatMinutes,
+    required this.khutbahMinutes,
+    required this.fridayKhatib,
+    required this.fridayMuadzin,
+  }) : prayerOffsets = Map.unmodifiable(prayerOffsets);
+
   int offsetFor(PrayerType type) => prayerOffsets[type] ?? 0;
 
   Map<String, dynamic> toMap() => {
@@ -113,7 +165,7 @@ class MosqueConfig {
               .where((t) => t.name == entry.key)
               .firstOrNull;
           if (type != null) {
-            result[type] = (entry.value as num?)?.toInt() ?? 0;
+            result[type] = _intOf(entry.value, 0);
           }
         }
         return result;
@@ -127,23 +179,30 @@ class MosqueConfig {
       return result;
     }
 
-    return MosqueConfig(
-      name: map['name'] ?? 'Masjid Al-Ikhlas',
-      address: map['address'] ?? '',
-      latitude: (map['latitude'] as num?)?.toDouble() ?? -6.2088,
-      longitude: (map['longitude'] as num?)?.toDouble() ?? 106.8456,
-      utcOffsetHours: map['utcOffsetHours'] ?? 7,
-      iqamahDuration: map['iqamahDuration'] != null
-          ? IqamahDuration.fromMap(Map<String, dynamic>.from(map['iqamahDuration']))
+    final rawName = map['name'];
+    final rawAddress = map['address'];
+    final rawUtc = map['utcOffsetHours'];
+    final rawIqamah = map['iqamahDuration'];
+    final rawKhatib = map['fridayKhatib'];
+    final rawMuadzin = map['fridayMuadzin'];
+
+    return MosqueConfig._internal(
+      name: rawName is String ? rawName : 'Masjid Al-Ikhlas',
+      address: rawAddress is String ? rawAddress : '',
+      latitude: _doubleOf(map['latitude'], -6.2088),
+      longitude: _doubleOf(map['longitude'], 106.8456),
+      utcOffsetHours: _intOf(rawUtc, 7),
+      iqamahDuration: rawIqamah is Map
+          ? IqamahDuration.fromMap(Map<String, dynamic>.from(rawIqamah))
           : const IqamahDuration(),
       prayerOffsets: parseOffsets(),
-      preAdhanMinutes: (map['preAdhanMinutes'] as num?)?.toInt() ?? 15,
-      adhanMinutes: (map['adhanMinutes'] as num?)?.toInt() ?? 2,
-      preIqomahMinutes: (map['preIqomahMinutes'] as num?)?.toInt() ?? 1,
-      shalatMinutes: (map['shalatMinutes'] as num?)?.toInt() ?? 10,
-      khutbahMinutes: (map['khutbahMinutes'] as num?)?.toInt() ?? 20,
-      fridayKhatib: (map['fridayKhatib'] as String?) ?? 'Ustadz Khatib',
-      fridayMuadzin: (map['fridayMuadzin'] as String?) ?? 'Ustadz Bilal',
+      preAdhanMinutes: _intOf(map['preAdhanMinutes'], 15),
+      adhanMinutes: _intOf(map['adhanMinutes'], 2),
+      preIqomahMinutes: _intOf(map['preIqomahMinutes'], 1),
+      shalatMinutes: _intOf(map['shalatMinutes'], 10),
+      khutbahMinutes: _intOf(map['khutbahMinutes'], 20),
+      fridayKhatib: rawKhatib is String ? rawKhatib : 'Ustadz Khatib',
+      fridayMuadzin: rawMuadzin is String ? rawMuadzin : 'Ustadz Bilal',
     );
   }
 
@@ -168,14 +227,17 @@ class MosqueConfig {
     String? fridayKhatib,
     String? fridayMuadzin,
   }) {
-    return MosqueConfig(
+    return MosqueConfig._internal(
       name: name ?? this.name,
       address: address ?? this.address,
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
       utcOffsetHours: utcOffsetHours ?? this.utcOffsetHours,
       iqamahDuration: iqamahDuration ?? this.iqamahDuration,
-      prayerOffsets: prayerOffsets ?? this.prayerOffsets,
+      // Deep copy: salinan punya map-nya sendiri sehingga mutasi pada map
+      // milik objek lama tidak ikut mengubah salinan (dan sebaliknya).
+      prayerOffsets:
+          prayerOffsets ?? Map<PrayerType, int>.of(this.prayerOffsets),
       preAdhanMinutes: preAdhanMinutes ?? this.preAdhanMinutes,
       adhanMinutes: adhanMinutes ?? this.adhanMinutes,
       preIqomahMinutes: preIqomahMinutes ?? this.preIqomahMinutes,
@@ -185,4 +247,60 @@ class MosqueConfig {
       fridayMuadzin: fridayMuadzin ?? this.fridayMuadzin,
     );
   }
+
+  static bool _mapsEqual(Map<PrayerType, int> a, Map<PrayerType, int> b) {
+    // Perbandingan semantik: {fajr: 1} dan {fajr: 1, sunrise: 0, ...}
+    // dianggap sama karena hasil offsetFor-nya identik untuk semua shalat.
+    for (final type in kAllPrayerTypes) {
+      if ((a[type] ?? 0) != (b[type] ?? 0)) return false;
+    }
+    return true;
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is MosqueConfig &&
+          other.name == name &&
+          other.address == address &&
+          other.latitude == latitude &&
+          other.longitude == longitude &&
+          other.utcOffsetHours == utcOffsetHours &&
+          other.iqamahDuration == iqamahDuration &&
+          _mapsEqual(other.prayerOffsets, prayerOffsets) &&
+          other.preAdhanMinutes == preAdhanMinutes &&
+          other.adhanMinutes == adhanMinutes &&
+          other.preIqomahMinutes == preIqomahMinutes &&
+          other.shalatMinutes == shalatMinutes &&
+          other.khutbahMinutes == khutbahMinutes &&
+          other.fridayKhatib == fridayKhatib &&
+          other.fridayMuadzin == fridayMuadzin;
+
+  @override
+  int get hashCode => Object.hash(
+        name,
+        address,
+        latitude,
+        longitude,
+        utcOffsetHours,
+        iqamahDuration,
+        Object.hashAll(kAllPrayerTypes.map(offsetFor)),
+        preAdhanMinutes,
+        adhanMinutes,
+        preIqomahMinutes,
+        shalatMinutes,
+        khutbahMinutes,
+        fridayKhatib,
+        fridayMuadzin,
+      );
+
+  @override
+  String toString() =>
+      'MosqueConfig(name: $name, address: $address, latitude: $latitude, '
+      'longitude: $longitude, utcOffsetHours: $utcOffsetHours, '
+      'iqamahDuration: $iqamahDuration, prayerOffsets: $prayerOffsets, '
+      'preAdhanMinutes: $preAdhanMinutes, adhanMinutes: $adhanMinutes, '
+      'preIqomahMinutes: $preIqomahMinutes, shalatMinutes: $shalatMinutes, '
+      'khutbahMinutes: $khutbahMinutes, fridayKhatib: $fridayKhatib, '
+      'fridayMuadzin: $fridayMuadzin)';
 }

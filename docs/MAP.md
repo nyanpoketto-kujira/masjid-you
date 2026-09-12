@@ -10,7 +10,7 @@
 | Dokumen | Isi | Kapan Dibaca |
 |---|---|---|
 | **[MAP.md](MAP.md)** (file ini) | Peta arsitektur umum, peta fungsi per-file, navigasi lintas dokumen | Mulai dari sini |
-| **[DECISIONS.md](DECISIONS.md)** | *Architectural Decision Records* (ADR): kenapa ditulis ulang, kenapa Flutter, kenapa WebSocket/P2P, kenapa fallback UI, kenapa `didUpdateWidget`, penanganan error P0 | Memahami alasan desain |
+| **[DECISIONS.md](DECISIONS.md)** | *Architectural Decision Records* (ADR): kenapa ditulis ulang, kenapa Flutter, kenapa WebSocket/P2P, kenapa fallback UI, kenapa `didUpdateWidget`, penanganan error P0, validasi prasyarat WiFi Direct TV & Remote | Memahami alasan desain |
 | **[tv_display/widget_mapping.md](tv_display/widget_mapping.md)** | Bedah seluruh file `apps/tv_display/lib/`, fungsi tiap widget, state management, timer, penanganan layar TV | Bekerja di sisi TV |
 | **[tv_display/m3_shapes.md](tv_display/m3_shapes.md)** | Arsitektur perubahan shape terbaru: manual `RoundedRectangleBorder(28)`, `ArchBorder`, model swap jam, penghapusan badge — apa/kenapa/bagaimana | Memahami tampilan/shape layar TV |
 | **[tv_display/prayer_state_machine.md](tv_display/prayer_state_machine.md)** | Arsitektur siklus waktu shalat otomatis (state machine + overlay animasi): apa yang diubah, kenapa, bagaimana cara kerja, protokol & alur data | Memahami/mengubah fitur waktu shalat |
@@ -125,7 +125,7 @@ flowchart LR
 
 | File | Fungsi Utama | Class / Method penting |
 |---|---|---|
-| `lib/main.dart` | Entrypoint Remote, mengorkestrasikan navigasi dan menyelaraskan callback state serta form controllers | `MasjidYouRemoteApp`, `RemoteHomeScreen` / `_RemoteHomeScreenState` |
+| `lib/main.dart` | Entrypoint Remote, mengorkestrasikan navigasi dan menyelaraskan callback state serta form controllers; validasi prasyarat WiFi Direct (`checkPrerequisites`) sebelum scan + dialog "WiFi Direct Belum Siap" | `MasjidYouRemoteApp`, `RemoteHomeScreen` / `_RemoteHomeScreenState` |
 | `lib/theme/remote_theme.dart` | Konfigurasi tersentralisasi tema Material 3 standar Remote | `buildRemoteTheme` |
 | `lib/widgets/m3_pressable.dart` | Widget interaktif dengan umpan balik gerakan spring M3 Expressive | `M3Pressable` |
 | `lib/widgets/playful_nav_icon.dart` | Ikon navigasi dinamis dengan mikro-animasi lompatan elastis dan putaran | `PlayfulNavIcon` |
@@ -137,7 +137,7 @@ flowchart LR
 | `lib/screens/connectivity/connectivity_tab.dart` | Pengaturan koneksi jaringan nirkabel WebSocket manual dan pencarian WiFi Direct TV | `ConnectivityTab` |
 | `lib/screens/simulation/simulation_tab.dart` | Menu tes simulasi untuk memicu paksa fase siklus shalat TV | `SimulationTab` |
 | `lib/services/ws_client.dart` | Client WebSocket + helper kirim per tipe data + listen paket masuk | `RemoteWsClient` (`connect`, `sendConfigUpdate`, `sendRunningTextsUpdate`, `sendBannersUpdate`, `sendKasUpdate`, `sendSkipAdhan`, `sendStartIqomah`, `sendStartShalat`, `sendFinishShalat`, `sendForcePhase`, `onPacket`, `disconnect`) |
-| `lib/services/p2p_client_service.dart` | Scan & konek WiFi Direct/BLE | `P2pClientService` (`startScan`, `stopScan`, `connectTo`, `disconnect`, `stateStream`) |
+| `lib/services/p2p_client_service.dart` | Scan & konek WiFi Direct/BLE; validasi prasyarat (model `P2pPrerequisites` + `checkPrerequisites`) mirror TV (ADR-015) | `P2pClientService` (`startScan`, `stopScan`, `connectTo`, `disconnect`, `stateStream`, `checkPrerequisites`, `enableWifiIfNeeded`, `enableBluetoothIfNeeded`, `enableLocationIfNeeded`, `askPermissionsIfNeeded`) |
 | `test/widget_test.dart` | Smoke test | — |
 
 > **Detail tema/shape Remote** (revert M3 Expressive → square): → [`mobile_remote/theme_shapes.md`](mobile_remote/theme_shapes.md)
@@ -153,12 +153,11 @@ flowchart LR
 | `lib/src/mosque_config.dart` | Konfigurasi masjid + offset per sholat + durasi siklus + **petugas Jumat** (`khutbahMinutes`, `fridayKhatib`, `fridayMuadzin`) | `MosqueConfig`, `IqamahDuration` |
 | `lib/src/prayer_type.dart` | Enum sholat + label Indonesia + `displayNameForDate` (Dzuhur→"Jumat" di hari Jumat) | `PrayerType`, `PrayerTypeX`, `kAllPrayerTypes` |
 | `lib/src/prayer_schedule.dart` | Hitung jadwal sholat (adhan, offline) | `PrayerSchedule`, `PrayerScheduleItem`, `PrayerSchedule.calculate` |
-| `lib/src/media_banner.dart` | Banner Info Masjid 4 bidang | `MediaBanner` (header/title/content/footer) |
+| `lib/src/media_banner.dart` | Banner Info Masjid 4 bidang | `MediaBanner` (header/title/content/footer, `copyWith(clearBase64Image:)`) |
 | `lib/src/running_text.dart` | Teks berjalan | `RunningTextMessage` |
 | `lib/src/kas_transaction.dart` | Transaksi kas + agregasi | `KasTransaction`, `KasType`, `KasSummary` |
-| `lib/src/shared_models_base.dart` | Placeholder awal (belum dipakai) | `Awesome` |
 | `lib/shared_models.dart` | Barrel export | — |
-| `test/shared_models_test.dart` | 16 unit test (termasuk durasi siklus & `PrayerPhase`) | — |
+| `test/shared_models_test.dart` | 41 unit test (round-trip, fallback payload, equality, unmodifiable offsets) | — |
 
 ---
 

@@ -50,7 +50,10 @@ class LocalServer {
   }
 
   Future<void> stop() async {
-    for (final client in _clients) {
+    // Iterasi salinan: sink.close() memicu onDone yang menghapus klien dari
+    // _clients, sehingga iterasi langsung atas _clients bisa melempar
+    // ConcurrentModificationError saat ada klien aktif saat shutdown.
+    for (final client in List.of(_clients)) {
       await client.sink.close();
     }
     _clients.clear();

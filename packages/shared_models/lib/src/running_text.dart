@@ -21,11 +21,19 @@ class RunningTextMessage {
       };
 
   factory RunningTextMessage.fromMap(Map<String, dynamic> map) {
+    final rawId = map['id'];
+    final rawContent = map['content'];
+    final rawCategory = map['category'];
+    final rawActive = map['isActive'];
     return RunningTextMessage(
-      id: map['id'] ?? DateTime.now().millisecondsSinceEpoch.toString(),
-      content: map['content'] ?? '',
-      isActive: map['isActive'] ?? true,
-      category: map['category'] ?? 'Umum',
+      // `id` wajib String: bila tidak ada di payload (atau tipenya salah),
+      // id baru dibuat agar pesan tetap punya identitas stabil di UI.
+      id: rawId is String
+          ? rawId
+          : DateTime.now().millisecondsSinceEpoch.toString(),
+      content: rawContent is String ? rawContent : '',
+      isActive: rawActive is bool ? rawActive : true,
+      category: rawCategory is String ? rawCategory : 'Umum',
     );
   }
 
@@ -33,4 +41,20 @@ class RunningTextMessage {
 
   factory RunningTextMessage.fromJson(String source) =>
       RunningTextMessage.fromMap(json.decode(source));
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is RunningTextMessage &&
+          other.id == id &&
+          other.content == content &&
+          other.isActive == isActive &&
+          other.category == category;
+
+  @override
+  int get hashCode => Object.hash(id, content, isActive, category);
+
+  @override
+  String toString() =>
+      'RunningTextMessage(id: $id, content: $content, isActive: $isActive, category: $category)';
 }

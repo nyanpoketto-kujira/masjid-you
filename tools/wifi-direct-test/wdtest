@@ -1,0 +1,305 @@
+#!/usr/bin/env bash
+#
+# wdtest — CLI tes koneksi WiFi Direct untuk Masjid You.
+#
+# Skenario: LAPTOP = CLIENT (sama seperti app Remote di HP).
+#   1. Laptop scan WiFi Direct untuk menemukan HOST / Group Owner (mis. app TV).
+#   2. Tampilkan daftar peer → user pilih mau connect ke yang mana.
+#   3. Connect, dapat IP dari GO, lalu tes ping + WebSocket (port 8080) + control.
+#
+# Semua command P2P butuh root (sudo) krn memakai wpa_cli (wpa_supplicant).
+#
+set -euo pipefail
+
+TOOL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+WS_TEST="$TOOL_DIR/ws_test.py"
+
+GO_SUBNET="192.168.49"       # Subnet default GO (wpa_supplicant hostapd)
+WPA_IFACE=""
+P2P_DEV=""
+SUDO=""
+
+RED=$'\033[31m'; GRN=$'\033[32m'; YEL=$'\033[33m'; BLU=$'\033[34m'; RST=$'\033[0m'
+die() { echo -e "${RED}[ERR]${RST} $*" >&2; exit 1; }
+info() { echo -e "${BLU}[..]${RST} $*"; }
+ok()   { echo -e "${GRN}[ OK]${RST} $*"; }
+warn() { echo -e "${YEL}[WARN]${RST} $*"; }
+
+usage() {
+  cat <<'EOF'
+wdtest — tes koneksi WiFi Direct (laptop sbg CLIENT, scan & pilih HOST)
+
+USAGE:
+  wdtest setup                  Scan host WiFi Direct, pilih, connect (butuh root)
+  wdtest status                 Cek status P2P & interface group yang aktif
+  wdtest teardown               Putus koneksi / hapus group WiFi Direct
+  wdtest wifi                    Cek perangkat Wi-Fi yang tersedia sekitarnya
+  wdtest defaultgw              Cetak IP gateway/GO dalam group aktif
+  wdtest ping [IP]              Ping GO/host (default diambil dari defaultgw)
+  wdtest ws [IP] [action...]    Tes WebSocket port 8080 + kirim action
+  wdtest ws-ip                  Cari IP GO lalu jalankan getInitialState+beep
+
+  Action WS: getInitialState|triggerBeep|skipAdhan|startIqomah|startShalat|finishShalat
+  Force fase: ws [IP] -f adhan | -f normal | -f shalat | ...
+  Raw JSON:  ws [IP] -j '{"action":"getInitialState","payload":{}}'
+
+CONTOH:
+  sudo ./wdtest setup                 # scan & pilih host, lalu connect
+  ./wdtest ping                       # ping host yang tadi terhubung
+  ./wdtest ws-ip                      # auto cari IP GO, getInitialState + beep
+
+KALAU GRUP SUDAH JADI (TV sbg GO) & laptop sudah connect:
+  ./wdtest ping 192.168.49.1
+  ./wdtest ws    192.168.49.1 getInitialState beep
+EOF
+  exit 0
+}
+
+[ $# -lt 1 ] && usage
+
+# Pilih cara menjalankan perintah ber-ROOT:
+#   - TTY interaktif                     -> sudo  (ketik password)
+#   - Bukan TTY (script/pipe/non-interaktif) -> coba pkexec (polkit); fallback sudo -n
+SUDO=""
+pick_sudo() {
+  if [ -n "$SUDO" ]; then echo "$SUDO"; return; fi
+  if [ "$(id -u)" -eq 0 ]; then echo ""; return; fi
+  if [ -t 0 ] || [ -t 1 ]; then
+    echo "sudo"
+  else
+    if command -v pkexec >/dev/null; then
+      echo "pkexec"
+    elif sudo -n true 2>/dev/null; then
+      echo "sudo -n"
+    else
+      echo "sudo"
+    fi
+  fi
+}
+SUDO="$(pick_sudo)"
+
+detect_wlan() {
+  for d in /sys/class/net/wl*/ /sys/class/net/wlan*/; do
+    [ -e "$d" ] && { WPA_IFACE="$(basename "$d")"; return 0; }
+  done
+  # cari juga via ip
+  for n in $(ip -o link show 2>/dev/null | awk -F': ' '{print $2}'); do
+    case "$n" in wl*|wlan*) WPA_IFACE="$n"; return 0;; esac
+  done
+  return 1
+}
+
+# Resolve p2p device interface (p2p-dev-wlo1 / p2p-wlan0 / p2p0).
+resolve_p2p() {
+  detect_wlan 2>/dev/null || true
+  local cand
+  for cand in "p2p-dev-${WPA_IFACE:-}" "p2p-wlan0-0" "p2p0" "p2p-wlan0"; do
+    [ -z "$cand" ] && continue
+    if $SUDO wpa_cli -i "$cand" PING >/dev/null 2>&1; then
+      # pastikan balasan PONG (bukan error)
+      if $SUDO wpa_cli -i "$cand" PING 2>/dev/null | grep -qi "PONG"; then
+        P2P_DEV="$cand"; return 0
+      fi
+    fi
+  done
+  return 1
+}
+
+require_p2p() {
+  resolve_p2p || die "P2P interface tidak ditemukan. Pastikan wpa_supplicant jalan & Anda root (sudo)."
+}
+
+cmd_status() {
+  require_p2p || true
+  echo "=== P2P status (${P2P_DEV:-?}) ==="
+  $SUDO wpa_cli -i "${P2P_DEV:?}" status 2>&1 | grep -Ei "p2p_|wps_|ssid|ip_addr|interface|group" || true
+  echo
+  echo "=== Interface group ber-IP ==="
+  for i in /sys/class/net/p2p-*; do
+    [ -e "$i" ] || continue
+    local n; n="$(basename "$i")"
+    local ip; ip="$(ip -4 -o addr show "$n" 2>/dev/null | awk '{print $4}')"
+    [ -n "$ip" ] && echo "  $n -> $ip"
+  done
+  local gw; gw="$(defaultgw_impl)"
+  [ -n "$gw" ] && echo "  GO/gateway: $gw"
+}
+
+cmd_setup() {
+  require_p2p
+  info "P2P interface: $P2P_DEV"
+
+  # Pastikan grup lama dibersihkan
+  $SUDO wpa_cli -i "$P2P_DEV" p2p_group_remove "$P2P_DEV" >/dev/null 2>&1 || true
+  $SUDO wpa_cli -i "$P2P_DEV" p2p_flush >/dev/null 2>&1 || true
+
+  info "Scan WiFi Direct (10 detik)... pastikan HOST (mis. app TV) sudah aktif & createGroup."
+  $SUDO wpa_cli -i "$P2P_DEV" p2p_find type=progressive 2>&1 | grep -q "OK" || warn "p2p_find tidak OK"
+  sleep 10
+  $SUDO wpa_cli -i "$P2P_DEV" p2p_find stop >/dev/null 2>&1 || true
+
+  local peers
+  peers="$($SUDO wpa_cli -i "$P2P_DEV" p2p_peers 2>/dev/null | grep -E '^[0-9a-f:]{17}$' || true)"
+  if [ -z "$peers" ]; then
+    die "Tidak ada peer WiFi Direct ditemukan. Pastikan HOST aktif, lalu ulangi 'wdtest setup'."
+  fi
+
+  info "Ditemukan peer:"
+  local mac idx=1
+  local macs=()
+  while IFS= read -r mac; do
+    [ -z "$mac" ] && continue
+    macs+=("$mac")
+    local name; name="$($SUDO wpa_cli -i "$P2P_DEV" p2p_peer "$mac" 2>/dev/null | awk -F= '/device_name=/{print $2; exit}')"
+    local go; go="$($SUDO wpa_cli -i "$P2P_DEV" p2p_peer "$mac" 2>/dev/null | awk -F= '/group_capable=/{print $2; exit}')"
+    [ -z "$name" ] && name="(tanpa nama)"
+    printf '  %2d) %-24s  MAC=%s  GO_capable=%s\n' "$idx" "$name" "$mac" "${go:-?}"
+    ((idx++))
+  done <<< "$peers"
+
+  [ "${#macs[@]}" -eq 0 ] && die "Tidak ada peer valid."
+
+  if [ "${#macs[@]}" -eq 1 ]; then
+    info "Cuma 1 peer → connect otomatis: ${macs[0]}"
+    interact_connect "$P2P_DEV" "${macs[0]}"
+  else
+    local pick p
+    while :; do
+      read -rp "Pilih nomor host untuk connect [1-${#macs[@]}]: " pick
+      [[ "$pick" =~ ^[0-9]+$ ]] || { warn "Pilihan tidak valid."; continue; }
+      p=$((pick-1))
+      if [ "$p" -ge 0 ] && [ "$p" -lt "${#macs[@]}" ]; then
+        break
+      fi
+      warn "Pilihan tidak valid."
+    done
+    interact_connect "$P2P_DEV" "${macs[$p]}"
+  fi
+
+  # Setelah connect, pantau sampai dapat IP client
+  info "Menunggu koneksi group & IP (hingga 25 detik)..."
+  local gw ip=""
+  for _ in $(seq 1 12); do
+    gw="$(defaultgw_impl)"
+    # setelah jadi client, kita terhubung ke GO — IP client berbeda dari gw
+    ip="$(client_ip_impl)"
+    [ -n "$gw" ] && { sleep 1; break; }
+    sleep 2
+  done
+  ok "Terhubung. GO/gateway: ${gw:-?} | IP laptop: ${ip:-?}"
+  info "Tes lanjut (otomatis):  ./wdtest ping && ./wdtest ws-ip"
+}
+
+interact_connect() {
+  local dev="$1" mac="$2"
+  # WPS PIN: pakai try_auth untuk GO yang mengaktifkan WPS push button / tanpa PIN
+  info "Connect ke $mac ..."
+  local res
+  res="$($SUDO wpa_cli -i "$dev" p2p_connect "$mac" pbc go_intent=0 2>&1)"
+  if echo "$res" | grep -qi "FAIL"; then
+    warn "pbc gagal -> coba PIN..."
+    res="$($SUDO wpa_cli -i "$dev" p2p_connect "$mac" pin 12345670 go_intent=0 2>&1)"
+  fi
+  echo "  $res"
+  echo "$res" | grep -qi "OK" && ok "Permintaan connect diterima" || warn "Periksa hasil di atas"
+}
+
+cmd_teardown() {
+  resolve_p2p 2>/dev/null || true
+  if [ -n "$P2P_DEV" ]; then
+    $SUDO wpa_cli -i "$P2P_DEV" p2p_group_remove "$P2P_DEV" >/dev/null 2>&1 || true
+    $SUDO wpa_cli -i "$P2P_DEV" p2p_flush >/dev/null 2>&1 || true
+  fi
+  ok "WiFi Direct dihentikan / diputus"
+}
+
+cmd_wifi() {
+  require_p2p
+  info "Scanning (5 detik)..."
+  $SUDO wpa_cli -i "$P2P_DEV" p2p_find >/dev/null 2>&1 || true
+  sleep 5
+  $SUDO wpa_cli -i "$P2P_DEV" p2p_find stop >/dev/null 2>&1 || true
+  echo "=== Peer WiFi Direct ==="
+  $SUDO wpa_cli -i "$P2P_DEV" p2p_peers 2>/dev/null | grep -E '^[0-9a-f:]{17}$' || echo "(tidak ada)"
+}
+
+defaultgw_impl() {
+  # IP GO: cari route default pada subnet P2P / interface p2p
+  local gw dev
+  gw="$(ip route show 2>/dev/null | grep -E "$GO_SUBNET|p2p" | awk '/default/{print $3; exit}')"
+  [ -n "$gw" ] && { echo "$gw"; return; }
+  for dev in /sys/class/net/p2p-*; do
+    [ -e "$dev" ] || continue
+    ip -4 -o addr show "$(basename "$dev")" 2>/dev/null | awk '{print $4}' | cut -d/ -f1 | while read -r a; do
+      case "$a" in ${GO_SUBNET}.*) echo "$a"; return;; esac
+    done
+    break
+  done
+}
+
+client_ip_impl() {
+  ip -4 -o addr show 2>/dev/null | grep -E "$GO_SUBNET" | awk '{print $4}' | cut -d/ -f1 | head -1
+}
+
+cmd_defaultgw() { defaultgw_impl; }
+
+cmd_ping() {
+  local ip="${1:-}"
+  [ -n "$ip" ] || ip="$(defaultgw_impl)"
+  [ -n "$ip" ] || die "Tidak dapat cari IP host. Connect dulu (wdtest setup) atau beri IP: wdtest ping <ip>"
+  info "Ping $ip (5 paket)..."
+  ping -c 5 -W 2 "$ip" 2>&1 || die "Ping gagal — pastikan sudah connect ke host."
+  ok "Host reachable: $ip"
+}
+
+cmd_ws() {
+  local ip="${1:-}"; shift || true
+  [ -n "$ip" ] || ip="$(defaultgw_impl)"
+  [ -n "$ip" ] || die "Butuh IP host (mis. ./wdtest ws 192.168.49.1 getInitialState)"
+
+  local dashargs=()
+  local actargs=()
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      -f) dashargs+=("-f" "${2:-}"); shift 2;;
+      -j) dashargs+=("-j" "$2"); shift 2;;
+      -p) dashargs+=("-p" "$2"); shift 2;;
+      -t) dashargs+=("-t" "$2"); shift 2;;
+      beep)      actargs+=("-a" "triggerBeep"); shift;;
+      skipAdhan) actargs+=("-a" "skipAdhan"); shift;;
+      startIqomah|iqomah) actargs+=("-a" "startIqomah"); shift;;
+      startShalat|shalat)  actargs+=("-a" "startShalat"); shift;;
+      finishShalat)        actargs+=("-a" "finishShalat"); shift;;
+      getInitialState|state) actargs+=("-a" "getInitialState"); shift;;
+      -*) dashargs+=("$1" "${2:-}"); shift 2;;
+      *) actargs+=("-a" "$1"); shift;;
+    esac
+  done
+  if [ ${#actargs[@]} -eq 0 ]; then
+    info "Tidak ada action → default getInitialState + beep"
+    actargs+=("-a" "getInitialState" "-a" "triggerBeep")
+  fi
+
+  info "WS tes ke $ip ..."
+  python3 "$WS_TEST" "$ip" "${dashargs[@]}" "${actargs[@]}"
+  ok "Selesai"
+}
+
+cmd_wsip() {
+  local ip; ip="$(defaultgw_impl)"
+  [ -n "$ip" ] || die "Tidak dapat cari IP host. Jalankan 'wdtest setup' dulu."
+  cmd_ws "$ip" getInitialState beep
+}
+
+case "${1:-}" in
+  setup)     shift; cmd_setup;;
+  status)    shift; cmd_status;;
+  teardown)  shift; cmd_teardown;;
+  wifi)      shift; cmd_wifi;;
+  ping)      shift; cmd_ping "${1:-}";;
+  ws)        shift; cmd_ws "$@";;
+  ws-ip)     shift; cmd_wsip;;
+  defaultgw) shift; cmd_defaultgw;;
+  -h|--help) usage;;
+  *) usage;;
+esac

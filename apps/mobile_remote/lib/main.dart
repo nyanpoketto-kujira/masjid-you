@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:geolocator/geolocator.dart';
@@ -295,7 +297,17 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
       _isConnecting = true;
     });
     try {
-      await _client.connect(_ipController.text.trim());
+      final ok = await _client.connect(_ipController.text.trim());
+      if (!mounted) return;
+      if (!ok) {
+        setState(() {
+          _isConnected = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Koneksi gagal: alamat IP tidak valid atau TV tidak terhubung')),
+        );
+        return;
+      }
       setState(() {
         _isConnected = true;
         _hasUnsyncedChanges = false;
@@ -805,19 +817,66 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
     }
   }
 
-  void _startScan() {
+  int _androidSdkVersion() {
+    if (!Platform.isAndroid) return 0;
+    final match = RegExp(r'SDK\s+(\d+)')
+        .firstMatch(Platform.operatingSystemVersion);
+    if (match != null) {
+      return int.tryParse(match.group(1) ?? '') ?? 0;
+    }
+    return 0;
+  }
+
+  /// Validasi prasyarat WiFi Direct sebelum scan. Mirip TV (ADR-014):
+  /// jika sistem belum siap, tampilkan dialog "WiFi Direct Belum Siap".
+  Future<void> _startScan() async {
+    final locationRequired = Platform.isAndroid && _androidSdkVersion() < 31;
+    try {
+      final reqs = await _p2pClient.checkPrerequisites();
+      if (!mounted) return;
+      if (reqs.isReady(locationRequired: locationRequired)) {
+        _runScan();
+      } else {
+        _showP2pPrereqDialog(reqs);
+      }
+    } catch (e) {
+      debugPrint('P2P prereq check failed: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal memeriksa kesiapan WiFi Direct: $e')),
+        );
+      }
+    }
+  }
+
+  void _runScan() {
+    if (!mounted) return;
     setState(() {
       _isScanning = true;
       _p2pDevices.clear();
       _p2pStatus = 'WiFi Direct: Mencari TV...';
     });
-    _p2pClient.startScan((devices) {
-      if (mounted) {
-        setState(() {
-          _p2pDevices = devices;
-        });
-      }
-    });
+    _p2pClient.startScan(
+      (devices) {
+        if (mounted) {
+          setState(() {
+            _p2pDevices = devices;
+          });
+        }
+      },
+      onDone: () {
+        if (mounted) {
+          setState(() {
+            _isScanning = false;
+            if (_p2pDevices.isEmpty) {
+              _p2pStatus = 'WiFi Direct: Tidak ada TV ditemukan.';
+            } else {
+              _p2pStatus = 'WiFi Direct: Scan selesai.';
+            }
+          });
+        }
+      },
+    );
   }
 
   void _stopScan() {
@@ -834,6 +893,114 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
       _p2pStatus = 'WiFi Direct: Menyambung...';
     });
     _p2pClient.connectTo(dev);
+  }
+
+  /// Dialog validasi prasyarat WiFi Direct — mirror dari TV (main.dart).
+  void _showP2pPrereqDialog(P2pPrerequisites reqs) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        icon: Icon(
+          Icons.wifi_tethering,
+          size: 48,
+          color: Theme.of(context).colorScheme.primary,
+        ),
+        title: const Text('WiFi Direct Belum Siap'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Beberapa fitur belum aktif untuk mencari TV via WiFi Direct.',
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+            const SizedBox(height: 16),
+            _prereqRow('Wi-Fi', reqs.wifiEnabled),
+            _prereqRow('Bluetooth', reqs.bluetoothEnabled),
+            _prereqRow('Lokasi (GPS)', reqs.locationEnabled),
+            _prereqRow('Izin Perangkat', reqs.allPermissionsGranted),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Mode IP Saja'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              Navigator.of(ctx).pop();
+              await _enableAllP2pServices();
+            },
+            child: const Text('Aktifkan & Mulai'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _prereqRow(String label, bool enabled) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          Icon(
+            enabled ? Icons.check_circle : Icons.cancel,
+            color: enabled ? Colors.green : Colors.red,
+            size: 20,
+          ),
+          const SizedBox(width: 8),
+          Text(label),
+        ],
+      ),
+    );
+  }
+
+  /// Aktifkan layanan yang mati (Wi-Fi/Bluetooth/Lokasi), lalu ulangi scan.
+  Future<void> _enableAllP2pServices() async {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Row(
+            children: [
+              Icon(Icons.info_outline, color: Colors.white),
+              SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Membuka Pengaturan. Silakan aktifkan layanan (Wi-Fi, Bluetooth, '
+                  'atau Lokasi) yang diminta, lalu tekan tombol BACK pada HP Anda '
+                  'jika sudah selesai.',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: Theme.of(context).colorScheme.primary,
+          duration: const Duration(seconds: 10),
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.all(16),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      );
+    }
+
+    // Tunggu SnackBar muncul sebentar sebelum mengalihkan layar.
+    await Future.delayed(const Duration(seconds: 2));
+
+    // Minta izin sistem (P2P + Bluetooth) dulu, baru hidupkan layanan yang mati.
+    await _p2pClient.askPermissionsIfNeeded();
+    await _p2pClient.enableWifiIfNeeded();
+    await _p2pClient.enableBluetoothIfNeeded();
+    await _p2pClient.enableLocationIfNeeded();
+
+    final reqs = await _p2pClient.checkPrerequisites();
+    if (!mounted) return;
+    final locationRequired = Platform.isAndroid && _androidSdkVersion() < 31;
+    if (reqs.isReady(locationRequired: locationRequired)) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      _runScan();
+    } else {
+      _showP2pPrereqDialog(reqs);
+    }
   }
 
   void _showScheduleSimulation(MosqueConfig formConfig) {

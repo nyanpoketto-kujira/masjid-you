@@ -13,13 +13,28 @@ class RemoteWsClient {
 
   bool get isConnected => _isConnected;
 
+  static final RegExp _ipv4 = RegExp(
+      r'^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])$');
+
+  /// Validasi format alamat IPv4. Mengembalikan `true` bila `ipAddress`
+  /// adalah IPv4 yang valid (mis. `192.168.1.10`).
+  static bool isValidIp(String ipAddress) => _ipv4.hasMatch(ipAddress);
+
   Future<bool> connect(String ipAddress, {int port = 8080}) async {
+    if (!isValidIp(ipAddress) || port <= 0 || port > 65535) {
+      _disconnectChannel();
+      return false;
+    }
     try {
       final wsUrl = Uri.parse('ws://$ipAddress:$port');
-      _channel = WebSocketChannel.connect(wsUrl);
-      await _channel?.ready;
+      final channel = WebSocketChannel.connect(wsUrl);
+      // `WebSocketChannel.connect` bersifat lazy: `ready` baru benar-benar
+      // terpenuhi setelah handshake WebSocket berhasil dengan TV. Tanpa ini,
+      // _isConnected akan true walaupun alamat tidak punya server aktif.
+      await channel.ready.timeout(const Duration(seconds: 5));
+      _channel = channel;
       _isConnected = true;
-      _channel?.stream.listen((message) {
+      channel.stream.listen((message) {
         try {
           final String text =
               message is List<int> ? utf8.decode(message) : message.toString();
@@ -28,9 +43,15 @@ class RemoteWsClient {
       });
       return true;
     } catch (e) {
-      _isConnected = false;
+      _disconnectChannel();
       return false;
     }
+  }
+
+  void _disconnectChannel() {
+    _channel?.sink.close();
+    _channel = null;
+    _isConnected = false;
   }
 
   void sendPacket(SyncPacket packet) {

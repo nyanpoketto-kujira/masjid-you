@@ -36,7 +36,7 @@
         android:required="false" />
 
     <application
-        android:label="tv_display"
+        android:label="TV Masjid"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:banner="@mipmap/ic_launcher">
@@ -59,6 +59,7 @@
               />
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
                 <category android:name="android.intent.category.LEANBACK_LAUNCHER"/>
             </intent-filter>
         </activity>

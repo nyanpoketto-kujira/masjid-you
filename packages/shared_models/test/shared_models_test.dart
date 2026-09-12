@@ -331,4 +331,239 @@ void main() {
       expect(parsed.payload['transactions'][0]['amount'], equals(100000));
     });
   });
+
+  group('MosqueConfig, IqamahDuration, PrayerType & PrayerPhase (refactor)', () {
+    test('MosqueConfig: prayerOffsets dari fromMap bersifat unmodifiable', () {
+      final parsed = MosqueConfig.fromMap({'prayerOffsets': {'fajr': 2}});
+      expect(parsed.offsetFor(PrayerType.fajr), equals(2));
+      expect(
+        () => parsed.prayerOffsets[PrayerType.maghrib] = 9,
+        throwsUnsupportedError,
+      );
+    });
+
+    test('MosqueConfig.copyWith menyalin prayerOffsets secara deep copy', () {
+      final base = MosqueConfig.fromMap({'prayerOffsets': {'fajr': 1}});
+      final copy = base.copyWith(preAdhanMinutes: 5);
+      expect(copy.prayerOffsets, equals(base.prayerOffsets));
+
+      final replaced = base.copyWith(prayerOffsets: {PrayerType.isha: 4});
+      expect(replaced.offsetFor(PrayerType.isha), equals(4));
+      expect(replaced.offsetFor(PrayerType.fajr), equals(0));
+      expect(() => replaced.prayerOffsets[PrayerType.isha] = 9,
+          throwsUnsupportedError);
+      expect(base.offsetFor(PrayerType.isha), equals(0));
+    });
+
+    test('MosqueConfig: nilai non-numerik untuk field angka tidak melempar', () {
+      final parsed = MosqueConfig.fromMap({
+        'latitude': 'bukan-angka',
+        'preAdhanMinutes': 'x',
+        'utcOffsetHours': [],
+      });
+      expect(parsed.latitude, equals(-6.2088));
+      expect(parsed.preAdhanMinutes, equals(15));
+      expect(parsed.utcOffsetHours, equals(7));
+    });
+
+    test('IqamahDuration: nilai double di-truncate & round-trip', () {
+      final parsed = IqamahDuration.fromMap({'fajr': 12.7, 'maghrib': 5.2});
+      expect(parsed.fajr, equals(12));
+      expect(parsed.maghrib, equals(5));
+      expect(parsed.dhuhr, equals(10));
+      expect(IqamahDuration.fromMap(parsed.toMap()), equals(parsed));
+    });
+
+    test('PrayerTypeX.displayName mengisi semua 6 nilai', () {
+      expect(PrayerType.fajr.displayName, equals('Subuh'));
+      expect(PrayerType.sunrise.displayName, equals('Syuruq'));
+      expect(PrayerType.dhuhr.displayName, equals('Dzuhur'));
+      expect(PrayerType.asr.displayName, equals('Ashar'));
+      expect(PrayerType.maghrib.displayName, equals('Maghrib'));
+      expect(PrayerType.isha.displayName, equals('Isya'));
+      expect(kAllPrayerTypes, equals(PrayerType.values));
+    });
+
+    test('PrayerPhaseX.label mengisi semua 6 fase', () {
+      expect(PrayerPhase.normal.label, equals('Normal (Standby)'));
+      expect(PrayerPhase.preAdhan.label, equals('Menjelang Azan'));
+      expect(PrayerPhase.adhan.label, equals('Azan'));
+      expect(PrayerPhase.khutbah.label, equals('Khutbah'));
+      expect(PrayerPhase.preIqomah.label, equals('Jeda Ikamah'));
+      expect(PrayerPhase.shalat.label, equals('Shalat Berlangsung'));
+    });
+
+    test('MosqueConfig equality & round-trip penuh', () {
+      const config = MosqueConfig(
+        name: 'Masjid A',
+        utcOffsetHours: 8,
+        prayerOffsets: {PrayerType.fajr: 1},
+      );
+      final round = MosqueConfig.fromJson(config.toJson());
+      expect(round, equals(config));
+      expect(round.hashCode, equals(config.hashCode));
+      expect(round.iqamahDuration, equals(const IqamahDuration()));
+      expect(round, isNot(equals(config.copyWith(adhanMinutes: 3))));
+    });
+  });
+
+  group('RunningTextMessage, MediaBanner, KasTransaction (refactor)', () {
+    test('RunningTextMessage: default, id generatif & round-trip', () {
+      final parsed = RunningTextMessage.fromMap({'content': 'Teks pengumuman'});
+      expect(parsed.id, isNotEmpty);
+      expect(parsed.content, equals('Teks pengumuman'));
+      expect(parsed.isActive, isTrue);
+      expect(parsed.category, equals('Umum'));
+
+      const msg = RunningTextMessage(
+        id: 'rt1',
+        content: 'Infaq diterima',
+        isActive: false,
+        category: 'Kas',
+      );
+      final round = RunningTextMessage.fromJson(msg.toJson());
+      expect(round, equals(msg));
+      expect(round.hashCode, equals(msg.hashCode));
+      expect(round.isActive, isFalse);
+      expect(round.category, equals('Kas'));
+    });
+
+    test('RunningTextMessage: tipe salah tidak melempar error', () {
+      final parsed = RunningTextMessage.fromMap({
+        'id': 123,
+        'content': 456,
+        'isActive': 'bukan-bool',
+        'category': ['x'],
+      });
+      expect(parsed.id, isNotEmpty);
+      expect(parsed.content, equals(''));
+      expect(parsed.isActive, isTrue);
+      expect(parsed.category, equals('Umum'));
+    });
+
+    test('MediaBanner: base64Image kosong dianggap null, terisi tetap ada', () {
+      final empty = MediaBanner.fromMap({'id': 'b1', 'base64Image': ''});
+      expect(empty.base64Image, isNull);
+      final set = MediaBanner.fromMap({'id': 'b1', 'base64Image': 'abc123'});
+      expect(set.base64Image, equals('abc123'));
+    });
+
+    test('MediaBanner.copyWith: clearBase64Image menghapus gambar', () {
+      const banner = MediaBanner(
+        id: 'b1',
+        header: 'DONASI',
+        title: 'T',
+        content: 'C',
+        base64Image: 'abc',
+      );
+      final cleared = banner.copyWith(clearBase64Image: true);
+      expect(cleared.base64Image, isNull);
+      expect(cleared.header, equals('DONASI'));
+      // Perilaku lama tetap: tanpa clear, gambar dipertahankan / bisa diganti.
+      expect(banner.copyWith(isActive: false).base64Image, equals('abc'));
+      expect(banner.copyWith(base64Image: 'xyz').base64Image, equals('xyz'));
+    });
+
+    test('MediaBanner equality & toString menyembunyikan isi base64', () {
+      const a = MediaBanner(
+          id: 'b1', header: 'H', title: 'T', content: 'C', base64Image: 'rahasia');
+      const b = MediaBanner(
+          id: 'b1', header: 'H', title: 'T', content: 'C', base64Image: 'rahasia');
+      expect(a, equals(b));
+      expect(a.hashCode, equals(b.hashCode));
+      expect(a.toString(), isNot(contains('rahasia')));
+      expect(a.toString(), contains('[set]'));
+    });
+
+    test('KasTransaction: tanggal tak valid tidak melempar & amount num -> int', () {
+      final parsed = KasTransaction.fromMap({
+        'id': 'tx1',
+        'type': 'keluar',
+        'amount': 12.9,
+        'description': 'Beli Mukena',
+        'date': 'bukan-tanggal',
+      });
+      expect(parsed.type, equals(KasType.keluar));
+      expect(parsed.amount, equals(12));
+      expect(parsed.date, isA<DateTime>());
+      expect(KasTransaction.fromMap({'amount': 'bukan-num'}).amount, equals(0));
+      expect(
+          KasTransaction.fromMap({'description': 123}).description, equals(''));
+    });
+
+    test('KasSummary: saldo boleh negatif & equality', () {
+      final summary = KasSummary.fromTransactions([
+        KasTransaction(
+            id: '1',
+            type: KasType.keluar,
+            amount: 50000,
+            description: 'x',
+            date: DateTime(2026)),
+      ]);
+      const same = KasSummary(totalMasuk: 0, totalKeluar: 50000, saldo: -50000);
+      expect(summary.totalMasuk, equals(0));
+      expect(summary.totalKeluar, equals(50000));
+      expect(summary.saldo, equals(-50000));
+      expect(summary, equals(same));
+      expect(summary.hashCode, equals(same.hashCode));
+    });
+  });
+
+  group('SyncPacket: ketangguhan & equality (refactor)', () {
+    test('unknown action -> stateUpdate fallback', () {
+      final parsed = SyncPacket.fromMap({
+        'action': 'aksiTidakAda',
+        'payload': {'a': 1},
+      });
+      expect(parsed.action, equals(SyncAction.stateUpdate));
+      expect(parsed.payload, equals({'a': 1}));
+    });
+
+    test('action non-String & payload non-Map tetap valid', () {
+      expect(SyncPacket.fromMap({'action': 42, 'payload': {}}).action,
+          equals(SyncAction.stateUpdate));
+      final listPayload =
+          SyncPacket.fromMap({'action': 'triggerBeep', 'payload': []});
+      expect(listPayload.action, equals(SyncAction.triggerBeep));
+      expect(listPayload.payload, isEmpty);
+      final missing = SyncPacket.fromMap({});
+      expect(missing.action, equals(SyncAction.stateUpdate));
+      expect(missing.payload, isEmpty);
+    });
+
+    test('kunci payload non-String dipaksa String tanpa error', () {
+      final parsed = SyncPacket.fromMap({
+        'action': 'forcePhase',
+        'payload': {1: 'adhan'},
+      });
+      expect(parsed.payload.containsKey('1'), isTrue);
+      expect(parsed.payload['1'], equals('adhan'));
+    });
+
+    test('semua SyncAction round-trip nama -> enum', () {
+      for (final action in SyncAction.values) {
+        final parsed = SyncPacket.fromJson(
+          SyncPacket(action: action, payload: {}).toJson(),
+        );
+        expect(parsed.action, equals(action), reason: 'action ${action.name}');
+      }
+    });
+
+    test('equality & hashCode berdasarkan action + payload', () {
+      const a = SyncPacket(action: SyncAction.skipAdhan, payload: {'x': 1});
+      const b = SyncPacket(action: SyncAction.skipAdhan, payload: {'x': 1});
+      expect(a, equals(b));
+      expect(a.hashCode, equals(b.hashCode));
+      expect(
+        a,
+        isNot(equals(const SyncPacket(
+            action: SyncAction.startShalat, payload: {'x': 1}))),
+      );
+      expect(
+        a,
+        isNot(equals(
+            const SyncPacket(action: SyncAction.skipAdhan, payload: {'x': 2}))),
+      );
+    });
+  });
 }

@@ -30,14 +30,29 @@ class MediaBanner {
       };
 
   factory MediaBanner.fromMap(Map<String, dynamic> map) {
+    final rawId = map['id'];
+    final rawHeader = map['header'];
+    final rawTitle = map['title'];
+    final rawContent = map['content'];
+    final rawSubtitle = map['subtitle'];
+    final rawFooter = map['footer'];
+    final rawActive = map['isActive'];
+    final rawImage = map['base64Image'];
     return MediaBanner(
-      id: map['id'] ?? DateTime.now().millisecondsSinceEpoch.toString(),
-      header: map['header'] ?? 'INFO MASJID',
-      title: map['title'] ?? '',
-      content: map['content'] ?? map['subtitle'] ?? '',
-      footer: map['footer'] ?? '',
-      isActive: map['isActive'] ?? true,
-      base64Image: map['base64Image'],
+      id: rawId is String
+          ? rawId
+          : DateTime.now().millisecondsSinceEpoch.toString(),
+      header: rawHeader is String ? rawHeader : 'INFO MASJID',
+      title: rawTitle is String ? rawTitle : '',
+      // Backward compat: payload lama memakai kunci `subtitle`.
+      content: rawContent is String
+          ? rawContent
+          : rawSubtitle is String
+              ? rawSubtitle
+              : '',
+      footer: rawFooter is String ? rawFooter : '',
+      isActive: rawActive is bool ? rawActive : true,
+      base64Image: rawImage is String && rawImage.isNotEmpty ? rawImage : null,
     );
   }
 
@@ -46,6 +61,11 @@ class MediaBanner {
   factory MediaBanner.fromJson(String source) =>
       MediaBanner.fromMap(json.decode(source));
 
+  /// Membuat salinan banner.
+  ///
+  /// Karena `copyWith` tidak bisa membedakan "tidak dikirim" dengan
+  /// "dikirim null", gunakan [clearBase64Image] = `true` untuk menghapus
+  /// gambar banner (mis. saat Remote menghapus lampiran gambar).
   MediaBanner copyWith({
     String? id,
     String? header,
@@ -54,6 +74,7 @@ class MediaBanner {
     String? footer,
     bool? isActive,
     String? base64Image,
+    bool clearBase64Image = false,
   }) {
     return MediaBanner(
       id: id ?? this.id,
@@ -62,7 +83,28 @@ class MediaBanner {
       content: content ?? this.content,
       footer: footer ?? this.footer,
       isActive: isActive ?? this.isActive,
-      base64Image: base64Image ?? this.base64Image,
+      base64Image: clearBase64Image ? null : (base64Image ?? this.base64Image),
     );
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is MediaBanner &&
+          other.id == id &&
+          other.header == header &&
+          other.title == title &&
+          other.content == content &&
+          other.footer == footer &&
+          other.isActive == isActive &&
+          other.base64Image == base64Image;
+
+  @override
+  int get hashCode =>
+      Object.hash(id, header, title, content, footer, isActive, base64Image);
+
+  @override
+  String toString() =>
+      'MediaBanner(id: $id, header: $header, title: $title, content: $content, '
+      'footer: $footer, isActive: $isActive, base64Image: ${base64Image == null ? 'null' : '[set]'})';
 }

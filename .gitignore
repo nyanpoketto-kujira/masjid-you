@@ -4,6 +4,8 @@
 .flutter-plugins-dependencies
 build/
 .packages
+.metadata
+pubspec.lock
 
 # --- Native build artifacts (apps) ---
 apps/*/build/
@@ -13,11 +15,8 @@ apps/*/android/local.properties
 apps/*/android/app/debug/
 apps/*/android/app/profile/
 apps/*/android/app/release/
-*.iml
 *.apk
 *.aab
-*.h
-*.i
 
 # --- IDE / editor ---
 .idea/
@@ -38,3 +37,8 @@ native_assets/
 # --- Local/generated ---
 .gstack/
 *.log
+analyze_out.txt
+
+# Python
+__pycache__/
+*.pyc
