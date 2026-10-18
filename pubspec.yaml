@@ -5,5 +5,13 @@ environment:
 
 workspace:
   - packages/shared_models
+  - packages/bluetooth_sync
   - apps/tv_display
   - apps/mobile_remote
+
+# Fork lokal flutter_p2p_connection: bind transport pakai shared:false
+# karena shared:true (SO_REUSEPORT) ditolak EPERM di Android 16 (Samsung),
+# sehingga P2P host gagal start. Lihat docs/p2p_analysis.md.
+dependency_overrides:
+  flutter_p2p_connection:
+    path: packages/flutter_p2p_connection

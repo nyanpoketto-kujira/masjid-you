@@ -1,0 +1,32 @@
+group = "com.masjidyou.bluetooth_sync"
+version = "0.1.0"
+
+apply plugin: "com.android.library"
+apply plugin: "kotlin-android"
+
+android {
+    if (project.android.hasProperty("namespace")) {
+        namespace = "com.masjidyou.bluetooth_sync"
+    }
+
+    compileSdk = 36
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_17
+    }
+
+    sourceSets {
+        main.java.srcDirs += "src/main/kotlin"
+    }
+
+    defaultConfig {
+        // Plugin jalan di semua versi yang didukung app; Android 12+ (API 31)
+        // memakai jalur izin CONNECT/SCAN/ADVERTISE, <31 memakai lokasi.
+        minSdk = 23
+    }
+}

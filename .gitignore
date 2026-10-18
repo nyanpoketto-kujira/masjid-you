@@ -42,3 +42,9 @@ analyze_out.txt
 # Python
 __pycache__/
 *.pyc
+
+# --- Tooling state / local app artifacts (not source) ---
+.codebase-memory/
+build/
+opencode.json
+*.apk

@@ -11,6 +11,10 @@ class RemoteWsClient {
   /// (misal `SyncAction.stateUpdate` berisi fase siklus waktu shalat).
   void Function(SyncPacket packet)? onPacket;
 
+  /// Mirror paket keluar — dipanggil pada SAKIN kirim paket, agar
+  /// transport lain (misal Bluetooth) bisa ikut dikirim.
+  void Function(SyncPacket packet)? onSendPacket;
+
   bool get isConnected => _isConnected;
 
   static final RegExp _ipv4 = RegExp(
@@ -58,6 +62,9 @@ class RemoteWsClient {
     if (_isConnected && _channel != null) {
       _channel?.sink.add(packet.toJson());
     }
+    // Mirror ke transport sampin (misal Bluetooth) walau WS tidak aktif —
+    // sehingga paket tetap terkirim bila hanya jalur BT yang tersambung.
+    onSendPacket?.call(packet);
   }
 
   void sendConfigUpdate(MosqueConfig config) {

@@ -1,3 +1,4 @@
+import 'package:bluetooth_sync/bluetooth_sync.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_p2p_connection/flutter_p2p_connection.dart';
 import '../../widgets/m3_pressable.dart';
@@ -14,6 +15,15 @@ class ConnectivityTab extends StatelessWidget {
   final VoidCallback onStopScan;
   final Function(BleDiscoveredDevice) onConnectP2p;
 
+  // Mode Bluetooth (jalur sync langsung utama).
+  final bool btIsScanning;
+  final bool btConnected;
+  final List<BluetoothDeviceInfo> btDevices;
+  final String btStatus;
+  final VoidCallback onBtStartScan;
+  final VoidCallback onBtStopScan;
+  final Function(BluetoothDeviceInfo) onBtConnect;
+
   const ConnectivityTab({
     super.key,
     required this.ipController,
@@ -26,6 +36,13 @@ class ConnectivityTab extends StatelessWidget {
     required this.onStartScan,
     required this.onStopScan,
     required this.onConnectP2p,
+    required this.btIsScanning,
+    required this.btConnected,
+    required this.btDevices,
+    required this.btStatus,
+    required this.onBtStartScan,
+    required this.onBtStopScan,
+    required this.onBtConnect,
   });
 
   @override
@@ -89,6 +106,99 @@ class ConnectivityTab extends StatelessWidget {
                       ),
                     ],
                   ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+          Card(
+            color: btConnected
+                ? colorScheme.primaryContainer
+                : colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        btConnected
+                            ? Icons.bluetooth_connected
+                            : Icons.bluetooth_searching,
+                        color: btConnected
+                            ? colorScheme.primary
+                            : colorScheme.onSurfaceVariant,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'Bluetooth (Tanpa Router)',
+                          style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      M3Pressable(
+                        child: FilledButton.tonalIcon(
+                          onPressed: btIsScanning ? onBtStopScan : onBtStartScan,
+                          icon: btIsScanning
+                              ? const SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                )
+                              : const Icon(Icons.radar),
+                          label: Text(btIsScanning ? 'Stop' : 'Cari TV'),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Sambung langsung Remote ke TV Display lewat Bluetooth Classic. Fastikan app TV aktif dan Bluetooth menyala di kedua perangkat.',
+                    style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+                  ),
+                  const SizedBox(height: 16),
+                  if (btIsScanning) ...[
+                    const LinearProgressIndicator(),
+                    const SizedBox(height: 8),
+                  ],
+                  Text(
+                    btStatus,
+                    style: theme.textTheme.labelMedium?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 12),
+                  if (btDevices.isEmpty)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 24.0),
+                      child: Center(
+                        child: Text(
+                          btIsScanning
+                              ? 'Mencari perangkat TV...'
+                              : 'Tidak ada perangkat terdeteksi.',
+                          style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+                        ),
+                      ),
+                    )
+                  else
+                    ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: btDevices.length,
+                      itemBuilder: (context, index) {
+                        final device = btDevices[index];
+                        return Card(
+                          color: colorScheme.surfaceContainer,
+                          margin: const EdgeInsets.only(bottom: 8),
+                          child: ListTile(
+                            leading: const Icon(Icons.tv),
+                            title: Text(device.name),
+                            subtitle: Text(device.address),
+                            trailing: const Icon(Icons.chevron_right),
+                            onTap: () => onBtConnect(device),
+                          ),
+                        );
+                      },
+                    ),
                 ],
               ),
             ),

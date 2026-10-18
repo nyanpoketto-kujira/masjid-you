@@ -19,6 +19,7 @@ import 'widgets/material_blob_background.dart';
 import 'state/prayer_state_machine.dart';
 import 'server/local_ws_server.dart';
 import 'server/p2p_host_service.dart';
+import 'server/bluetooth_host_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -77,6 +78,10 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
   final P2pHostService _p2pHost = P2pHostService();
   HotspotHostState? _p2pState;
   P2pMode _p2pMode = P2pMode.pending;
+
+  /// Host Bluetooth Classic (RFCOMM) — jalur sync langsung tanpa router.
+  BluetoothHostService? _btHost;
+  BluetoothHostState? _btState;
 
   MosqueConfig _config = const MosqueConfig(
     name: 'Masjid Agung Al-Hikmah',
@@ -174,7 +179,11 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
     });
 
     _initLocalServer();
-    _initP2pHost();
+    // Jalur WiFi Direct mentok di beberapa perangkat Samsung Android 16
+    // (EPERM socket transport) -> dan jalur utama sync langsung ialah
+    // Bluetooth Classic. Kode `_initP2pHost` masih ada agar bisa di-siap
+    // ulang di perangkat yang mendukungnya.
+    _initBluetoothHost();
   }
 
   int _androidSdkVersion() {
@@ -186,6 +195,10 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
     return 0;
   }
 
+  // Menginggi-bo untuk perangkat yang mendukung WiFi Direct
+  // (lihat catatan di initState). Di perangkat Samsung Android 16 jalur ini
+  // mentok (EPERM), jadi nonaktif secara default.
+  // ignore: unused_element
   Future<void> _initP2pHost() async {
     _p2pHost.stateStream.listen((state) {
       if (mounted) {
@@ -358,83 +371,7 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
 
   Future<void> _initLocalServer() async {
     _localServer = LocalServer(
-      onPacketReceived: (packet) {
-        setState(() {
-          switch (packet.action) {
-            case SyncAction.updateConfig:
-              _config = MosqueConfig.fromMap(packet.payload);
-              _recalculateSchedule();
-              _prayerStateMachine.updateConfig(_config, _now);
-              break;
-            case SyncAction.updateRunningText:
-              final list = (packet.payload['messages'] as List?)
-                      ?.map((e) {
-                        if (e is Map) {
-                          return RunningTextMessage.fromMap(
-                              Map<String, dynamic>.from(e));
-                        }
-                        return null;
-                      })
-                      .whereType<RunningTextMessage>()
-                      .toList() ??
-                  [];
-              _runningTexts = list;
-              break;
-            case SyncAction.updateBanners:
-              final list = (packet.payload['banners'] as List?)
-                      ?.map((e) {
-                        if (e is Map) {
-                          return MediaBanner.fromMap(
-                              Map<String, dynamic>.from(e));
-                        }
-                        return null;
-                      })
-                      .whereType<MediaBanner>()
-                      .toList() ??
-                  [];
-              _banners = list;
-              break;
-            case SyncAction.updateKas:
-              final list = (packet.payload['transactions'] as List?)
-                      ?.map((e) {
-                        if (e is Map) {
-                          return KasTransaction.fromMap(
-                              Map<String, dynamic>.from(e));
-                        }
-                        return null;
-                      })
-                      .whereType<KasTransaction>()
-                      .toList() ??
-                  [];
-              _kasTransactions = list;
-              break;
-            case SyncAction.skipAdhan:
-              _prayerStateMachine.skipAdhan(now: _now);
-              break;
-            case SyncAction.startIqomah:
-              _prayerStateMachine.startIqomah();
-              break;
-            case SyncAction.startShalat:
-              _prayerStateMachine.startShalat();
-              break;
-            case SyncAction.finishShalat:
-              _prayerStateMachine.finishShalat();
-              break;
-            case SyncAction.forcePhase:
-              _prayerStateMachine.forcePhase(
-                PrayerPhase.fromName(packet.payload['phase'] as String?),
-                now: _now,
-                schedule: _prayerSchedule,
-              );
-              break;
-            case SyncAction.getInitialState:
-              _broadcastState();
-              break;
-            default:
-              break;
-          }
-        });
-      },
+      onPacketReceived: _handleSyncPacket,
     );
 
     try {
@@ -443,6 +380,119 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
     } catch (e) {
       debugPrint('Failed to start local server: $e');
     }
+  }
+
+  /// Aplikasi paket sync yang masuk (via WebSocket LAN atau Bluetooth).
+  void _handleSyncPacket(SyncPacket packet) {
+    if (!mounted) return;
+    switch (packet.action) {
+      case SyncAction.updateConfig:
+        _config = MosqueConfig.fromMap(packet.payload);
+        _recalculateSchedule();
+        _prayerStateMachine.updateConfig(_config, _now);
+        break;
+      case SyncAction.updateRunningText:
+        final list = (packet.payload['messages'] as List?)
+                ?.map((e) {
+                  if (e is Map) {
+                    return RunningTextMessage.fromMap(
+                        Map<String, dynamic>.from(e));
+                  }
+                  return null;
+                })
+                .whereType<RunningTextMessage>()
+                .toList() ??
+            [];
+        _runningTexts = list;
+        break;
+      case SyncAction.updateBanners:
+        final list = (packet.payload['banners'] as List?)
+                ?.map((e) {
+                  if (e is Map) {
+                    return MediaBanner.fromMap(
+                        Map<String, dynamic>.from(e));
+                  }
+                  return null;
+                })
+                .whereType<MediaBanner>()
+                .toList() ??
+            [];
+        _banners = list;
+        break;
+      case SyncAction.updateKas:
+        final list = (packet.payload['transactions'] as List?)
+                ?.map((e) {
+                  if (e is Map) {
+                    return KasTransaction.fromMap(
+                        Map<String, dynamic>.from(e));
+                  }
+                  return null;
+                })
+                .whereType<KasTransaction>()
+                .toList() ??
+            [];
+        _kasTransactions = list;
+        break;
+      case SyncAction.skipAdhan:
+        _prayerStateMachine.skipAdhan(now: _now);
+        break;
+      case SyncAction.startIqomah:
+        _prayerStateMachine.startIqomah();
+        break;
+      case SyncAction.startShalat:
+        _prayerStateMachine.startShalat();
+        break;
+      case SyncAction.finishShalat:
+        _prayerStateMachine.finishShalat();
+        break;
+      case SyncAction.forcePhase:
+        _prayerStateMachine.forcePhase(
+          PrayerPhase.fromName(packet.payload['phase'] as String?),
+          now: _now,
+          schedule: _prayerSchedule,
+        );
+        break;
+      case SyncAction.getInitialState:
+        _broadcastState();
+        break;
+      default:
+        break;
+    }
+  }
+
+  StreamSubscription<BluetoothHostState>? _btStateSub;
+
+  Future<void> _initBluetoothHost() async {
+    _btHost = BluetoothHostService(
+      onPacketReceived: _handleSyncPacket,
+    );
+    _btStateSub?.cancel();
+    _btStateSub = _btHost!.stateStream.listen((state) {
+      if (mounted) {
+        setState(() {
+          _btState = state;
+        });
+      }
+    });
+    _btState = _btHost!.currentState;
+
+    if (!kIsWeb && Platform.isAndroid) {
+      await _btHost!.start();
+      if (mounted) {
+        setState(() {
+          _btState = _btHost!.currentState;
+        });
+      }
+    }
+  }
+
+  /// Ulang host Bluetooth (dipakai chip error): stop dulu, lalu start ulang.
+  Future<void> _restartBluetoothHost() async {
+    final host = _btHost;
+    if (host == null || !mounted) return;
+    await host.stop();
+    if (!mounted || _btHost != host) return;
+    await host.start();
   }
 
   Future<void> _fetchLocalIp() async {
@@ -470,7 +520,7 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
 
   /// Kirim status fase state machine ke Remote (untuk indikator tombol aksi cepat).
   void _broadcastState() {
-    _localServer?.broadcast(SyncPacket(
+    final packet = SyncPacket(
       action: SyncAction.stateUpdate,
       payload: {
         'phase': _prayerStateMachine.phase.name,
@@ -478,7 +528,9 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
         'remainingSeconds': _prayerStateMachine.remaining.inSeconds,
         'totalSeconds': _prayerStateMachine.total.inSeconds,
       },
-    ));
+    );
+    _localServer?.broadcast(packet);
+    _btHost?.broadcast(packet);
   }
 
   void _onStateMachineChanged() {
@@ -492,6 +544,9 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
     _prayerStateMachine.dispose();
     _clockTimer?.cancel();
     _localServer?.stop();
+    _btStateSub?.cancel();
+    _btStateSub = null;
+    _btHost?.stop();
     _p2pHost.stop();
     super.dispose();
   }
@@ -499,6 +554,34 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+
+    // Status Mode Bluetooth untuk chip header.
+    late String? btStatus;
+    late bool btError;
+    final bt = _btState;
+    if (bt == null) {
+      btStatus = null;
+      btError = false;
+    } else {
+      switch (bt.status) {
+        case BluetoothHostStatus.connected:
+          btStatus = 'Mode Bluetooth: aktif (${bt.peerName ?? 'TV'})';
+          btError = false;
+          break;
+        case BluetoothHostStatus.error:
+          btStatus = 'Mode Bluetooth: ${bt.error ?? 'gagal — cek Bluetooth'}';
+          btError = true;
+          break;
+        case BluetoothHostStatus.idle:
+          btStatus = 'Mode Bluetooth: tidak aktif';
+          btError = false;
+          break;
+        case BluetoothHostStatus.listening:
+          btStatus = 'Mode Bluetooth: siap — tunggu Remote menyambung';
+          btError = false;
+          break;
+      }
+    }
 
     return Scaffold(
       body: Stack(
@@ -525,7 +608,7 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
               padding: const EdgeInsets.all(10.0),
               child: Column(
                 children: [
-                  // Top Bar: Clock, Mosque Info & Server IP
+                  // Top Bar: Clock, Mosque Info & Server IP + status sync
                   HeaderClock(
                     config: _config,
                     currentTime: _now,
@@ -533,6 +616,12 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
                     p2pActive: _p2pMode == P2pMode.directFull && (_p2pState?.isActive ?? false),
                     p2pSsid: _p2pMode == P2pMode.directFull ? _p2pState?.ssid : null,
                     p2pIp: _p2pMode == P2pMode.directFull ? _p2pState?.hostIpAddress : null,
+                    btActive: bt?.isActive ?? false,
+                    btError: btError,
+                    btStatus: btStatus,
+                    onBtRestart: () {
+                      _restartBluetoothHost();
+                    },
                   ),
 
                   const SizedBox(height: 6),

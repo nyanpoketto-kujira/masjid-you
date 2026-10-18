@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -5,10 +6,12 @@ import 'package:intl/intl.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:shared_models/shared_models.dart';
 import 'package:flutter_p2p_connection/flutter_p2p_connection.dart';
+import 'package:bluetooth_sync/bluetooth_sync.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../services/ws_client.dart';
 import '../services/p2p_client_service.dart';
+import '../services/bluetooth_client_service.dart';
 import '../theme/remote_theme.dart';
 
 import 'screens/settings/settings_tab.dart';
@@ -38,7 +41,7 @@ class RemoteHomeScreen extends StatefulWidget {
 }
 
 class _RemoteHomeScreenState extends State<RemoteHomeScreen>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, WidgetsBindingObserver {
   int _tabIndex = 0;
 
   late final TabController _mainTabController;
@@ -48,11 +51,21 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
   final _ipController = TextEditingController(text: '192.168.1.');
   final _client = RemoteWsClient();
   final _p2pClient = P2pClientService();
+  final _btClient = BluetoothClientService();
   bool _isConnecting = false;
   bool _isConnected = false;
   bool _isScanning = false;
+  bool _btWasConnected = false;
   List<BleDiscoveredDevice> _p2pDevices = [];
   String _p2pStatus = 'WiFi Direct: Stanby';
+
+  // Status Bluetooth (Mode Direct sul pandana).
+  bool _btIsScanning = false;
+  bool _btConnected = false;
+  List<BluetoothDeviceInfo> _btDevices = [];
+  String _btStatus = 'Bluetooth: Stanby';
+  StreamSubscription<BluetoothClientState>? _btStateSub;
+  bool _btPausedByLifecycle = false;
 
   bool _hasUnsyncedChanges = false;
 
@@ -164,7 +177,59 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
     _fridayKhatibController.text = _config.fridayKhatib;
     _fridayMuadzinController.text = _config.fridayMuadzin;
 
+    WidgetsBinding.instance.addObserver(this);
     _client.onPacket = _handleTvPacket;
+    _btClient.onPacket = _handleTvPacket;
+    // Pasrik bacak keluar WS -> mirror ke Bluetooth (agar jalur BT saja
+    // yang tersambung, paket tetap terkirim).
+    _client.onSendPacket = (packet) {
+      _btClient.sendPacket(packet);
+    };
+    _btStateSub = _btClient.stateStream.listen((state) {
+      if (mounted) {
+        setState(() {
+          _btConnected = state.isConnected;
+          _btDevices = state.devices;
+          _btIsScanning = state.isScanning;
+          switch (state.status) {
+            case BluetoothClientStatus.connected:
+              _btStatus =
+                  'Bluetooth: Terhubung ke TV (${state.peerName ?? 'TV'})';
+              _isConnected = true;
+              _hasUnsyncedChanges = false;
+              break;
+            case BluetoothClientStatus.error:
+              _btStatus = 'Bluetooth: ${state.error ?? 'gagal'}';
+              break;
+            case BluetoothClientStatus.discovering:
+              _btStatus =
+                  'Bluetooth: Mencari TV... (${state.devices.length} ditemukan)';
+              break;
+            case BluetoothClientStatus.reconnecting:
+              _btStatus = 'Bluetooth: Menyambung ulang...';
+              break;
+            case BluetoothClientStatus.connecting:
+              _btStatus = 'Bluetooth: Menyambung...';
+              break;
+            case BluetoothClientStatus.idle:
+              _btStatus = state.devices.isEmpty
+                  ? 'Bluetooth: Stanby'
+                  : 'Bluetooth: Scan selesai. ${state.devices.length} perangkat.';
+              break;
+          }
+        });
+        // Saat koneksi BT baru terbentuk (transisi false->true), dorong seluruh
+        // data ke TV dan minta fase terkini.
+        if (state.isConnected && !_btWasConnected) {
+          _syncAllToTv();
+          _btClient.sendPacket(const SyncPacket(
+            action: SyncAction.getInitialState,
+            payload: {},
+          ));
+        }
+        _btWasConnected = state.isConnected;
+      }
+    });
     _loadSavedDurations();
 
     _p2pClient.stateStream.listen((state) {
@@ -178,6 +243,30 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
         _connectToTv();
       }
     });
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached ||
+        state == AppLifecycleState.hidden) {
+      // Bluetooth Classic tidak boleh memegang RFCOMM di background: putus
+      // koneksi supaya TV menerima `disconnected` dan remote tidak diam-diam
+      // jadi "connected" palsu saat kembali.
+      if (_btClient.isConnected || _btIsScanning || _btConnected) {
+        _btPausedByLifecycle = true;
+        _btClient.disconnect();
+      }
+      return;
+    }
+    if (state == AppLifecycleState.resumed && _btPausedByLifecycle) {
+      _btPausedByLifecycle = false;
+      if (mounted) {
+        setState(() {
+          _btStatus = 'Bluetooth: Terputus (aplikasi di background).';
+        });
+      }
+    }
   }
 
   /// Sinkronkan dua `TabController` agar swipe antar halaman menyatu.
@@ -301,7 +390,8 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
       if (!mounted) return;
       if (!ok) {
         setState(() {
-          _isConnected = false;
+          // Kalau BT sedang aktif, isConnected tetap true (jalur BT).
+          _isConnected = _btConnected;
         });
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Koneksi gagal: alamat IP tidak valid atau TV tidak terhubung')),
@@ -895,6 +985,31 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
     _p2pClient.connectTo(dev);
   }
 
+  void _startBtScan() {
+    setState(() {
+      _btIsScanning = true;
+      _btStatus = 'Bluetooth: Mencari TV...';
+    });
+    _btClient.startDiscovery();
+  }
+
+  void _stopBtScan() {
+    _btClient.stopDiscovery();
+    setState(() {
+      _btIsScanning = false;
+      _btStatus = 'Bluetooth: Scan berhenti.';
+    });
+  }
+
+  void _connectBt(BluetoothDeviceInfo device) {
+    _btClient.stopDiscovery();
+    setState(() {
+      _btIsScanning = false;
+      _btStatus = 'Bluetooth: Menyambung ke ${device.name}...';
+    });
+    _btClient.connectTo(device);
+  }
+
   /// Dialog validasi prasyarat WiFi Direct — mirror dari TV (main.dart).
   void _showP2pPrereqDialog(P2pPrerequisites reqs) {
     showDialog(
@@ -1189,7 +1304,12 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
     _kasDescriptionController.dispose();
     _mainTabController.dispose();
     _subTabController.dispose();
+    WidgetsBinding.instance.removeObserver(this);
+    _btClient.disconnect();
     _p2pClient.disconnect();
+    _btStateSub?.cancel();
+    _btStateSub = null;
+    _btClient.dispose();
     _client.disconnect();
     super.dispose();
   }
@@ -1304,7 +1424,7 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
                 ConnectivityTab(
                   ipController: _ipController,
                   isConnecting: _isConnecting,
-                  isConnected: _isConnected,
+                  isConnected: _isConnected || _btConnected,
                   isScanning: _isScanning,
                   p2pDevices: _p2pDevices,
                   p2pStatus: _p2pStatus,
@@ -1312,6 +1432,13 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
                   onStartScan: _startScan,
                   onStopScan: _stopScan,
                   onConnectP2p: _connectP2p,
+                  btIsScanning: _btIsScanning,
+                  btConnected: _btConnected,
+                  btDevices: _btDevices,
+                  btStatus: _btStatus,
+                  onBtStartScan: _startBtScan,
+                  onBtStopScan: _stopBtScan,
+                  onBtConnect: _connectBt,
                 ),
                 SimulationTab(
                   isConnected: _isConnected,
