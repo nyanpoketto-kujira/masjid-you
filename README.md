@@ -17,16 +17,18 @@ Sistem Tampilan Masjid (TV Kiosk) + Remote HP pendamping — monorepo Flutter, b
 | App | Path | Peran |
 |---|---|---|
 | **tv_display** | [`apps/tv_display`](apps/tv_display) | Kiosk di Google TV / Android TV: jam, jadwal sholat, running text, info masjid, kas. Bertindak sebagai server WebSocket `:8080` + host WiFi Direct. |
-| **mobile_remote** | [`apps/mobile_remote`](apps/mobile_remote) | Remote di HP Android: 5 tab editor (Pengaturan, Running Text, Info Masjid, Kas, Konektivitas). Client WebSocket + WiFi Direct/BLE. |
+| **mobile_remote** | [`apps/mobile_remote`](apps/mobile_remote) | Remote di HP Android: 5 tab editor (Pengaturan, Running Text, Info Masjid, Kas, Konektivitas). Client WebSocket + Bluetooth Classic + WiFi Direct/BLE. |
 | **shared_models** | [`packages/shared_models`](packages/shared_models) | Paket bersama: protokol `SyncPacket`, model data, dan perhitungan jadwal sholat offline (`adhan`). |
+| **bluetooth_sync** | [`packages/bluetooth_sync`](packages/bluetooth_sync) | Plugin Bluetooth Classic (RFCOMM): host di TV, client di Remote. Framing 4-byte big-endian + channel event.
 
 ## Status Build & Test
 
 | Workspace | Analyze | Test | APK Universal |
 |---|---|---|---|
 | `packages/shared_models` | ✅ bersih | ✅ 41 pass | — |
-| `apps/tv_display` | ✅ (5 info pre-existing) | ✅ 37 pass | ✅ ~48.8 MB |
-| `apps/mobile_remote` | ✅ (8 info pre-existing) | ✅ 15 pass | ✅ ~54.3 MB |
+| `packages/bluetooth_sync` | ✅ bersih | ✅ 30 pass | — |
+| `apps/tv_display` | ✅ bersih | ✅ 43 pass | ✅ debug APK sukses |
+| `apps/mobile_remote` | ✅ bersih | ✅ 25 pass | ✅ debug APK sukses |
 
 > [!NOTE]
 > Build release memunculkan warning **Kotlin Gradle Plugin** dari `flutter_p2p_connection` (plugin belum mendukung Built-in Kotlin). Saat ini hanya warning — versi Flutter mendatang akan gagal build jika plugin tidak di-upgrade.
@@ -34,6 +36,7 @@ Sistem Tampilan Masjid (TV Kiosk) + Remote HP pendamping — monorepo Flutter, b
 ## Fitur Utama
 
 - Sinkronisasi lokal via **WebSocket** (`ws://<ip-TV>:8080`) — tanpa cloud.
+- Koneksi **Bluetooth Classic (RFCOMM)** via `packages/bluetooth_sync` — TV jadi host yang discoverable (re-arm tiap 110 detik), Remote scan lalu sambung; sync dua arah tanpa router.
 - Koneksi **WiFi Direct + BLE** (`flutter_p2p_connection`) — tanpa router.
 - Jadwal sholat **offline** dari koordinat (manual / GPS), dengan offset per sholat & simulasi.
 - Indikator **Unsaved Changes** + tombol "Kirim Ke TV" di Remote.
@@ -42,6 +45,7 @@ Sistem Tampilan Masjid (TV Kiosk) + Remote HP pendamping — monorepo Flutter, b
 ## Dokumentasi
 
 - [**📚 MAP.md**](docs/MAP.md) — Master codebase map, peta arsitektur, & peta fungsi per-file.
+- [bt_rfcomm_rough_plan.md](docs/bt_rfcomm_rough_plan.md) — Rencana kasar perbaikan Bluetooth RFCOMM + status tiap item.
 - [DECISIONS.md](docs/DECISIONS.md) — Architectural Decision Records (ADR).
 - [tv_display/widget_mapping.md](docs/tv_display/widget_mapping.md) — Bedah widget sisi TV.
 - [mobile_remote/tab_mapping.md](docs/mobile_remote/tab_mapping.md) — Bedah tab sisi Remote.

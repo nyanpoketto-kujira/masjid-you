@@ -18,7 +18,7 @@ apps/tv_display/lib/
 ├── state/
 │   └── prayer_state_machine.dart # Siklus waktu shalat otomatis (NORMAL→PRE_ADHAN→ADHAN→PRE_IQOMAH→SHALAT)
 ├── widgets/
-│   ├── header_clock.dart      # Header: jam (ArchBorder), tanggal, nama masjid, chip IP/P2P
+│   ├── header_clock.dart      # Header: jam (ArchBorder), tanggal, nama masjid, chip IP/P2P/Bluetooth (tap = restart host BT saat error)
 │   ├── banner_carousel.dart   # Carousel Info Masjid + fallback + auto-scroll
 │   ├── kas_summary_card.dart  # Ringkasan kas
 │   ├── prayer_cards.dart      # 6 kartu sholat + ring swap countdown/waktu
@@ -26,7 +26,8 @@ apps/tv_display/lib/
 │   └── running_text_bar.dart  # Marquee running text + fallback kosong
 └── server/
     ├── local_ws_server.dart   # Server WebSocket :8080
-    └── p2p_host_service.dart  # Host WiFi Direct
+    ├── p2p_host_service.dart  # Host WiFi Direct
+    └── bluetooth_host_service.dart # Host Bluetooth Classic (RFCOMM)
 ```
 
 ---
@@ -274,6 +275,14 @@ Overlay layar penuh (Stack paling atas). Render per fase:
 - `start()` (hanya Android): `FlutterP2pHost.initialize()` → `streamHotspotState()` (di-forward ke `_stateController` broadcast) → minta izin P2P & Bluetooth bila perlu → `createGroup(advertise:true)`.
 - `stop()`: `removeGroup()` + `dispose()`.
 - **Catatan**: tidak memanggil `enableWifiServices`/`enableBluetoothServices` (menghindari layar pengaturan WiFi terbuka otomatis di emulator/TV).
+
+### 4.3 `BluetoothHostService` (`server/bluetooth_host_service.dart`)
+- Transport Bluetooth Classic (RFCOMM) via `packages/bluetooth_sync` — dipakai sebagai jalur sync tanpa router (ADR-016).
+- `start()`: cek/minta izin mode `host` (`BLUETOOTH_CONNECT` + `ADVERTISE`) → aktifkan adapter bila mati → `BluetoothSync.startHost('Masjid You TV')` → `makeDiscoverable(120)` lalu **di-re-arm tiap 110 detik** selama status `listening` (timer dibatalkan di `stop()`).
+- Event masuk: `connected` → status `connected` + `peerName`; `data` → `SyncPacket.fromJson(utf8)` → `onPacketReceived`; `disconnected` → balik `listening`; `error` → status `error`.
+- `broadcast(SyncPacket)`: hanya jalan saat `isConnected`; mengirim frame `4-byte big-endian + payload JSON`.
+- `stop()`: cancel timer + subscription, `BluetoothSync.stopHost()`, state kembali `idle`.
+- UI: `HeaderClock` menampilkan chip status BT; saat status `error`, tap chip memicu `stop()` + `start()` (restart host).
 
 ---
 

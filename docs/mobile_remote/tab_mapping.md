@@ -14,9 +14,11 @@ apps/mobile_remote/lib/
 ├── main.dart                  # Entry, navigasi 6 halaman swipe (4 menu bawah + 3 sub-tab Konten) + mikro-animasi PlayfulNavIcon, state global, semua handler, koneksi, durasi + aksi cepat shalat, theme M3
 ├── services/
 │   ├── ws_client.dart         # Client WebSocket + helper kirim per tipe data + listen paket masuk
-│   └── p2p_client_service.dart# Scan & konek WiFi Direct / BLE
+│   ├── p2p_client_service.dart# Scan & konek WiFi Direct / BLE
+│   └── bluetooth_client_service.dart # Client Bluetooth Classic (RFCOMM): discovery, connect, auto-reconnect
 └── test/
-    └── widget_test.dart       # Smoke test
+    ├── widget_test.dart       # Smoke test
+    └── bluetooth_client_service_test.dart # Unit test transisi state client BT
 ```
 
 **Tema Material 3 standar** (`MasjidYouRemoteApp._buildTheme`): `cardTheme` = `RoundedRectangleBorder(16)`; `dialogTheme`/`bottomSheetTheme` = `RoundedRectangleBorder(28)`; tombol (`FilledButton`/`OutlinedButton`/`TextButton`), `ChipThemeData.shape`, dan `navigationBarTheme.indicatorShape` = `StadiumBorder()`. `M3Pressable` (kelas lokal di main.dart) memberi feedback spring saat tekan — tetap dipakai, bukan shape. **Riwayat revert dari M3 Expressive (`puffy`/clover) → square:** lihat [theme_shapes.md](theme_shapes.md) & [ADR-012](../DECISIONS.md#adr-012).
@@ -42,6 +44,9 @@ void main() => runApp(const MasjidYouRemoteApp());
 | `_ipController` | `TextEditingController` | IP TV (default `192.168.1.`) |
 | `_client` | `RemoteWsClient` | Koneksi WS |
 | `_p2pClient` | `P2pClientService` | Koneksi WiFi Direct/BLE |
+| `_btClient` | `BluetoothClientService` | Koneksi Bluetooth Classic (RFCOMM) |
+| `_btIsScanning` / `_btConnected` / `_btDevices` / `_btStatus` | — | Status scan BT, koneksi, daftar perangkat, teks status |
+| `_btWasConnected` | `bool` | Guard agar `_syncAllToTv()` + `getInitialState` hanya dikirim saat transisi tersambung (bukan tiap emit) |
 | `_isConnecting` / `_isConnected` | `bool` | Status koneksi |
 | `_isScanning` / `_p2pDevices` / `_p2pStatus` | — | Status scan P2P + daftar perangkat + teks status |
 | `_hasUnsyncedChanges` | `bool` | Penanda perubahan belum dikirim (ADR-008) |
@@ -259,13 +264,31 @@ flowchart TD
 
 ---
 
-## 7. Kebersihan & Dispose
+## 7. `services/bluetooth_client_service.dart` — Bluetooth Classic (RFCOMM)
 
-Semua controller di-`dispose()`: `_ipController`, nama/alamat/lat/lng, `_prayerOffsetControllers.values`, 4 controller durasi (`_preAdhanController` dkk), running text, 4 banner, 2 kas, `_mainTabController`, `_subTabController`; lalu `_p2pClient.disconnect()` dan `_client.disconnect()`.
+| Method / anggota | Fungsi |
+|---|---|
+| `startDiscovery()` | cek/minta izin mode `client` (`CONNECT` + `SCAN`); aktifkan BT bila mati; `BluetoothSync.startDiscovery()` → event `discovered` mengisi daftar (dedupe per alamat, perangkat tanpa nama dilewati) |
+| `stopDiscovery()` | hentikan scan; selalu emit state (tidak early-return diam) |
+| `connectTo(BluetoothDeviceInfo)` | set status `connecting` → `BluetoothSync.connect(address)`; `connected` datang dari event plugin |
+| `sendPacket(SyncPacket)` | kirim JSON sebagai frame 4-byte big-endian bila terhubung |
+| `stateStream` / `currentState` | `BluetoothClientState` (status, isScanning, isConnected, devices, peerName, error) |
+| `onPacket` | callback `SyncPacket` masuk dari TV |
+| `disconnect()` / `dispose()` | putus koneksi, reset flag + daftar device |
+
+**Auto-reconnect:** setelah event `disconnected`/`error`, service menjadwalkan reconnect dengan guard `_reconnecting` dan batas percobaan; pesan error yang tampil membedakan "menunggu percobaan ulang" vs "percobaan habis".
+
+**Alur di `main.dart`:** listener `stateStream` → `if (state.isConnected && !_btWasConnected)` → `_syncAllToTv()` + kirim `getInitialState`; saat putus `_btWasConnected` direset. Paket keluar dari `RemoteWsClient.onSendPacket` di-mirror ke `_btClient.sendPacket` agar Remote yang hanya tersambung lewat BT tetap bisa kirim.
 
 ---
 
-## 8. Lint & Test
+## 8. Kebersihan & Dispose
+
+Semua controller di-`dispose()`: `_ipController`, nama/alamat/lat/lng, `_prayerOffsetControllers.values`, 4 controller durasi (`_preAdhanController` dkk), running text, 4 banner, 2 kas, `_mainTabController`, `_subTabController`; lalu `_p2pClient.disconnect()`, `_btClient.dispose()`, dan `_client.disconnect()`.
+
+---
+
+## 9. Lint & Test
 
 - `flutter analyze`: hanya `info` (tidak `error`):
   - `avoid_print` di `p2p_client_service.dart`.

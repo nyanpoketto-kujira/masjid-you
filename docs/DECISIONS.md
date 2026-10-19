@@ -440,4 +440,28 @@ ADR-014 menambahkan validasi prasyarat WiFi Direct (`P2pPrerequisites` + dialog 
 
 ---
 
+## ADR-016 — Transport Bluetooth Classic (RFCOMM) sebagai jalur sync tanpa router
+
+### Konteks
+WiFi Direct (`flutter_p2p_connection`) bergantung pada `LocalOnlyHotspot` yang rapuh: butuh WiFi + Lokasi aktif, izin `NEARBY_WIFI_DEVICES`, dan sering gagal diam-diam di perangkat/emulator tertentu. Untuk masjid tanpa router, dibutuhkan jalur cadangan yang tidak memerlukan hotspot sama sekali. Mobile Remote sudah memakai Bluetooth hanya untuk advertise/BLE discovery lewat plugin P2P, bukan untuk data.
+
+### Keputusan
+Menambah paket workspace `packages/bluetooth_sync` (plugin Android + wrapper Dart) yang memakai **Bluetooth Classic RFCOMM**:
+
+- **Host di TV** (`apps/tv_display/lib/server/bluetooth_host_service.dart`): `listenUsingInsecureRfcommWithServiceRecord` dengan UUID tetap, lalu `ACTION_REQUEST_DISCOVERABLE` agar TV terlihat. Discoverable di-re-arm tiap **110 detik** (batas sistem 120–300 detik) selama status `listening`.
+- **Client di Remote** (`apps/mobile_remote/lib/services/bluetooth_client_service.dart`): discovery → pilih TV → `createInsecureRfcommSocketToServiceRecord` → tukar `SyncPacket` JSON.
+- **Framing**: `4 byte big-endian panjang + payload` — sama di host & client, dijaga unit test (`packages/bluetooth_sync/test`).
+- **Satu socket dua arah**: plugin Kotlin memakai satu `@Volatile connectedSocket` untuk read & write kedua peran; penulisan dibungkus `synchronized` agar frame tidak terinterleave.
+- **Izin adaptif**: mode `host` (CONNECT + ADVERTISE) vs `client` (CONNECT + SCAN); Android < 12 memakai `ACCESS_FINE_LOCATION`. `enable()` di Android 13+ lewat `ACTION_REQUEST_ENABLE`, bukan `adapter.enable()`.
+- **UI**: Remote menganggap tersambung bila jalur WS **atau** BT aktif; paket keluar dari `RemoteWsClient.onSendPacket` di-mirror ke BT. Di TV, chip status BT di header bisa di-tap untuk restart host saat error.
+
+### Konsekuensi
+- Sinkronisasi tetap satu arah per pengiriman (Remote → TV), dengan `getInitialState` diminta sekali saat transisi tersambung — bukan tiap emit state (bug lama yang membuat paket terkirim berulang).
+- Bluetooth Classic menuntut app **TV** memperoleh izin `BLUETOOTH_ADVERTISE`; dialog izin pertama kali muncul saat host start.
+- Bandingkan dengan ADR-015: validasi prasyarat dilakukan di service, dan kegagalan izin kini muncul sebagai error yang terbaca di UI, bukan scan kosong.
+- Keterbatasan: BT Classic tidak bisa dipakai untuk transfer besar secara cepat; banner Base64 besar tetap lebih baik lewat WS.
+- Rincian bug + status perbaikan: [bt_rfcomm_rough_plan.md](bt_rfcomm_rough_plan.md).
+
+---
+
 > Kembali ke [MAP.md](MAP.md) | Lanjut ke [tv_display/widget_mapping.md](tv_display/widget_mapping.md) | [mobile_remote/tab_mapping.md](mobile_remote/tab_mapping.md) | [mobile_remote/theme_shapes.md](mobile_remote/theme_shapes.md)
