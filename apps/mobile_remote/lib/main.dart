@@ -12,6 +12,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../services/ws_client.dart';
 import '../services/p2p_client_service.dart';
 import '../services/bluetooth_client_service.dart';
+import '../services/remote_cache_store.dart';
+import '../services/backup_service.dart';
 import '../theme/remote_theme.dart';
 
 import 'screens/settings/settings_tab.dart';
@@ -68,6 +70,16 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
   bool _btPausedByLifecycle = false;
 
   bool _hasUnsyncedChanges = false;
+
+  /// Cache lokal snapshot TV (trust source) — nilai awal form saat startup.
+  final RemoteCacheStore _cacheStore = RemoteCacheStore();
+
+  /// Export/import backup data masjid ke/dari file JSON.
+  final BackupService _backupService = BackupService();
+
+  /// Penjaga agar bootstrap (Remote -> TV) hanya terjadi sekali per sesi,
+  /// dan hanya bila TV masih kosong.
+  bool _didBootstrapPush = false;
 
   MosqueConfig _config = const MosqueConfig(
     name: 'Masjid Agung Al-Hikmah',
@@ -162,20 +174,7 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
     _subTabController = TabController(length: 3, vsync: this);
     _mainTabController.addListener(_handleMainTabChange);
     _subTabController.addListener(_handleSubTabChange);
-    _nameController.text = _config.name;
-    _addressController.text = _config.address;
-    _latitudeController.text = _config.latitude.toStringAsFixed(6);
-    _longitudeController.text = _config.longitude.toStringAsFixed(6);
-    for (final type in kAllPrayerTypes) {
-      _prayerOffsetControllers[type]!.text = _config.offsetFor(type).toString();
-    }
-    _preAdhanController.text = _config.preAdhanMinutes.toString();
-    _adhanController.text = _config.adhanMinutes.toString();
-    _preIqomahController.text = _config.preIqomahMinutes.toString();
-    _shalatController.text = _config.shalatMinutes.toString();
-    _khutbahController.text = _config.khutbahMinutes.toString();
-    _fridayKhatibController.text = _config.fridayKhatib;
-    _fridayMuadzinController.text = _config.fridayMuadzin;
+    _syncConfigControllers();
 
     WidgetsBinding.instance.addObserver(this);
     _client.onPacket = _handleTvPacket;
@@ -218,19 +217,16 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
               break;
           }
         });
-        // Saat koneksi BT baru terbentuk (transisi false->true), dorong seluruh
-        // data ke TV dan minta fase terkini.
+        // Saat koneksi BT baru terbentuk (transisi false->true), minta keadaan
+        // awal dari TV. TV adalah trust source: Remote TIDAK menimpa data TV
+        // saat menyambung; bootstrap hanya bila TV masih kosong.
         if (state.isConnected && !_btWasConnected) {
-          _syncAllToTv();
-          _btClient.sendPacket(const SyncPacket(
-            action: SyncAction.getInitialState,
-            payload: {},
-          ));
+          _requestTvState();
         }
         _btWasConnected = state.isConnected;
       }
     });
-    _loadSavedDurations();
+    _loadStartupData();
 
     _p2pClient.stateStream.listen((state) {
       if (state == null || !state.isActive || !mounted) return;
@@ -317,6 +313,63 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
     _syncingControllers = false;
   }
 
+  /// Isi seluruh field form dari [_config] (dipakai saat startup & setelah
+  /// snapshot TV masuk).
+  void _syncConfigControllers() {
+    _nameController.text = _config.name;
+    _addressController.text = _config.address;
+    _latitudeController.text = _config.latitude.toStringAsFixed(6);
+    _longitudeController.text = _config.longitude.toStringAsFixed(6);
+    for (final type in kAllPrayerTypes) {
+      _prayerOffsetControllers[type]!.text = _config.offsetFor(type).toString();
+    }
+    _preAdhanController.text = _config.preAdhanMinutes.toString();
+    _adhanController.text = _config.adhanMinutes.toString();
+    _preIqomahController.text = _config.preIqomahMinutes.toString();
+    _shalatController.text = _config.shalatMinutes.toString();
+    _khutbahController.text = _config.khutbahMinutes.toString();
+    _fridayKhatibController.text = _config.fridayKhatib;
+    _fridayMuadzinController.text = _config.fridayMuadzin;
+  }
+
+  /// Nilai awal form saat startup.
+  ///
+  /// Cache snapshot TV diprioritaskan karena TV adalah trust source; prefs
+  /// durasi lama hanya dipakai bila cache belum pernah ada.
+  Future<void> _loadStartupData() async {
+    final cached = await _cacheStore.load();
+    if (cached != null && mounted) {
+      setState(() {
+        _applySnapshot(cached);
+      });
+      return;
+    }
+    await _loadSavedDurations();
+  }
+
+  /// Terapkan isi snapshot TV ke state (config + konten).
+  void _applySnapshot(StateSnapshot snapshot) {
+    _config = snapshot.config;
+    _runningTexts
+      ..clear()
+      ..addAll(snapshot.runningTexts);
+    _banners
+      ..clear()
+      ..addAll(snapshot.banners);
+    _kasTransactions
+      ..clear()
+      ..addAll(snapshot.kasTransactions);
+    _syncConfigControllers();
+  }
+
+  /// Minta keadaan awal ke TV (TV sebagai trust source).
+  void _requestTvState() {
+    _client.sendPacket(const SyncPacket(
+      action: SyncAction.getInitialState,
+      payload: {},
+    ));
+  }
+
   /// Muat durasi siklus waktu shalat dari SharedPreferences (persist lokal).
   Future<void> _loadSavedDurations() async {
     try {
@@ -368,9 +421,23 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
     }
   }
 
-  /// Terima status fase TV (`SyncAction.stateUpdate`) untuk indikator tombol.
+  /// Terima paket dari TV: `stateUpdate` (fase siklus shalat) dan
+  /// `stateSnapshot` (data resmi lengkap, TV -> Remote).
   void _handleTvPacket(SyncPacket packet) {
-    if (packet.action != SyncAction.stateUpdate) return;
+    switch (packet.action) {
+      case SyncAction.stateUpdate:
+        _applyTvPhase(packet);
+        break;
+      case SyncAction.stateSnapshot:
+        _applyTvSnapshot(StateSnapshot.fromMap(packet.payload));
+        break;
+      default:
+        break;
+    }
+  }
+
+  /// Perbarui indikator fase TV dari `SyncAction.stateUpdate`.
+  void _applyTvPhase(SyncPacket packet) {
     final phaseName = packet.payload['phase'] as String?;
     if (phaseName == null || !mounted) return;
     setState(() {
@@ -379,6 +446,144 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
         orElse: () => PrayerPhase.normal,
       );
     });
+  }
+
+  /// Terapkan snapshot TV: isi form & konten dari TV, simpan sebagai cache
+  /// lokal. Bila TV masih kosong (belum pernah diisi DKM), Remote boleh
+  /// mengirim datanya SEKALI sebagai bootstrap.
+  ///
+  /// Catatan: snapshot dari TV yang belum berisi data resmi (`hasData: false`)
+  /// hanya memuat data contoh bawaan TV, sehingga TIDAK diterapkan ke form —
+  /// Remote mempertahankan datanya lalu mengirimkannya sekali ke TV.
+  void _applyTvSnapshot(StateSnapshot snapshot) {
+    if (!mounted) return;
+    if (!snapshot.hasData) {
+      if (!_didBootstrapPush) {
+        _didBootstrapPush = true;
+        _pushLocalDataToTv();
+      }
+      return;
+    }
+
+    setState(() {
+      _applySnapshot(snapshot);
+      _hasUnsyncedChanges = false;
+    });
+    _cacheStore.save(snapshot);
+    _persistDurations(snapshot.config);
+  }
+
+  /// Kirim data lokal ke TV tanpa menyentuh form (dipakai bootstrap TV kosong).
+  void _pushLocalDataToTv() {
+    _client.sendConfigUpdate(_config);
+    _client.sendRunningTextsUpdate(_runningTexts);
+    _client.sendBannersUpdate(_banners);
+    _client.sendKasUpdate(_kasTransactions);
+  }
+
+  /// Export snapshot keadaan saat ini ke file backup JSON.
+  Future<void> _exportBackup() async {
+    final snapshot = StateSnapshot(
+      config: _config,
+      runningTexts: List.of(_runningTexts),
+      banners: List.of(_banners),
+      kasTransactions: List.of(_kasTransactions),
+      hasData: true,
+    );
+    final savedPath = await _backupService.exportToFile(
+      snapshot,
+      _config.name,
+    );
+    if (!mounted) return;
+    if (savedPath == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Export dibatalkan.')),
+      );
+      return;
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Backup disimpan: $savedPath')),
+    );
+  }
+
+  /// Import backup dari file JSON yang dipilih user, dengan konfirmasi.
+  Future<void> _importBackup() async {
+    final result = await _backupService.importFromFile();
+    if (!mounted) return;
+    final bundle = result.bundle;
+    if (!result.success || bundle == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(result.errorMessage ?? 'Impor gagal.')),
+      );
+      return;
+    }
+
+    final snapshot = bundle.snapshot;
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Impor Backup'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Backup siap diterapkan. Data saat ini akan disimpan ke cache lokal sebagai cadangan.',
+              ),
+              const SizedBox(height: 12),
+              Text('Masjid: ${bundle.mosqueName}'),
+              Text('Running Text: ${snapshot.runningTexts.length}'),
+              Text('Banner: ${snapshot.banners.length}'),
+              Text('Transaksi Kas: ${snapshot.kasTransactions.length}'),
+              const SizedBox(height: 12),
+              const Text('Sure ingin terapkan backup ini?'),
+            ],
+          ),
+          actions: [
+            M3Pressable(
+              child: TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: const Text('Batal'),
+              ),
+            ),
+            M3Pressable(
+              child: FilledButton(
+                onPressed: () async {
+                  Navigator.pop(dialogContext);
+                  await _applyImportedBackup(bundle);
+                },
+                child: const Text('Terapkan'),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  /// Terapkan [bundle] hasil impor: simpan snapshot lama ke cache sebagai
+  /// cadangan, isi state dari bundle, refresh form, lalu kirim ke TV.
+  Future<void> _applyImportedBackup(BackupBundle bundle) async {
+    // Cadangan: snapshot lama disimpan ke cache lokal sebelum state diubah.
+    final oldSnapshot = StateSnapshot(
+      config: _config,
+      runningTexts: List.of(_runningTexts),
+      banners: List.of(_banners),
+      kasTransactions: List.of(_kasTransactions),
+      hasData: true,
+    );
+    await _cacheStore.save(oldSnapshot);
+
+    final snapshot = bundle.snapshot;
+    if (!mounted) return;
+    setState(() {
+      _applySnapshot(snapshot);
+      _hasUnsyncedChanges = true;
+    });
+
+    // Kirim data backup ke TV lewat jalur push manual yang sudah ada
+    // (menampilkan snackbar sesuai — sukses atau perlu koneksi ulang).
+    _pushAllToTv();
   }
 
   Future<void> _connectToTv() async {
@@ -402,7 +607,8 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
         _isConnected = true;
         _hasUnsyncedChanges = false;
       });
-      _syncAllToTv();
+      // TV adalah trust source: cukup minta keadaan awal, jangan menimpa TV.
+      _requestTvState();
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -1382,6 +1588,8 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
                   onSaveConfig: _sendConfigUpdate,
                   onSendQuickAction: _sendQuickAction,
                   onShowSimulation: _showScheduleSimulation,
+                  onExportBackup: _exportBackup,
+                  onImportBackup: _importBackup,
                 ),
                 RunningTextSubtab(
                   runningTexts: _runningTexts,

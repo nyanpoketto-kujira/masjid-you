@@ -5,3 +5,5 @@ export 'src/running_text.dart';
 export 'src/media_banner.dart';
 export 'src/kas_transaction.dart';
 export 'src/sync_packet.dart';
+export 'src/state_snapshot.dart';
+export 'src/backup_bundle.dart';

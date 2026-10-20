@@ -8,6 +8,9 @@ enum SyncAction {
   triggerBeep,
   getInitialState,
   stateUpdate,
+  /// Snapshot lengkap dari TV (TV -> Remote): config + teks berjalan +
+  /// banner + kas sekaligus. Lihat `StateSnapshot`.
+  stateSnapshot,
   skipAdhan,
   startIqomah,
   startShalat,

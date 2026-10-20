@@ -17,6 +17,7 @@ import 'widgets/running_text_bar.dart';
 import 'widgets/prayer_state_overlay.dart';
 import 'widgets/material_blob_background.dart';
 import 'state/prayer_state_machine.dart';
+import 'state/tv_store.dart';
 import 'server/local_ws_server.dart';
 import 'server/p2p_host_service.dart';
 import 'server/bluetooth_host_service.dart';
@@ -153,6 +154,13 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
 
   late PrayerSchedule _prayerSchedule;
 
+  /// Penyimpanan lokal data resmi TV (trust source).
+  final TvStore _store = TvStore();
+
+  /// `true` bila TV sudah punya data resmi (hasil persist lokal atau kiriman
+  /// DKM). Selama `false`, Remote boleh mengirim datanya sekali (bootstrap).
+  bool _hasStoredData = false;
+
   @override
   void initState() {
     super.initState();
@@ -178,12 +186,38 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
       _prayerStateMachine.tick(_now, _prayerSchedule);
     });
 
-    _initLocalServer();
+    // Muat data resmi lebih dulu, baru nyalakan jalur sync: TV harus jadi
+    // trust source yang sudah berisi data sebelum Remote menyambung.
+    _initFromStore();
+  }
+
+  /// Muat data tersimpan (bila ada), lalu hidupkan server/host sync.
+  Future<void> _initFromStore() async {
+    StateSnapshot? loaded;
+    try {
+      loaded = await _store.load();
+    } catch (e) {
+      debugPrint('Failed to load stored TV data: $e');
+    }
+    if (loaded != null && mounted) {
+      final snapshot = loaded;
+      setState(() {
+        _config = snapshot.config;
+        _runningTexts = snapshot.runningTexts;
+        _banners = snapshot.banners;
+        _kasTransactions = snapshot.kasTransactions;
+        _hasStoredData = true;
+      });
+      _recalculateSchedule();
+      _prayerStateMachine.updateConfig(_config, _now);
+    }
+
+    await _initLocalServer();
     // Jalur WiFi Direct mentok di beberapa perangkat Samsung Android 16
     // (EPERM socket transport) -> dan jalur utama sync langsung ialah
     // Bluetooth Classic. Kode `_initP2pHost` masih ada agar bisa di-siap
     // ulang di perangkat yang mendukungnya.
-    _initBluetoothHost();
+    await _initBluetoothHost();
   }
 
   int _androidSdkVersion() {
@@ -390,6 +424,8 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
         _config = MosqueConfig.fromMap(packet.payload);
         _recalculateSchedule();
         _prayerStateMachine.updateConfig(_config, _now);
+        _hasStoredData = true;
+        _store.saveConfig(_config);
         break;
       case SyncAction.updateRunningText:
         final list = (packet.payload['messages'] as List?)
@@ -404,6 +440,8 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
                 .toList() ??
             [];
         _runningTexts = list;
+        _hasStoredData = true;
+        _store.saveRunningTexts(list);
         break;
       case SyncAction.updateBanners:
         final list = (packet.payload['banners'] as List?)
@@ -418,6 +456,8 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
                 .toList() ??
             [];
         _banners = list;
+        _hasStoredData = true;
+        _store.saveBanners(list);
         break;
       case SyncAction.updateKas:
         final list = (packet.payload['transactions'] as List?)
@@ -432,6 +472,8 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
                 .toList() ??
             [];
         _kasTransactions = list;
+        _hasStoredData = true;
+        _store.saveKas(list);
         break;
       case SyncAction.skipAdhan:
         _prayerStateMachine.skipAdhan(now: _now);
@@ -453,6 +495,9 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
         );
         break;
       case SyncAction.getInitialState:
+        // Remote minta keadaan awal: kirim snapshot lengkap (data resmi TV)
+        // DITAMBAH stateUpdate agar tombol aksi cepat Remote tetap hidup.
+        _broadcastSnapshot();
         _broadcastState();
         break;
       default:
@@ -516,6 +561,23 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
     } catch (e) {
       debugPrint('Failed to get IP: $e');
     }
+  }
+
+  /// Kirim snapshot lengkap TV (config + teks berjalan + banner + kas) ke
+  /// Remote — TV sebagai sumber kebenaran data.
+  void _broadcastSnapshot() {
+    final packet = SyncPacket(
+      action: SyncAction.stateSnapshot,
+      payload: StateSnapshot(
+        config: _config,
+        runningTexts: _runningTexts,
+        banners: _banners,
+        kasTransactions: _kasTransactions,
+        hasData: _hasStoredData,
+      ).toMap(),
+    );
+    _localServer?.broadcast(packet);
+    _btHost?.broadcast(packet);
   }
 
   /// Kirim status fase state machine ke Remote (untuk indikator tombol aksi cepat).

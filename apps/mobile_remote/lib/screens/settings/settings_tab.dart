@@ -24,6 +24,8 @@ class SettingsTab extends StatelessWidget {
   final VoidRefCallback onSaveConfig;
   final Function(SyncAction) onSendQuickAction;
   final Function(MosqueConfig) onShowSimulation;
+  final VoidRefCallback onExportBackup;
+  final VoidRefCallback onImportBackup;
 
   const SettingsTab({
     super.key,
@@ -47,6 +49,8 @@ class SettingsTab extends StatelessWidget {
     required this.onSaveConfig,
     required this.onSendQuickAction,
     required this.onShowSimulation,
+    required this.onExportBackup,
+    required this.onImportBackup,
   });
 
   @override
@@ -281,6 +285,30 @@ class SettingsTab extends StatelessWidget {
                     onPressed: onSaveConfig,
                     icon: const Icon(Icons.save),
                     label: const Text('Simpan & Update'),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          Row(
+            children: [
+              Expanded(
+                child: M3Pressable(
+                  child: OutlinedButton.icon(
+                    onPressed: onExportBackup,
+                    icon: const Icon(Icons.backup_outlined),
+                    label: const Text('Export Backup'),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: M3Pressable(
+                  child: FilledButton.icon(
+                    onPressed: onImportBackup,
+                    icon: const Icon(Icons.restore),
+                    label: const Text('Import Backup'),
                   ),
                 ),
               ),
