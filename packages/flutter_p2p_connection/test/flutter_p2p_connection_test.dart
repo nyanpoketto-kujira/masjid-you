@@ -11,7 +11,7 @@ class MockFlutterP2pConnectionPlatform
   Future<String> getPlatformVersion() => Future.value('42');
 
   @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+  Future<String> getPlatformModel() => Future.value('Test Model');
 }
 
 void main() {
