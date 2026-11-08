@@ -16,7 +16,7 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-channel: stable
+          channel: stable
 
       - name: Get dependencies
         run: flutter pub get
@@ -25,4 +25,12 @@ jobs:
         run: flutter analyze
 
       - name: Test
-        run: flutter test
+        run: |
+          # This is a Flutter workspace (monorepo). Tests live in each
+          # member package, not at the root, so run them per package.
+          for pkg in packages/shared_models packages/bluetooth_sync packages/flutter_p2p_connection apps/tv_display apps/mobile_remote; do
+            if [ -d "$pkg/test" ]; then
+              echo "==> flutter test in $pkg"
+              (cd "$pkg" && flutter test)
+            fi
+          done
