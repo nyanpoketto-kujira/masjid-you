@@ -39,7 +39,12 @@ class PrayerSchedule {
     params.madhab = Madhab.shafi;
 
     final dateComponents = DateComponents.from(now);
-    final prayerTimes = PrayerTimes(coordinates, dateComponents, params);
+    // Pass utcOffset so PrayerTimes are returned in local timezone
+    // instead of UTC, preventing timezone-mismatch bugs when comparing
+    // with |now| (a local DateTime).
+    final utcOffset = Duration(hours: config.utcOffsetHours);
+    final prayerTimes =
+        PrayerTimes(coordinates, dateComponents, params, utcOffset: utcOffset);
 
     int offsetFor(PrayerType type) => config.offsetFor(type);
 
@@ -86,8 +91,10 @@ class PrayerSchedule {
       nextPrayer = PrayerType.fajr;
       final tomorrow = now.add(const Duration(days: 1));
       final tomorrowComponents = DateComponents.from(tomorrow);
-      final tomorrowPrayerTimes = PrayerTimes(coordinates, tomorrowComponents, params);
-      final tomorrowFajr = tomorrowPrayerTimes.fajr.add(Duration(minutes: offsetFor(PrayerType.fajr)));
+      final tomorrowPrayerTimes =
+          PrayerTimes(coordinates, tomorrowComponents, params, utcOffset: utcOffset);
+      final tomorrowFajr =
+          tomorrowPrayerTimes.fajr.add(Duration(minutes: offsetFor(PrayerType.fajr)));
       timeUntilNext = tomorrowFajr.difference(now);
     }
 

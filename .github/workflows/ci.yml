@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Test
+        run: |
+          # This is a Flutter workspace (monorepo). Tests live in each
+          # member package, not at the root, so run them per package.
+          for pkg in packages/shared_models packages/bluetooth_sync packages/flutter_p2p_connection apps/tv_display apps/mobile_remote; do
+            if [ -d "$pkg/test" ]; then
+              echo "==> flutter test in $pkg"
+              (cd "$pkg" && flutter test)
+            fi
+          done
