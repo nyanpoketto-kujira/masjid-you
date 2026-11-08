@@ -10,7 +10,7 @@
 | Dokumen | Isi | Kapan Dibaca |
 |---|---|---|
 | **[MAP.md](MAP.md)** (file ini) | Peta arsitektur umum, peta fungsi per-file, navigasi lintas dokumen | Mulai dari sini |
-| **[DECISIONS.md](DECISIONS.md)** | *Architectural Decision Records* (ADR): kenapa ditulis ulang, kenapa Flutter, kenapa WebSocket/P2P, kenapa fallback UI, kenapa `didUpdateWidget`, penanganan error P0, validasi prasyarat WiFi Direct TV & Remote, transport Bluetooth RFCOMM (ADR-016) | Memahami alasan desain |
+| **[DECISIONS.md](DECISIONS.md)** | *Architectural Decision Records* (ADR): kenapa ditulis ulang, kenapa Flutter, kenapa WebSocket/P2P, kenapa fallback UI, kenapa `didUpdateWidget`, penanganan error P0, validasi prasyarat WiFi Direct TV & Remote, transport Bluetooth RFCOMM (ADR-016), cek lokasi discovery Bluetooth Android ≤11 (ADR-017) | Memahami alasan desain |
 | **[bt_rfcomm_rough_plan.md](bt_rfcomm_rough_plan.md)** | Rencana kasar perbaikan Bluetooth RFCOMM: daftar bug per prioritas + status tiap item (`[DIPATCH]` / `[SUDAH BENAR]` / `[TERBUKA]`) | Bekerja di jalur Bluetooth |
 | **[tv_display/widget_mapping.md](tv_display/widget_mapping.md)** | Bedah seluruh file `apps/tv_display/lib/`, fungsi tiap widget, state management, timer, penanganan layar TV | Bekerja di sisi TV |
 | **[tv_display/m3_shapes.md](tv_display/m3_shapes.md)** | Arsitektur perubahan shape terbaru: manual `RoundedRectangleBorder(28)`, `ArchBorder`, model swap jam, penghapusan badge — apa/kenapa/bagaimana | Memahami tampilan/shape layar TV |
@@ -141,11 +141,11 @@ flowchart LR
 | `lib/screens/content/running_text_subtab.dart` | Editor pesan running text berjalan berdasarkan kategori | `RunningTextSubtab` |
 | `lib/screens/content/banners_subtab.dart` | Editor banner informasi masjid multi-bidang dengan kendali sakelar aktif | `BannersSubtab` |
 | `lib/screens/content/kas_subtab.dart` | Manajemen data kas masuk/keluar, input nominal, dan riwayat transaksi | `KasSubtab` |
-| `lib/screens/connectivity/connectivity_tab.dart` | Pengaturan koneksi: WebSocket manual, **Bluetooth** (Cari TV / sambung), dan pencarian WiFi Direct TV | `ConnectivityTab` (`onBtStartScan`, `onBtStopScan`, `onBtConnect`) |
+| `lib/screens/connectivity/connectivity_tab.dart` | Pengaturan koneksi: WebSocket manual, **Bluetooth** (Cari TV / sambung, tombol 'Buka Pengaturan Lokasi' via `btNeedsLocation`), dan pencarian WiFi Direct TV | `ConnectivityTab` (`onBtStartScan`, `onBtStopScan`, `onBtConnect`, `btNeedsLocation`, `onBtOpenLocationSettings`) |
 | `lib/screens/simulation/simulation_tab.dart` | Menu tes simulasi untuk memicu paksa fase siklus shalat TV | `SimulationTab` |
 | `lib/services/ws_client.dart` | Client WebSocket + helper kirim per tipe data + listen paket masuk | `RemoteWsClient` (`connect`, `sendConfigUpdate`, `sendRunningTextsUpdate`, `sendBannersUpdate`, `sendKasUpdate`, `sendSkipAdhan`, `sendStartIqomah`, `sendStartShalat`, `sendFinishShalat`, `sendForcePhase`, `onPacket`, `disconnect`) |
 | `lib/services/p2p_client_service.dart` | Scan & konek WiFi Direct/BLE; validasi prasyarat (model `P2pPrerequisites` + `checkPrerequisites`) mirror TV (ADR-015) | `P2pClientService` (`startScan`, `stopScan`, `connectTo`, `disconnect`, `stateStream`, `checkPrerequisites`, `enableWifiIfNeeded`, `enableBluetoothIfNeeded`, `enableLocationIfNeeded`, `askPermissionsIfNeeded`) |
-| `lib/services/bluetooth_client_service.dart` | Client Bluetooth Classic (RFCOMM): discovery, `connecting` state, dedupe device per alamat, auto-reconnect, tukar `SyncPacket` dengan TV (ADR-016) | `BluetoothClientService` (`startDiscovery`, `stopDiscovery`, `connectTo`, `disconnect`, `sendPacket`, `stateStream`, field `onPacket`), `BluetoothClientState`, `BluetoothClientStatus` |
+| `lib/services/bluetooth_client_service.dart` | Client Bluetooth Classic (RFCOMM): discovery, `connecting` state, dedupe device per alamat, auto-reconnect, tukar `SyncPacket` dengan TV (ADR-016), validasi Location Services Android ≤11 (ADR-017) | `BluetoothClientService` (`startDiscovery`, `stopDiscovery`, `connectTo`, `disconnect`, `sendPacket`, `stateStream`, field `onPacket`), `BluetoothClientState` (`needsLocation`), `BluetoothClientStatus` |
 | `test/widget_test.dart` | Smoke test | — |
 | `test/bluetooth_client_service_test.dart` | Unit test transisi state client Bluetooth (mock MethodChannel + EventChannel) | — |
 

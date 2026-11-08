@@ -22,6 +22,8 @@
 13. [ADR-013 — Perbaikan Bug Major P0 & Penanganan Error Konektivitas](#adr-013)
 14. [ADR-014 — Perbaikan WiFi Direct Discovery & Prasyarat Check](#adr-014)
 15. [ADR-015 — Validasi Prasyarat WiFi Direct di Mobile Remote](#adr-015)
+16. [ADR-016 — Transport Bluetooth Classic (RFCOMM) sebagai jalur sync tanpa router](#adr-016)
+17. [ADR-017 — Bluetooth Discovery Location Services Check (Android ≤11)](#adr-017)
 
 ---
 
@@ -461,6 +463,41 @@ Menambah paket workspace `packages/bluetooth_sync` (plugin Android + wrapper Dar
 - Bandingkan dengan ADR-015: validasi prasyarat dilakukan di service, dan kegagalan izin kini muncul sebagai error yang terbaca di UI, bukan scan kosong.
 - Keterbatasan: BT Classic tidak bisa dipakai untuk transfer besar secara cepat; banner Base64 besar tetap lebih baik lewat WS.
 - Rincian bug + status perbaikan: [bt_rfcomm_rough_plan.md](bt_rfcomm_rough_plan.md).
+
+---
+
+## ADR-017 — Bluetooth Discovery Location Services Check (Android ≤11)
+
+### Konteks
+Remote (Android 11, SDK 30) tidak menemukan TV saat discovery meskipun izin `BLUETOOTH_SCAN` diberikan dan TV discoverable. **Penyebab root**: Location Services (GPS/NETWORK) mati di device Remote. Android ≤11 tidak mengirim event `ACTION_FOUND` selama Location Services off (persyaratan sistem Android untuk sharing lokasi presisi selama scan BT).
+
+### Keputusan
+1. **Plugin Kotlin** (`BluetoothSyncPlugin.kt`):
+   - Tambah method `isLocationEnabled()`: cek `LocationManager.isProviderEnabled(GPS/NETWORK)` untuk SDK≤30; return `true` untuk SDK≥31.
+   - Tambah method `openLocationSettings()`: buka `Intent(ACTION_LOCATION_SOURCE_SETTINGS)` agar user bisa menyalakan lokasi.
+   - Di `startDiscovery()`: jika SDK≤30 dan lokasi off, `postError` dengan pesan jelas lalu `discoveryFinished` **tanpa menjalankan scan**.
+
+2. **Dart Wrapper** (`bluetooth_sync.dart`):
+   - Expose `isLocationEnabled()` dan `openLocationSettings()` ke layer app.
+
+3. **BluetoothClientService** (`apps/mobile_remote/lib/services/bluetooth_client_service.dart`):
+   - Sebelum panggil `BluetoothSync.startDiscovery()`, cek `isLocationEnabled()` terlebih dahulu.
+   - Jika lokasi off, set flag `needsLocation = true` dan pesan error, lalu return tanpa scan.
+
+4. **UI Tombol Pengaturan Lokasi**:
+   - Tombol 'Buka Pengaturan Lokasi' di tab Konektivitas (ConnectivityTab + main.dart) via flag `needsLocation` di BluetoothClientState; tombol muncul hanya saat lokasi mati.
+
+### Alasan
+- **Layering yang jelas**: cek dilakukan di dua level — plugin native (guard resource hardware) dan Dart (early exit, konsistensi pesan UI & state).
+- **Pesan error spesifik & aksi cepat**: "Aktifkan Lokasi (GPS) di pengaturan — dibutuhkan Android untuk mencari perangkat Bluetooth" menerangkan sebab dan menyediakan tombol langsung untuk membuka pengaturan tanpa navigasi manual.
+- **Cakupan SDK**: hanya perlu check di SDK≤30; Android 12+ (SDK≥31) memakai izin runtime `BLUETOOTH_SCAN` tanpa dependensi ke Location Services.
+- **Testability**: unit test mensimulasikan lokasi mati vs nyala; memverifikasi bahwa `startDiscovery` native tidak pernah dipanggil saat lokasi off.
+
+### Konsekuensi
+- Perubahan **non-breaking**: method baru hanya dipanggil oleh service dan UI pendukung, tidak merusak alur Bluetooth Classic yang sudah ada.
+- Daftar file yang diubah (8 file): `BluetoothSyncPlugin.kt`, `bluetooth_sync.dart`, `bluetooth_client_service.dart`, `connectivity_tab.dart`, `main.dart`, `bluetooth_sync_test.dart`, `bluetooth_client_service_test.dart`, `DECISIONS.md`.
+- Test coverage: 68 total (35 mobile_remote + 33 bluetooth_sync); semua pass.
+- APK dibangun ulang & diinstall ke Remote device; diverifikasi berfungsi.
 
 ---
 
