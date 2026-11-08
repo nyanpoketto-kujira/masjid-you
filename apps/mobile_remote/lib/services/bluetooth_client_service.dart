@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:bluetooth_sync/bluetooth_sync.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:shared_models/shared_models.dart';
 
 /// Status Mode Bluetooth di sisi Remote.
@@ -84,6 +85,16 @@ class BluetoothClientService {
 
   bool get isConnected => _connected;
 
+  /// Tentukan apakah koneksi Bluetooth harus diputus saat lifecycle app berubah.
+  ///
+  /// Hanya [AppLifecycleState.detached] yang mengharuskan disconnect.
+  /// [AppLifecycleState.paused] dan [AppLifecycleState.hidden] (mis. saat
+  /// image_picker atau dialog) TIDAK boleh memutus koneksi BT yang sedang
+  /// digunakan (by design fix).
+  static bool shouldDisconnectBluetoothOnLifecycle(AppLifecycleState state) {
+    return state == AppLifecycleState.detached;
+  }
+
   BluetoothClientStatus _statusFromFlags() {
     if (_connected) return BluetoothClientStatus.connected;
     if (_reconnecting) return BluetoothClientStatus.reconnecting;
@@ -146,6 +157,13 @@ class BluetoothClientService {
       await BluetoothSync.stopDiscovery();
     } catch (_) {}
     _emit();
+  }
+
+  /// Tangani perubahan lifecycle app. Putus koneksi BT hanya saat [AppLifecycleState.detached].
+  Future<void> handleAppLifecycleState(AppLifecycleState state) async {
+    if (shouldDisconnectBluetoothOnLifecycle(state)) {
+      await disconnect();
+    }
   }
 
   /// Sambungkan ke perangkat [device] (TV) via insecure RFCOMM.

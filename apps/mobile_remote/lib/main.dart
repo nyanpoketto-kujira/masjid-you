@@ -67,7 +67,6 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
   List<BluetoothDeviceInfo> _btDevices = [];
   String _btStatus = 'Bluetooth: Stanby';
   StreamSubscription<BluetoothClientState>? _btStateSub;
-  bool _btPausedByLifecycle = false;
 
   bool _hasUnsyncedChanges = false;
 
@@ -243,25 +242,20 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.paused ||
-        state == AppLifecycleState.detached ||
-        state == AppLifecycleState.hidden) {
-      // Bluetooth Classic tidak boleh memegang RFCOMM di background: putus
-      // koneksi supaya TV menerima `disconnected` dan remote tidak diam-diam
-      // jadi "connected" palsu saat kembali.
+    // Hanya putus koneksi BT saat app benar-benar ditutup (detached).
+    // paused/hidden terjadi pada aktivitas normal seperti image_picker,
+    // dan tidak boleh memutus koneksi Bluetooth yang sedang digunakan.
+    if (BluetoothClientService.shouldDisconnectBluetoothOnLifecycle(state)) {
       if (_btClient.isConnected || _btIsScanning || _btConnected) {
-        _btPausedByLifecycle = true;
         _btClient.disconnect();
       }
       return;
     }
-    if (state == AppLifecycleState.resumed && _btPausedByLifecycle) {
-      _btPausedByLifecycle = false;
-      if (mounted) {
-        setState(() {
-          _btStatus = 'Bluetooth: Terputus (aplikasi di background).';
-        });
-      }
+    
+    // resumed: cek status BT nyata daripada asumsikan terhubung.
+    if (state == AppLifecycleState.resumed) {
+      // Tidak ada yang perlu dilakukan di sini—state stream akan
+      // memberitahu jika ada perubahan koneksi. Jangan paksa apapun.
     }
   }
 
