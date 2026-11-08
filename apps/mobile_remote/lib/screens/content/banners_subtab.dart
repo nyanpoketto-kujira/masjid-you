@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_models/shared_models.dart';
@@ -208,21 +209,7 @@ class _BannersSubtabState extends State<BannersSubtab> {
                     ),
                     const SizedBox(height: 8),
                     if (b.base64Image != null && b.base64Image!.isNotEmpty) ...[
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Container(
-                          height: 120,
-                          width: double.infinity,
-                          color: colorScheme.surfaceContainerLow,
-                          child: Image.memory(
-                            base64Decode(b.base64Image!),
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return const Center(child: Icon(Icons.broken_image));
-                            },
-                          ),
-                        ),
-                      ),
+                      _BannerThumbnail(base64Image: b.base64Image!),
                       const SizedBox(height: 8),
                     ],
                     Text(
@@ -267,6 +254,55 @@ class _BannersSubtabState extends State<BannersSubtab> {
             );
           }),
         ],
+      ),
+    );
+  }
+}
+
+class _BannerThumbnail extends StatefulWidget {
+  final String base64Image;
+
+  const _BannerThumbnail({required this.base64Image});
+
+  @override
+  State<_BannerThumbnail> createState() => _BannerThumbnailState();
+}
+
+class _BannerThumbnailState extends State<_BannerThumbnail> {
+  late Uint8List _cachedImageBytes;
+
+  @override
+  void initState() {
+    super.initState();
+    _cachedImageBytes = base64Decode(widget.base64Image);
+  }
+
+  @override
+  void didUpdateWidget(covariant _BannerThumbnail oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.base64Image != widget.base64Image) {
+      _cachedImageBytes = base64Decode(widget.base64Image);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        height: 120,
+        width: double.infinity,
+        color: colorScheme.surfaceContainerLow,
+        child: Image.memory(
+          _cachedImageBytes,
+          fit: BoxFit.cover,
+          gaplessPlayback: true,
+          cacheWidth: 360,
+          errorBuilder: (context, error, stackTrace) {
+            return const Center(child: Icon(Icons.broken_image));
+          },
+        ),
       ),
     );
   }

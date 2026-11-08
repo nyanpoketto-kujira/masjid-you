@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:material_new_shapes/material_new_shapes.dart';
 import 'package:shared_models/shared_models.dart';
@@ -154,16 +155,29 @@ class _BannerPage extends StatefulWidget {
 class _BannerPageState extends State<_BannerPage> {
   final _scrollController = ScrollController();
   Timer? _scrollTimer;
+  Uint8List? _cachedImageBytes;
+  String? _cachedBase64;
 
   @override
   void initState() {
     super.initState();
+    _decodeImageIfNeeded();
     WidgetsBinding.instance.addPostFrameCallback((_) => _startAutoScroll());
+  }
+
+  void _decodeImageIfNeeded() {
+    if (widget.banner.base64Image != null &&
+        widget.banner.base64Image!.isNotEmpty &&
+        _cachedBase64 != widget.banner.base64Image) {
+      _cachedBase64 = widget.banner.base64Image;
+      _cachedImageBytes = base64Decode(widget.banner.base64Image!);
+    }
   }
 
   @override
   void didUpdateWidget(covariant _BannerPage oldWidget) {
     super.didUpdateWidget(oldWidget);
+    _decodeImageIfNeeded();
     final contentChanged = oldWidget.banner.header != widget.banner.header ||
         oldWidget.banner.title != widget.banner.title ||
         oldWidget.banner.content != widget.banner.content ||
@@ -229,7 +243,7 @@ class _BannerPageState extends State<_BannerPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Banner Poster Image (if available)
-          if (banner.base64Image != null && banner.base64Image!.isNotEmpty) ...[
+          if (_cachedImageBytes != null) ...[
             ClipRRect(
               borderRadius: BorderRadius.circular(16),
               child: Container(
@@ -237,8 +251,10 @@ class _BannerPageState extends State<_BannerPage> {
                 height: double.infinity,
                 color: colorScheme.surfaceContainerHigh,
                 child: Image.memory(
-                  base64Decode(banner.base64Image!),
+                  _cachedImageBytes!,
                   fit: BoxFit.cover,
+                  gaplessPlayback: true,
+                  cacheWidth: 420,
                   errorBuilder: (context, error, stackTrace) {
                     return const Center(child: Icon(Icons.broken_image, size: 40));
                   },
