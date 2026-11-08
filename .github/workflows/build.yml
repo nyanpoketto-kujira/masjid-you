@@ -52,11 +52,16 @@ jobs:
             --release \
             --target-platform=android-arm64
 
+      - name: Rename APK for unique artifact name
+        run: |
+          mv apps/${{ matrix.app }}/build/app/outputs/flutter-apk/app-release.apk \
+             apps/${{ matrix.app }}/build/app/outputs/flutter-apk/${{ matrix.app }}-arm64-v8a.apk
+
       - name: Upload ${{ matrix.app }} artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.app }}-apk-aarch64
-          path: apps/${{ matrix.app }}/build/app/outputs/flutter-apk/app-release-arm64-v8a.apk
+          path: apps/${{ matrix.app }}/build/app/outputs/flutter-apk/${{ matrix.app }}-arm64-v8a.apk
           retention-days: 14
 
   create-release:
@@ -93,6 +98,7 @@ jobs:
 
             > Built on ${{ github.sha }} · ${{ github.repository }}
           files: |
-            *.apk
+            tv_display-arm64-v8a.apk
+            mobile_remote-arm64-v8a.apk
           draft: false
           prerelease: false
