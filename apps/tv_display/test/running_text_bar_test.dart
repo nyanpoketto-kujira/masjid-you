@@ -32,10 +32,10 @@ void main() {
     );
 
     // Bar fills the width (800 wide test surface).
-    final bar = tester.widget<Card>(
+    final bar = tester.widget<Container>(
       find.ancestor(
         of: find.text('INFORMASI'),
-        matching: find.byType(Card),
+        matching: find.byType(Container),
       ).first,
     );
     expect(tester.getSize(find.byWidget(bar)).width, 800);

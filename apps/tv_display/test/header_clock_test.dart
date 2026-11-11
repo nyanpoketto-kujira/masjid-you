@@ -22,51 +22,6 @@ Future<void> _pump(WidgetTester tester, HeaderClock header) async {
 const _config = MosqueConfig(name: 'Test Masjid', address: 'Jl. Test');
 
 void main() {
-  testWidgets('chip Mode Bluetooth tampil sebagai peringatan saat gagal',
-      (tester) async {
-    await _pump(
-      tester,
-      HeaderClock(
-        config: _config,
-        currentTime: DateTime(2026, 9, 12, 19, 16),
-        btActive: false,
-        btError: true,
-        btStatus: 'Mode Bluetooth: gagal — cek Bluetooth',
-      ),
-    );
-    expect(find.textContaining('Mode Bluetooth: gagal'), findsOneWidget);
-    expect(find.byIcon(Icons.bluetooth_disabled), findsOneWidget);
-  });
-
-  testWidgets('chip Mode Bluetooth tampil dengan status menyiapkan saat listening',
-      (tester) async {
-    await _pump(
-      tester,
-      HeaderClock(
-        config: _config,
-        currentTime: DateTime(2026, 9, 12, 19, 16),
-        btStatus: 'Mode Bluetooth: menyiapkan...',
-      ),
-    );
-    expect(find.textContaining('Mode Bluetooth: menyiapkan'), findsOneWidget);
-    expect(find.byIcon(Icons.bluetooth_searching), findsOneWidget);
-  });
-
-  testWidgets('chip Mode Bluetooth tampil dengan nama perangkat saat aktif',
-      (tester) async {
-    await _pump(
-      tester,
-      HeaderClock(
-        config: _config,
-        currentTime: DateTime(2026, 9, 12, 19, 16),
-        btActive: true,
-        btStatus: 'Mode Bluetooth: aktif (SM-X135G)',
-      ),
-    );
-    expect(find.textContaining('Mode Bluetooth: aktif'), findsOneWidget);
-    expect(find.byIcon(Icons.bluetooth_connected), findsOneWidget);
-  });
-
   testWidgets('chip Mode Direct tampil dengan SSID saat hotspot aktif',
       (tester) async {
     await _pump(
@@ -85,7 +40,7 @@ void main() {
   });
 
   testWidgets(
-      'saat P2P nonaktif, chip Mode Direct tidak tampil (Bluetooth jadi indikator)',
+      'saat P2P nonaktif, chip Mode Direct tidak tampil',
       (tester) async {
     await _pump(
       tester,
@@ -99,7 +54,7 @@ void main() {
     expect(find.textContaining('Mode Direct'), findsNothing);
   });
 
-  testWidgets('tanpa info sync, chip Mode Bluetooth/Direct tidak tampil',
+  testWidgets('nama & alamat masjid tetap tampil tanpa chip status',
       (tester) async {
     await _pump(
       tester,
@@ -108,7 +63,11 @@ void main() {
         currentTime: DateTime(2026, 9, 12, 19, 16),
       ),
     );
+    expect(find.text('Test Masjid'), findsOneWidget);
+    expect(find.text('Jl. Test'), findsOneWidget);
+    // Chip status sync dihapus: tidak ada teks Mode Bluetooth / Remote Sync IP.
     expect(find.textContaining('Mode Bluetooth'), findsNothing);
     expect(find.textContaining('Mode Direct'), findsNothing);
+    expect(find.textContaining('Remote Sync IP'), findsNothing);
   });
 }

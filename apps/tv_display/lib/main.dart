@@ -16,6 +16,7 @@ import 'widgets/friday_staff_card.dart';
 import 'widgets/running_text_bar.dart';
 import 'widgets/prayer_state_overlay.dart';
 import 'widgets/material_blob_background.dart';
+import 'widgets/admin_menu_overlay.dart';
 import 'state/prayer_state_machine.dart';
 import 'state/tv_store.dart';
 import 'server/local_ws_server.dart';
@@ -75,7 +76,6 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
   DateTime _now = DateTime.now();
   Timer? _clockTimer;
   LocalServer? _localServer;
-  String? _localIp;
   final P2pHostService _p2pHost = P2pHostService();
   HotspotHostState? _p2pState;
   P2pMode _p2pMode = P2pMode.pending;
@@ -83,6 +83,13 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
   /// Host Bluetooth Classic (RFCOMM) — jalur sync langsung tanpa router.
   BluetoothHostService? _btHost;
   BluetoothHostState? _btState;
+
+  /// Koneksi Bluetooth dimulai manual dari menu admin (toggle), bukan otomatis
+  /// saat app dibuka — supaya tidak ada popup discoverable sistem.
+  bool _btEnabled = false;
+
+  /// Overlay menu admin tampil saat tombol Back remote ditekan.
+  bool _showAdminMenu = false;
 
   MosqueConfig _config = const MosqueConfig(
     name: 'Masjid Agung Al-Hikmah',
@@ -217,6 +224,10 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
     // (EPERM socket transport) -> dan jalur utama sync langsung ialah
     // Bluetooth Classic. Kode `_initP2pHost` masih ada agar bisa di-siap
     // ulang di perangkat yang mendukungnya.
+    //
+    // Bluetooth HOST TIDAK dimulai di sini. Koneksi hanya aktif setelah
+    // admin menyalakan toggle di menu admin (lihat `_toggleBluetooth`),
+    // agar tidak ada popup discoverable sistem saat app pertama dibuka.
     await _initBluetoothHost();
   }
 
@@ -410,7 +421,6 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
 
     try {
       await _localServer?.start(port: 8080);
-      _fetchLocalIp();
     } catch (e) {
       debugPrint('Failed to start local server: $e');
     }
@@ -521,7 +531,9 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
     });
     _btState = _btHost!.currentState;
 
-    if (!kIsWeb && Platform.isAndroid) {
+    // Host TIDAK di-start di sini — menunggu toggle admin.
+    // Hanya dipakai pada perangkat non-Android (test/web) agar host siap.
+    if (!kIsWeb && !Platform.isAndroid) {
       await _btHost!.start();
       if (mounted) {
         setState(() {
@@ -531,35 +543,35 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
     }
   }
 
-  /// Ulang host Bluetooth (dipakai chip error): stop dulu, lalu start ulang.
-  Future<void> _restartBluetoothHost() async {
+  /// Nyalakan/matikan koneksi Bluetooth dari menu admin.
+  ///
+  /// Saat ON: regenerate PIN (dilakukan di dalam service), mulai host, dan
+  /// minta TV terlihat (popup discoverable hanya muncul di sini). Saat OFF:
+  /// stop host dan putuskan koneksi.
+  Future<void> _toggleBluetooth(bool enable) async {
     final host = _btHost;
     if (host == null || !mounted) return;
-    await host.stop();
-    if (!mounted || _btHost != host) return;
-    await host.start();
-  }
 
-  Future<void> _fetchLocalIp() async {
-    try {
-      final interfaces = await NetworkInterface.list(
-        type: InternetAddressType.IPv4,
-        includeLinkLocal: false,
-      );
-      for (var interface in interfaces) {
-        for (var addr in interface.addresses) {
-          if (!addr.isLoopback) {
-            setState(() {
-              _localIp = addr.address;
-            });
-            return;
-          }
-        }
+    if (enable) {
+      // PIN di-regenerate tiap ON agar PIN lama tidak dipakai ulang.
+      setState(() {
+        _btEnabled = true;
+        _btState = host.currentState;
+      });
+      await host.start();
+      if (mounted) {
+        setState(() {
+          _btState = host.currentState;
+        });
       }
-      // No non-loopback IPv4 found
-      debugPrint('No non-loopback IPv4 address found');
-    } catch (e) {
-      debugPrint('Failed to get IP: $e');
+    } else {
+      await host.stop();
+      if (mounted) {
+        setState(() {
+          _btEnabled = false;
+          _btState = host.currentState;
+        });
+      }
     }
   }
 
@@ -627,7 +639,10 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
     } else {
       switch (bt.status) {
         case BluetoothHostStatus.connected:
-          btStatus = 'Mode Bluetooth: aktif (${bt.peerName ?? 'TV'})';
+          // Connected tapi belum autentikasi = Remote belum memasukkan PIN.
+          btStatus = bt.isAuthenticated
+              ? 'Mode Bluetooth: aktif (${bt.peerName ?? 'TV'})'
+              : 'Mode Bluetooth: menunggu PIN dari Remote...';
           btError = false;
           break;
         case BluetoothHostStatus.error:
@@ -645,7 +660,21 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
       }
     }
 
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        // Tombol Back remote: buka menu admin. Bila panel sudah terbuka,
+        // PopScope milik panel (di dalamnya) yang menangani Back untuk
+        // menutup — root tidak melakukan apa pun agar tidak dobel-toggle.
+        // TV tidak boleh exit dari Back.
+        if (!_showAdminMenu) {
+          setState(() {
+            _showAdminMenu = true;
+          });
+        }
+      },
+      child: Scaffold(
       body: Stack(
         fit: StackFit.expand,
         children: [
@@ -666,87 +695,87 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
 
           // Main Content Layer
           SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(10.0),
-              child: Column(
-                children: [
-                  // Top Bar: Clock, Mosque Info & Server IP + status sync
-                  HeaderClock(
-                    config: _config,
-                    currentTime: _now,
-                    serverIp: _localIp,
-                    p2pActive: _p2pMode == P2pMode.directFull && (_p2pState?.isActive ?? false),
-                    p2pSsid: _p2pMode == P2pMode.directFull ? _p2pState?.ssid : null,
-                    p2pIp: _p2pMode == P2pMode.directFull ? _p2pState?.hostIpAddress : null,
-                    btActive: bt?.isActive ?? false,
-                    btError: btError,
-                    btStatus: btStatus,
-                    onBtRestart: () {
-                      _restartBluetoothHost();
-                    },
-                  ),
-
-                  const SizedBox(height: 6),
-
-                  // Middle: Banner Carousel & Kas Summary
-                  Expanded(
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
+            child: Column(
+              children: [
+                // Konten atas (header, banner/kas, jadwal) diberi padding;
+                // running text di bawah TANPA padding agar full-width.
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(10, 10, 10, 6),
+                    child: Column(
                       children: [
-                        Expanded(
-                          flex: 3,
-                          child: BannerCarousel(banners: _banners),
+                        // Top Bar: Clock, Mosque Info (chip status sync dihapus —
+                        // ruang vertikal dipakai konten utama)
+                        HeaderClock(
+                          config: _config,
+                          currentTime: _now,
+                          p2pActive: _p2pMode == P2pMode.directFull && (_p2pState?.isActive ?? false),
+                          p2pSsid: _p2pMode == P2pMode.directFull ? _p2pState?.ssid : null,
+                          p2pIp: _p2pMode == P2pMode.directFull ? _p2pState?.hostIpAddress : null,
                         ),
-                        const SizedBox(width: 8),
+
+                        const SizedBox(height: 6),
+
+                        // Middle: Banner Carousel & Kas Summary
                         Expanded(
-                          flex: 2,
-                          child: _now.weekday == DateTime.friday
-                              ? AnimatedSwitcher(
-                                  duration: const Duration(milliseconds: 500),
-                                  switchInCurve: Curves.easeOutCubic,
-                                  switchOutCurve: Curves.easeInCubic,
-                                  transitionBuilder: (child, animation) {
-                                    return FadeTransition(
-                                      opacity: animation,
-                                      child: SlideTransition(
-                                        position: Tween<Offset>(
-                                          begin: const Offset(0, 0.06),
-                                          end: Offset.zero,
-                                        ).animate(animation),
-                                        child: child,
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Expanded(
+                                flex: 3,
+                                child: BannerCarousel(banners: _banners),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                flex: 2,
+                                child: _now.weekday == DateTime.friday
+                                    ? AnimatedSwitcher(
+                                        duration: const Duration(milliseconds: 500),
+                                        switchInCurve: Curves.easeOutCubic,
+                                        switchOutCurve: Curves.easeInCubic,
+                                        transitionBuilder: (child, animation) {
+                                          return FadeTransition(
+                                            opacity: animation,
+                                            child: SlideTransition(
+                                              position: Tween<Offset>(
+                                                begin: const Offset(0, 0.06),
+                                                end: Offset.zero,
+                                              ).animate(animation),
+                                              child: child,
+                                            ),
+                                          );
+                                        },
+                                        child: _showKasCard
+                                            ? KasSummaryCard(
+                                                key: const ValueKey('kas-summary'),
+                                                transactions: _kasTransactions,
+                                              )
+                                            : FridayStaffCard(
+                                                key: const ValueKey('friday-staff'),
+                                                khatib: _config.fridayKhatib,
+                                                muadzin: _config.fridayMuadzin,
+                                              ),
+                                      )
+                                    : KasSummaryCard(
+                                        transactions: _kasTransactions,
                                       ),
-                                    );
-                                  },
-                                  child: _showKasCard
-                                      ? KasSummaryCard(
-                                          key: const ValueKey('kas-summary'),
-                                          transactions: _kasTransactions,
-                                        )
-                                      : FridayStaffCard(
-                                          key: const ValueKey('friday-staff'),
-                                          khatib: _config.fridayKhatib,
-                                          muadzin: _config.fridayMuadzin,
-                                        ),
-                                )
-                              : KasSummaryCard(
-                                  transactions: _kasTransactions,
-                                ),
+                              ),
+                            ],
+                          ),
                         ),
+
+                        const SizedBox(height: 6),
+
+                        // Prayer Cards Row
+                        PrayerCardsRow(schedule: _prayerSchedule),
                       ],
                     ),
                   ),
+                ),
 
-                  const SizedBox(height: 6),
-
-                  // Prayer Cards Row
-                  PrayerCardsRow(schedule: _prayerSchedule),
-
-                  const SizedBox(height: 6),
-
-                  // Bottom Running Text Bar
-                  RunningTextBar(messages: _runningTexts),
-                ],
-              ),
+                // Bottom Running Text Bar — full-width, menempel dasar layar.
+                RunningTextBar(messages: _runningTexts),
+              ],
             ),
           ),
 
@@ -766,7 +795,36 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
               );
             },
           ),
+
+          // Menu Admin (dibuka dengan tombol Back remote). Paling atas agar
+          // menutupi seluruh konten & overlay shalat.
+          if (_showAdminMenu)
+            AdminMenuOverlay(
+              btEnabled: _btEnabled,
+              pin: _btHost?.pin,
+              statusText: btStatus,
+              isError: btError,
+              onToggleBluetooth: _toggleBluetooth,
+              onClose: () {
+                setState(() {
+                  _showAdminMenu = false;
+                });
+              },
+              onCopyPin: () {
+                final pin = _btHost?.pin;
+                if (pin != null) {
+                  Clipboard.setData(ClipboardData(text: pin));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('PIN disalin ke clipboard.'),
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                }
+              },
+            ),
         ],
+      ),
       ),
     );
   }

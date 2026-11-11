@@ -16,6 +16,15 @@ enum SyncAction {
   startShalat,
   finishShalat,
   forcePhase,
+  /// TV -> Remote: minta autentikasi PIN (payload: `nonce`). Dikirim begitu
+  /// koneksi RFCOMM terbentuk, sebelum paket data apa pun dikirim.
+  authChallenge,
+  /// Remote -> TV: jawab challenge dengan PIN (payload: `pin`, `nonce`).
+  authResponse,
+  /// TV -> Remote: PIN benar, jalur siap dipakai (payload: kosong).
+  authSuccess,
+  /// TV -> Remote: PIN salah / nonce tidak valid (payload: `error`).
+  authFailure,
 }
 
 class SyncPacket {

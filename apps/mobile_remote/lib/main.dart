@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:shared_models/shared_models.dart';
@@ -69,6 +70,9 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
   StreamSubscription<BluetoothClientState>? _btStateSub;
 
   bool _hasUnsyncedChanges = false;
+
+  /// `true` bila dialog PIN sedang terbuka (dipakai `_closePinDialog`).
+  bool _pinDialogOpen = false;
 
   /// Cache lokal snapshot TV (trust source) — nilai awal form saat startup.
   final RemoteCacheStore _cacheStore = RemoteCacheStore();
@@ -182,6 +186,37 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
     // yang tersambung, paket tetap terkirim).
     _client.onSendPacket = (packet) {
       _btClient.sendPacket(packet);
+    };
+    // TV meminta PIN: tampilkan dialog PIN.
+    _btClient.onAuthChallenge = (challenge) {
+      _showPinDialog();
+    };
+    // PIN benar: jalur siap — minta keadaan awal TV (trust source).
+    _btClient.onAuthenticated = () {
+      _closePinDialog();
+      if (mounted) {
+        setState(() {
+          _isConnected = true;
+          _hasUnsyncedChanges = false;
+        });
+      }
+      _requestTvState();
+    };
+    // PIN salah / sesi tidak valid.
+    _btClient.onAuthFailure = (failure) {
+      if (mounted) {
+        final message = failure.payload['error'] as String?;
+        // Biarkan dialog PIN terbuka agar user bisa mengulang; tampilkan
+        // pesan kesalahan.
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              message ?? 'PIN salah — periksa PIN di menu admin TV.',
+            ),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
     };
     _btStateSub = _btClient.stateStream.listen((state) {
       if (mounted) {
@@ -362,6 +397,92 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
       action: SyncAction.getInitialState,
       payload: {},
     ));
+  }
+
+  /// Tampilkan dialog input PIN 4 digit yang diminta TV. PIN dikirim via
+  /// [BluetoothClientService.respondWithPin]; dialog menutup sendiri saat
+  /// TV mengirim `authSuccess`.
+  void _showPinDialog() {
+    if (!mounted || _pinDialogOpen) return;
+    _pinDialogOpen = true;
+    final pinController = TextEditingController();
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return AlertDialog(
+          icon: const Icon(Icons.password, size: 40),
+          title: const Text('Masukkan PIN TV'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'TV meminta PIN untuk mengizinkan koneksi ini. Lihat PIN '
+                'di Menu Admin TV (tekan tombol Back pada remote).',
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: pinController,
+                autofocus: true,
+                keyboardType: TextInputType.number,
+                obscureText: true,
+                maxLength: 4,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 28, letterSpacing: 12),
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(4),
+                ],
+                decoration: const InputDecoration(
+                  counterText: '',
+                  hintText: '••••',
+                  border: OutlineInputBorder(),
+                ),
+                onSubmitted: (_) {
+                  _submitPin(dialogContext, pinController);
+                },
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                _btClient.cancelAuth();
+                Navigator.of(dialogContext).pop();
+              },
+              child: const Text('Batal'),
+            ),
+            FilledButton(
+              onPressed: () {
+                _submitPin(dialogContext, pinController);
+              },
+              child: const Text('Hubungkan'),
+            ),
+          ],
+        );
+      },
+    ).then((_) {
+      // Dialog ditutup (auth sukses / batal / TV memutus). Bersihkan
+      // controller supaya tidak bocor.
+      _pinDialogOpen = false;
+      pinController.dispose();
+    });
+  }
+
+  /// Tutup dialog PIN bila sedang terbuka (dipanggil saat auth sukses).
+  void _closePinDialog() {
+    if (!_pinDialogOpen || !mounted) return;
+    Navigator.of(context, rootNavigator: true).pop();
+  }
+
+  void _submitPin(BuildContext dialogContext, TextEditingController pinController) {
+    final pin = pinController.text.trim();
+    if (pin.length != 4) return;
+    _btClient.respondWithPin(pin);
+    // Biarkan dialog tetap terbuka sampai TV mengirim authSuccess atau
+    // authFailure (ditutup dari callback onAuthenticated / onAuthFailure).
+    // Jangan pop di sini: PIN salah harus bisa diulang tanpa buka ulang.
   }
 
   /// Muat durasi siklus waktu shalat dari SharedPreferences (persist lokal).
