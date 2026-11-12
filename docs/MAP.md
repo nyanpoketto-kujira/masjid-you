@@ -11,6 +11,7 @@
 |---|---|---|
 | **[MAP.md](MAP.md)** (file ini) | Peta arsitektur umum, peta fungsi per-file, navigasi lintas dokumen | Mulai dari sini |
 | **[DECISIONS.md](DECISIONS.md)** | *Architectural Decision Records* (ADR): kenapa ditulis ulang, kenapa Flutter, kenapa WebSocket/P2P, kenapa fallback UI, kenapa `didUpdateWidget`, penanganan error P0, validasi prasyarat WiFi Direct TV & Remote, transport Bluetooth RFCOMM (ADR-016), cek lokasi discovery Bluetooth Android ≤11 (ADR-017) | Memahami alasan desain |
+| **[codebase_index.md](codebase_index.md)** | Indeks simbol otomatis (class/fungsi/enum/field) per `file:baris` — hasil `dart run tools/codebase_index.dart`; wajib regenerasi setelah ubah `lib/` | Mencari fungsi/simbol tanpa membaca semua file |
 | **[bt_rfcomm_rough_plan.md](bt_rfcomm_rough_plan.md)** | Rencana kasar perbaikan Bluetooth RFCOMM: daftar bug per prioritas + status tiap item (`[DIPATCH]` / `[SUDAH BENAR]` / `[TERBUKA]`) | Bekerja di jalur Bluetooth |
 | **[tv_display/widget_mapping.md](tv_display/widget_mapping.md)** | Bedah seluruh file `apps/tv_display/lib/`, fungsi tiap widget, state management, timer, penanganan layar TV | Bekerja di sisi TV |
 | **[tv_display/m3_shapes.md](tv_display/m3_shapes.md)** | Arsitektur perubahan shape terbaru: manual `RoundedRectangleBorder(28)`, `ArchBorder`, model swap jam, penghapusan badge — apa/kenapa/bagaimana | Memahami tampilan/shape layar TV |
@@ -27,6 +28,7 @@
 - Tema/shape Remote (revert ke square) → [`mobile_remote/theme_shapes.md`](mobile_remote/theme_shapes.md)
 - Protokol sinkronisasi & model data → lihat peta file `packages/shared_models` di bawah
 - Alasan arsitektur → [`DECISIONS.md`](DECISIONS.md)
+- Cari simbol (fungsi/class/enum) → [`codebase_index.md`](codebase_index.md), skill `codebase-lookup`, atau MCP `codebase-index` (lihat [`AGENTS.md`](../AGENTS.md))
 
 ---
 
@@ -221,7 +223,7 @@ Detail payload per aksi:
 - **Emulator dev:** `emulator-5556` (Android TV, IP `10.0.2.15`), `emulator-5554` (Pixel phone, IP `10.0.2.16`). Viewport logis TV = 960×540 (1920×1080 @ density 2).
 - **Port 8080** di host dev sering terisi proses lain → test widget mencetak *"Address already in use"* tetapi tetap lulus (server memakai port bebas / gagal-bangun-benar).
 - **Izin Android** (dua-duanya): `NEARBY_WIFI_DEVICES`, `ACCESS/CHANGE_WIFI_STATE`, `ACCESS_NETWORK_STATE`, `CHANGE_NETWORK_STATE`, `ACCESS_FINE/COARSE_LOCATION`, `BLUETOOTH_SCAN/ADVERTISE/CONNECT` (+ legacy `BLUETOOTH`/`BLUETOOTH_ADMIN` maxSdk 30).
-- **Repo bukan git** (belum ada version control aktif).
+- **Repo menggunakan Git** (branch `main` + cabang fitur), panduan AI di [`AGENTS.md`](../AGENTS.md).
 
 ---
 
