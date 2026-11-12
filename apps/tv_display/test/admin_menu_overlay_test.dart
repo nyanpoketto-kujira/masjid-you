@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tv_display/theme/app_theme.dart';
 import 'package:tv_display/widgets/admin_menu_overlay.dart';
@@ -24,7 +25,6 @@ void main() {
       isError: false,
       onToggleBluetooth: (_) {},
       onClose: () {},
-      onCopyPin: () {},
     )));
     // Selesaikan animasi slide-in.
     await tester.pumpAndSettle();
@@ -61,7 +61,6 @@ void main() {
       isError: false,
       onToggleBluetooth: (_) {},
       onClose: () {},
-      onCopyPin: () {},
     )));
     await tester.pumpAndSettle();
 
@@ -85,22 +84,63 @@ void main() {
       onClose: () {
         closed = true;
       },
-      onCopyPin: () {},
     )));
     await tester.pumpAndSettle();
 
-    // Simulasi Back: panggil onPopInvokedWithResult lewat didPopWidget...
-    // PopScope menangkap Back secara sistem; di test kita panggil handler
-    // langsung via PopScope widget.
-    final popScope = tester.widget<PopScope>(find.byType(PopScope).first);
-    // PopScope tidak expose callback; gunakan mekanisme system navigator.
-    final dynamicState = tester.state(find.byType(AdminMenuOverlay));
-    // Trigger close via tombol Kembali yang visible.
+    // Item 'Kembali' ada di daftar aksi D-Pad; mengetapnya menutup panel.
+    expect(find.text('Kembali'), findsOneWidget);
     await tester.tap(find.text('Kembali'));
     await tester.pumpAndSettle();
 
     expect(closed, isTrue);
-    expect(dynamicState, isNotNull);
-    expect(popScope.canPop, isFalse);
+  });
+
+  testWidgets('fokus D-Pad: toggle autofocus, OK memicu toggle, '
+      'panah bawah pindah fokus', (tester) async {
+    tester.view.physicalSize = const Size(1920, 1080);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+
+    bool? toggledTo;
+    var closed = false;
+    var btOn = false;
+
+    Widget buildPanel() => _wrap(AdminMenuOverlay(
+          btEnabled: btOn,
+          pin: '4838',
+          statusText: null,
+          isError: false,
+          onToggleBluetooth: (v) {
+            toggledTo = v;
+            btOn = v;
+          },
+          onClose: () => closed = true,
+        ));
+
+    await tester.pumpWidget(buildPanel());
+    await tester.pumpAndSettle();
+
+    // Item pertama (toggle) memakai Focus autofocus.
+    expect(
+      find.descendant(
+        of: find.byType(AdminMenuOverlay),
+        matching: find.byWidgetPredicate(
+            (w) => w is Focus && w is! FocusScope && w.autofocus),
+      ),
+      findsOneWidget,
+    );
+
+    // OK/Enter pada toggle memanggil onToggleBluetooth(true).
+    await tester.sendKeyEvent(LogicalKeyboardKey.select);
+    await tester.pump();
+    expect(toggledTo, isTrue);
+
+    // Daftar aksi kini hanya: toggle -> kembali. Panah bawah memindahkan
+    // fokus ke 'Kembali'; OK di sana menutup panel.
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+    await tester.pump();
+    await tester.sendKeyEvent(LogicalKeyboardKey.select);
+    await tester.pumpAndSettle();
+    expect(closed, isTrue);
   });
 }

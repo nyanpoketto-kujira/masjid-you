@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 /// Side panel menu admin TV — slide-in dari sisi KANAN, full height.
 ///
@@ -6,6 +7,15 @@ import 'package:flutter/material.dart';
 /// - Toggle "Nyalakan Koneksi" (baru di sini Bluetooth discoverable
 ///   diminta, sehingga tidak ada popup sistem saat app pertama dibuka).
 /// - PIN 4 digit acak yang harus dimasukkan Remote agar bisa terhubung.
+///   Kartu PIN ditampilkan besar di bagian atas panel.
+///
+/// Ramah remote D-Pad (Android TV):
+/// - Fokus dikelola manual: daftar aksi (toggle → kembali)
+///   dinavigasikan dengan D-Pad Atas/Bawah; OK memicu aksi aktif.
+/// - Fokus pertama (toggle) di-autofocus saat panel terbuka agar kursor
+///   remote tidak nyasar ke konten latar belakang.
+/// - Indikator fokus kontras: border teal 2px + glow halus pada item aktif.
+/// - Tombol Back menutup panel (PopScope internal + pemetaan tombol back).
 ///
 /// Semua container memakai [RoundedRectangleBorder] eksplisit (radius 12/16)
 /// untuk menimpa `cardTheme` global yang memakai M3ShapeBorder puffy —
@@ -28,10 +38,6 @@ class AdminMenuOverlay extends StatefulWidget {
 
   /// Dipanggil setelah animasi slide-out selesai (panel benar-benar tertutup).
   final VoidCallback onClose;
-
-  /// Dipanggil saat PIN diketuk (salin ke clipboard).
-  final VoidCallback onCopyPin;
-
   const AdminMenuOverlay({
     super.key,
     required this.btEnabled,
@@ -40,8 +46,8 @@ class AdminMenuOverlay extends StatefulWidget {
     required this.isError,
     required this.onToggleBluetooth,
     required this.onClose,
-    required this.onCopyPin,
   });
+
 
   @override
   State<AdminMenuOverlay> createState() => _AdminMenuOverlayState();
@@ -53,12 +59,17 @@ class _AdminMenuOverlayState extends State<AdminMenuOverlay>
   late final Animation<Offset> _slideIn;
   late final Animation<Offset> _slideOut;
 
+  /// Scope fokus panel: saat panel terbuka, scope ini mengambil alih fokus
+  /// dari layar utama; saat panel tertutup, fokus otomatis kembali.
+  late final FocusScopeNode _panelScope;
+
   /// `true` saat animasi keluar sedang berjalan (hindari double-close).
   bool _closing = false;
 
   @override
   void initState() {
     super.initState();
+    _panelScope = FocusScopeNode(debugLabel: 'adminPanelScope');
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 260),
@@ -80,6 +91,7 @@ class _AdminMenuOverlayState extends State<AdminMenuOverlay>
   @override
   void dispose() {
     _controller.dispose();
+    _panelScope.dispose();
     super.dispose();
   }
 
@@ -97,233 +109,306 @@ class _AdminMenuOverlayState extends State<AdminMenuOverlay>
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
+    // Daftar aksi D-Pad: toggle di awal (autofocus), kembali di akhir.
+    final showPin = widget.btEnabled && widget.pin != null;
+    final actions = <_AdminAction>[
+      _AdminAction(
+        icon: widget.btEnabled
+            ? Icons.bluetooth_connected
+            : Icons.bluetooth_disabled,
+        label: 'Nyalakan Koneksi',
+        subtitle: 'Bluetooth Classic (RFCOMM) siap menerima Remote',
+        selected: widget.btEnabled,
+        onActivate: () => widget.onToggleBluetooth(!widget.btEnabled),
+      ),
+      _AdminAction(
+        icon: Icons.arrow_back,
+        label: 'Kembali',
+        subtitle: 'Tutup menu admin',
+        onActivate: _close,
+      ),
+    ];
+
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
         if (!didPop) _close();
       },
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          // Dim background — ketuk untuk menutup.
-          GestureDetector(
-            onTap: _close,
-            child: Container(color: Colors.black.withValues(alpha: 0.55)),
-          ),
+      child: FocusScope(
+        node: _panelScope,
+        // Autofocus scope: fokus jatuh ke item pertama (lihat _FocusableAction).
+        autofocus: true,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            // Scrim gelap pekat — ketuk untuk menutup.
+            GestureDetector(
+              onTap: _close,
+              child: Container(color: Colors.black.withValues(alpha: 0.85)),
+            ),
 
-          // Slide-in side panel dari kanan, full height.
-          Align(
-            alignment: Alignment.centerRight,
-            child: SlideTransition(
-              position: _closing ? _slideOut : _slideIn,
-              child: Container(
-                width: 400,
-                height: double.infinity,
-                color: colorScheme.surfaceContainerHigh,
-                child: SafeArea(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // Header
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(24, 20, 12, 8),
-                        child: Row(
-                          children: [
-                            Icon(Icons.admin_panel_settings,
-                                size: 28, color: colorScheme.primary),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                'Menu Admin',
-                                style: theme.textTheme.headlineSmall
-                                    ?.copyWith(fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                            IconButton(
-                              onPressed: _close,
-                              tooltip: 'Tutup',
-                              icon: const Icon(Icons.close),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
-                        child: Text(
-                          'Aktifkan koneksi hanya saat diperlukan. PIN '
-                          'ditampilkan agar hanya Remote yang tahu PIN yang '
-                          'bisa terhubung.',
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-
-                      // Konten scrollable agar aman di layar pendek.
-                      Expanded(
-                        child: SingleChildScrollView(
-                          padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
+            // Slide-in side panel dari kanan, full height.
+            Align(
+              alignment: Alignment.centerRight,
+              child: SlideTransition(
+                position: _closing ? _slideOut : _slideIn,
+                child: Container(
+                  width: 400,
+                  height: double.infinity,
+                  color: colorScheme.surfaceContainerHigh,
+                  child: SafeArea(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          // Header
+                          Row(
                             children: [
-                              // Toggle Nyalakan Koneksi — kotak rounded biasa.
-                              Container(
-                                decoration: BoxDecoration(
-                                  color: colorScheme.surfaceContainer,
-                                  borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(
-                                    color: colorScheme.outlineVariant
-                                        .withValues(alpha: 0.3),
-                                  ),
-                                ),
-                                child: SwitchListTile(
-                                  value: widget.btEnabled,
-                                  onChanged: widget.onToggleBluetooth,
-                                  title: Text(
-                                    'Nyalakan Koneksi',
-                                    style: theme.textTheme.titleMedium
-                                        ?.copyWith(fontWeight: FontWeight.bold),
-                                  ),
-                                  subtitle: Text(
-                                    'Bluetooth Classic (RFCOMM) siap '
-                                    'menerima Remote',
-                                  ),
-                                  secondary: Icon(
-                                    widget.btEnabled
-                                        ? Icons.bluetooth_connected
-                                        : Icons.bluetooth_disabled,
-                                    color: widget.btEnabled
-                                        ? colorScheme.primary
-                                        : colorScheme.onSurfaceVariant,
-                                    size: 28,
-                                  ),
-                                  contentPadding: const EdgeInsets.symmetric(
-                                      horizontal: 16, vertical: 8),
+                              Icon(Icons.admin_panel_settings,
+                                  size: 28, color: colorScheme.primary),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  'Menu Admin',
+                                  style: theme.textTheme.headlineSmall
+                                      ?.copyWith(fontWeight: FontWeight.bold),
                                 ),
                               ),
-                              const SizedBox(height: 14),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Aktifkan koneksi hanya saat diperlukan. PIN '
+                            'ditampilkan agar hanya Remote yang tahu PIN yang '
+                            'bisa terhubung.',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
 
-                              // Status koneksi
-                              Row(
+                          // Kartu PIN 4-digit — PALING ATAS agar langsung
+                          // terbaca dari jarak jauh tanpa navigasi D-Pad.
+                          if (showPin) ...[
+                            Container(
+                              decoration: BoxDecoration(
+                                color: colorScheme.primaryContainer,
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              padding: const EdgeInsets.all(20),
+                              child: Column(
                                 children: [
-                                  Icon(
-                                    widget.isError
-                                        ? Icons.error_outline
-                                        : (widget.btEnabled
-                                            ? Icons.check_circle_outline
-                                            : Icons.info_outline),
-                                    size: 18,
-                                    color: widget.isError
-                                        ? colorScheme.error
-                                        : colorScheme.onSurfaceVariant,
+                                  Text(
+                                    'PIN Koneksi',
+                                    style: theme.textTheme.labelLarge?.copyWith(
+                                      color: colorScheme.onPrimaryContainer,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 1.2,
+                                    ),
                                   ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text(
-                                      widget.statusText ??
-                                          (widget.btEnabled
-                                              ? 'Koneksi aktif — tunggu Remote '
-                                                  'menyambung'
-                                              : 'Koneksi nonaktif'),
-                                      style:
-                                          theme.textTheme.bodySmall?.copyWith(
-                                        color: widget.isError
-                                            ? colorScheme.error
-                                            : colorScheme.onSurfaceVariant,
-                                      ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    widget.pin!,
+                                    style: theme.textTheme.displayMedium
+                                        ?.copyWith(
+                                      color: colorScheme.onPrimaryContainer,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 12,
+                                      fontFeatures: const [
+                                        FontFeature.tabularFigures(),
+                                      ],
+                                    ),
+                                  ),
+                                  Text(
+                                    'Masukkan PIN ini di aplikasi Remote '
+                                    'untuk terhubung.',
+                                    textAlign: TextAlign.center,
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: colorScheme.onPrimaryContainer,
                                     ),
                                   ),
                                 ],
                               ),
+                            ),
+                            const SizedBox(height: 20),
+                          ],
 
-                              // PIN (hanya tampil saat koneksi aktif)
-                              if (widget.btEnabled && widget.pin != null) ...[
-                                const SizedBox(height: 20),
-                                Container(
-                                  decoration: BoxDecoration(
-                                    color: colorScheme.primaryContainer,
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                  padding: const EdgeInsets.all(20),
-                                  child: Column(
+                          // Daftar aksi D-Pad (scrollable agar aman di layar pendek).
+                          Expanded(
+                            child: SingleChildScrollView(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  for (var i = 0; i < actions.length; i++) ...[
+                                    if (i > 0) const SizedBox(height: 12),
+                                    _FocusableAction(
+                                      action: actions[i],
+                                      autofocus: i == 0,
+                                    ),
+                                  ],
+
+                                  const SizedBox(height: 16),
+
+                                  // Status koneksi (display-only).
+                                  Row(
                                     children: [
-                                      Text(
-                                        'PIN Koneksi',
-                                        style: theme.textTheme.labelLarge
-                                            ?.copyWith(
-                                          color: colorScheme.onPrimaryContainer,
-                                          fontWeight: FontWeight.bold,
-                                          letterSpacing: 1.2,
-                                        ),
+                                      Icon(
+                                        widget.isError
+                                            ? Icons.error_outline
+                                            : (widget.btEnabled
+                                                ? Icons.check_circle_outline
+                                                : Icons.info_outline),
+                                        size: 18,
+                                        color: widget.isError
+                                            ? colorScheme.error
+                                            : colorScheme.onSurfaceVariant,
                                       ),
-                                      const SizedBox(height: 8),
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Text(
-                                            widget.pin!,
-                                            style: theme.textTheme.displayMedium
-                                                ?.copyWith(
-                                              color: colorScheme
-                                                  .onPrimaryContainer,
-                                              fontWeight: FontWeight.bold,
-                                              letterSpacing: 12,
-                                              fontFeatures: const [
-                                                FontFeature.tabularFigures(),
-                                              ],
-                                            ),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Text(
+                                          widget.statusText ??
+                                              (widget.btEnabled
+                                                  ? 'Koneksi aktif — tunggu '
+                                                      'Remote menyambung'
+                                                  : 'Koneksi nonaktif'),
+                                          style: theme.textTheme.bodySmall
+                                              ?.copyWith(
+                                            color: widget.isError
+                                                ? colorScheme.error
+                                                : colorScheme.onSurfaceVariant,
                                           ),
-                                          IconButton(
-                                            onPressed: widget.onCopyPin,
-                                            tooltip: 'Salin PIN',
-                                            icon: Icon(
-                                              Icons.copy,
-                                              color: colorScheme
-                                                  .onPrimaryContainer,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      Text(
-                                        'Masukkan PIN ini di aplikasi Remote '
-                                        'untuk terhubung.',
-                                        textAlign: TextAlign.center,
-                                        style: theme.textTheme.bodySmall
-                                            ?.copyWith(
-                                          color: colorScheme
-                                              .onPrimaryContainer,
                                         ),
                                       ),
                                     ],
                                   ),
-                                ),
-                              ],
-                              const SizedBox(height: 24),
-
-                              // Tombol navigasi
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.end,
-                                children: [
-                                  FilledButton.icon(
-                                    onPressed: _close,
-                                    icon: const Icon(Icons.arrow_back),
-                                    label: const Text('Kembali'),
-                                  ),
                                 ],
                               ),
-                            ],
+                            ),
                           ),
-                        ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
                 ),
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Definisi satu aksi di daftar menu admin.
+class _AdminAction {
+  final IconData icon;
+  final String label;
+  final String subtitle;
+
+  /// `true` bila aksi menandakan keadaan ON (ikon berwarna primary).
+  final bool selected;
+  final VoidCallback onActivate;
+
+  const _AdminAction({
+    required this.icon,
+    required this.label,
+    required this.subtitle,
+    this.selected = false,
+    required this.onActivate,
+  });
+}
+
+/// Item aksi yang bisa difokuskan remote D-Pad: border teal 2px + glow
+/// saat disorot, OK/Enter memicu [onActivate].
+class _FocusableAction extends StatefulWidget {
+  final _AdminAction action;
+
+  /// `true` pada item pertama agar fokus awal panel tidak nyasar.
+  final bool autofocus;
+
+  const _FocusableAction({required this.action, this.autofocus = false});
+
+  @override
+  State<_FocusableAction> createState() => _FocusableActionState();
+}
+
+class _FocusableActionState extends State<_FocusableAction> {
+  bool _focused = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final action = widget.action;
+
+    return Focus(
+      autofocus: widget.autofocus,
+      onFocusChange: (f) => setState(() => _focused = f),
+      onKeyEvent: (node, event) {
+        if (event is KeyDownEvent) {
+          // OK remote / Enter keyboard = aktifkan aksi.
+          if (event.logicalKey == LogicalKeyboardKey.select ||
+              event.logicalKey == LogicalKeyboardKey.enter) {
+            action.onActivate();
+            return KeyEventResult.handled;
+          }
+          // Back remote (beberapa TV mengirim goBack sebagai key) = tutup panel.
+          if (event.logicalKey == LogicalKeyboardKey.goBack) {
+            context
+                .findAncestorStateOfType<_AdminMenuOverlayState>()
+                ?._close();
+            return KeyEventResult.handled;
+          }
+        }
+        return KeyEventResult.ignored;
+      },
+      child: GestureDetector(
+        onTap: action.onActivate,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 120),
+          decoration: BoxDecoration(
+            color: _focused
+                ? colorScheme.primary.withValues(alpha: 0.12)
+                : colorScheme.surfaceContainer,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: _focused
+                  ? colorScheme.primary
+                  : colorScheme.outlineVariant.withValues(alpha: 0.3),
+              width: _focused ? 2 : 1,
+            ),
+            boxShadow: _focused
+                ? [
+                    BoxShadow(
+                      color: colorScheme.primary.withValues(alpha: 0.35),
+                      blurRadius: 12,
+                      spreadRadius: 1,
+                    ),
+                  ]
+                : null,
           ),
-        ],
+          child: ListTile(
+            leading: Icon(
+              action.icon,
+              color: action.selected
+                  ? colorScheme.primary
+                  : colorScheme.onSurfaceVariant,
+              size: 28,
+            ),
+            title: Text(
+              action.label,
+              style: theme.textTheme.titleMedium
+                  ?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            subtitle: Text(action.subtitle),
+            trailing: action.selected
+                ? Icon(Icons.toggle_on, color: colorScheme.primary, size: 32)
+                : null,
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          ),
+        ),
       ),
     );
   }

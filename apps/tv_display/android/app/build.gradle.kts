@@ -7,6 +7,7 @@ plugins {
 android {
     namespace = "com.masjidyou.tv_display"
     compileSdk = flutter.compileSdkVersion
+    ndkVersion = "30.0.15729638"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17

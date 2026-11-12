@@ -810,18 +810,6 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
                   _showAdminMenu = false;
                 });
               },
-              onCopyPin: () {
-                final pin = _btHost?.pin;
-                if (pin != null) {
-                  Clipboard.setData(ClipboardData(text: pin));
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('PIN disalin ke clipboard.'),
-                      duration: Duration(seconds: 2),
-                    ),
-                  );
-                }
-              },
             ),
         ],
       ),

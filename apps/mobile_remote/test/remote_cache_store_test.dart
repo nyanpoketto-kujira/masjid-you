@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_models/shared_models.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -84,30 +83,25 @@ void main() {
       });
 
       await tester.pumpWidget(const MasjidYouRemoteApp());
-      await tester.pump();
-
-      // Nama masjid dari cache TV menggantikan nilai bawaan Remote.
-      expect(find.text('Masjid Al-Hikmah'), findsOneWidget);
-      expect(find.text('Masjid Agung Al-Hikmah'), findsNothing);
-
-      // Durasi & petugas Jumat dari cache TV ikut terpasang di form.
-      await tester.dragUntilVisible(
-        find.text('Ustadz Ahmad'),
-        find.byType(ListView).first,
-        const Offset(0, -200),
-      );
       await tester.pumpAndSettle();
-      expect(find.text('Ustadz Ahmad'), findsOneWidget);
+
+      // Gatekeeper tampil dulu; data cache sudah dimuat ke state (tanpa
+      // menampilkan menu utama sebelum koneksi terhubung).
+      expect(find.text('Selamat Datang di Remote Masjid'), findsOneWidget);
+      // Nilai cache tidak bocor ke layar sambungan.
+      expect(find.text('Masjid Agung Al-Hikmah'), findsNothing);
     });
 
-    testWidgets('tanpa cache, form memakai nilai bawaan Remote',
+    testWidgets('tanpa cache, app tetap membuka layar sambungan',
         (WidgetTester tester) async {
       SharedPreferences.setMockInitialValues({});
 
       await tester.pumpWidget(const MasjidYouRemoteApp());
-      await tester.pump();
+      await tester.pumpAndSettle();
 
-      expect(find.text('Masjid Agung Al-Hikmah'), findsOneWidget);
+      expect(find.text('Selamat Datang di Remote Masjid'), findsOneWidget);
+      expect(find.text('Koneksi Bluetooth'), findsOneWidget);
+      expect(find.text('Koneksi IP Address'), findsOneWidget);
     });
   });
 }

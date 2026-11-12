@@ -300,9 +300,15 @@ class BluetoothClientService {
     }
   }
 
-  /// Buang challenge tersimpan (dipakai bila dialog PIN ditutup).
-  void cancelAuth() {
+  /// Batalkan sesi autentikasi: buang challenge dan tutup koneksi.
+  ///
+  /// Sengaja memutus socket — bila hanya nonce dibuang, sesi RFCOMM tetap
+  /// hidup dan event `disconnected` yang menyusul akan mengubah state UI
+  /// saat route dialog masih aktif. Pemutusan membuat UI kembali ke
+  /// keadaan standby (tanpa koneksi), sehingga dialog bisa ditutup aman.
+  Future<void> cancelAuth() async {
     _pendingNonce = null;
+    await disconnect();
   }
 
   void _onEvent(BluetoothSyncEvent event) {
@@ -340,7 +346,13 @@ class BluetoothClientService {
         // Koneksi baru: auth diulang. Data belum boleh dikirim sampai TV
         // mengirim authSuccess.
         _authenticated = false;
-        _pendingNonce = null;
+        // CATATAN: jangan set `_pendingNonce = null` di sini. TV mengirim
+        // `authChallenge` segera setelah connect, dan event `data` bisa
+        // diproses LEBIH DULU daripada event `connected` (urutan platform
+        // channel tidak dijamin). Membuang nonce di sini menghapus challenge
+        // yang sudah masuk sehingga PIN Remote tidak pernah diterima TV.
+        // Nonce dibuang pada `disconnect()`, `authFailure`, atau saat
+        // challenge baru benar-benar tiba.
         if (_lastDevice == null && event.deviceAddress != null) {
           _lastDevice = BluetoothDeviceInfo(
             name: _peerName ?? '?',

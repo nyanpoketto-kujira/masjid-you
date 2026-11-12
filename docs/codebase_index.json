@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-12T13:35:37.164088",
+  "generatedAt": "2026-11-12T23:54:24.007911",
   "roots": [
     "apps/tv_display/lib",
     "apps/mobile_remote/lib",
@@ -7,35 +7,105 @@
     "packages/bluetooth_sync/lib",
     "packages/flutter_p2p_connection/lib"
   ],
-  "symbolCount": 1042,
+  "symbolCount": 1036,
   "symbols": [
     {
       "kind": "class",
       "name": "RemoteHomeScreen",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 39,
+      "line": 35,
       "signature": "class RemoteHomeScreen extends StatefulWidget {"
     },
     {
       "kind": "method",
       "name": "createState",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 43,
+      "line": 39,
       "parent": "RemoteHomeScreen",
       "signature": "  State<RemoteHomeScreen> createState() => _RemoteHomeScreenState();"
     },
     {
       "kind": "class",
+      "name": "_PinDialog",
+      "file": "apps/mobile_remote/lib/main.dart",
+      "line": 61,
+      "signature": "class _PinDialog extends StatefulWidget {"
+    },
+    {
+      "kind": "field",
+      "name": "onSubmit",
+      "file": "apps/mobile_remote/lib/main.dart",
+      "line": 62,
+      "parent": "_PinDialog",
+      "signature": "  final ValueChanged<String> onSubmit;"
+    },
+    {
+      "kind": "field",
+      "name": "onCancel",
+      "file": "apps/mobile_remote/lib/main.dart",
+      "line": 63,
+      "parent": "_PinDialog",
+      "signature": "  final VoidCallback onCancel;"
+    },
+    {
+      "kind": "method",
+      "name": "createState",
+      "file": "apps/mobile_remote/lib/main.dart",
+      "line": 68,
+      "parent": "_PinDialog",
+      "signature": "  State<_PinDialog> createState() => _PinDialogState();"
+    },
+    {
+      "kind": "class",
+      "name": "_PinDialogState",
+      "file": "apps/mobile_remote/lib/main.dart",
+      "line": 71,
+      "signature": "class _PinDialogState extends State<_PinDialog> {"
+    },
+    {
+      "kind": "field",
+      "name": "_pinController",
+      "file": "apps/mobile_remote/lib/main.dart",
+      "line": 72,
+      "parent": "_PinDialogState",
+      "signature": "  final _pinController = TextEditingController();"
+    },
+    {
+      "kind": "method",
+      "name": "dispose",
+      "file": "apps/mobile_remote/lib/main.dart",
+      "line": 75,
+      "parent": "_PinDialogState",
+      "signature": "  void dispose() {"
+    },
+    {
+      "kind": "method",
+      "name": "_submit",
+      "file": "apps/mobile_remote/lib/main.dart",
+      "line": 80,
+      "parent": "_PinDialogState",
+      "signature": "  void _submit() {"
+    },
+    {
+      "kind": "method",
+      "name": "build",
+      "file": "apps/mobile_remote/lib/main.dart",
+      "line": 87,
+      "parent": "_PinDialogState",
+      "signature": "  Widget build(BuildContext context) {"
+    },
+    {
+      "kind": "class",
       "name": "_RemoteHomeScreenState",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 46,
+      "line": 137,
       "signature": "class _RemoteHomeScreenState extends State<RemoteHomeScreen>"
     },
     {
       "kind": "field",
       "name": "_tabIndex",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 48,
+      "line": 139,
       "parent": "_RemoteHomeScreenState",
       "signature": "  int _tabIndex = 0;"
     },
@@ -43,7 +113,7 @@
       "kind": "field",
       "name": "_mainTabController",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 50,
+      "line": 141,
       "parent": "_RemoteHomeScreenState",
       "signature": "  late final TabController _mainTabController;"
     },
@@ -51,7 +121,7 @@
       "kind": "field",
       "name": "_subTabController",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 51,
+      "line": 142,
       "parent": "_RemoteHomeScreenState",
       "signature": "  late final TabController _subTabController;"
     },
@@ -59,7 +129,7 @@
       "kind": "field",
       "name": "_syncingControllers",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 52,
+      "line": 143,
       "parent": "_RemoteHomeScreenState",
       "signature": "  bool _syncingControllers = false;"
     },
@@ -67,7 +137,7 @@
       "kind": "field",
       "name": "_ipController",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 54,
+      "line": 145,
       "parent": "_RemoteHomeScreenState",
       "signature": "  final _ipController = TextEditingController(text: '192.168.1.');"
     },
@@ -75,23 +145,15 @@
       "kind": "field",
       "name": "_client",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 55,
+      "line": 146,
       "parent": "_RemoteHomeScreenState",
       "signature": "  final _client = RemoteWsClient();"
     },
     {
       "kind": "field",
-      "name": "_p2pClient",
-      "file": "apps/mobile_remote/lib/main.dart",
-      "line": 56,
-      "parent": "_RemoteHomeScreenState",
-      "signature": "  final _p2pClient = P2pClientService();"
-    },
-    {
-      "kind": "field",
       "name": "_btClient",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 57,
+      "line": 147,
       "parent": "_RemoteHomeScreenState",
       "signature": "  final _btClient = BluetoothClientService();"
     },
@@ -99,7 +161,7 @@
       "kind": "field",
       "name": "_isConnecting",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 58,
+      "line": 148,
       "parent": "_RemoteHomeScreenState",
       "signature": "  bool _isConnecting = false;"
     },
@@ -107,47 +169,55 @@
       "kind": "field",
       "name": "_isConnected",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 59,
+      "line": 149,
       "parent": "_RemoteHomeScreenState",
       "signature": "  bool _isConnected = false;"
     },
     {
       "kind": "field",
-      "name": "_isScanning",
+      "name": "_wasConnected",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 60,
+      "line": 150,
       "parent": "_RemoteHomeScreenState",
-      "signature": "  bool _isScanning = false;"
+      "signature": "  bool _wasConnected = false;"
     },
     {
       "kind": "field",
-      "name": "_btWasConnected",
+      "name": "_showDisconnectedNotice",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 61,
+      "line": 151,
       "parent": "_RemoteHomeScreenState",
-      "signature": "  bool _btWasConnected = false;"
+      "signature": "  bool _showDisconnectedNotice = false;"
     },
     {
       "kind": "field",
-      "name": "_p2pDevices",
+      "name": "_syncDialogOpen",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 62,
+      "line": 152,
       "parent": "_RemoteHomeScreenState",
-      "signature": "  List<BleDiscoveredDevice> _p2pDevices = [];"
+      "signature": "  bool _syncDialogOpen = false;"
     },
     {
       "kind": "field",
-      "name": "_p2pStatus",
+      "name": "_lastConnectionKind",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 63,
+      "line": 153,
       "parent": "_RemoteHomeScreenState",
-      "signature": "  String _p2pStatus = 'WiFi Direct: Stanby';"
+      "signature": "  String? _lastConnectionKind;"
+    },
+    {
+      "kind": "field",
+      "name": "_lastBtDevice",
+      "file": "apps/mobile_remote/lib/main.dart",
+      "line": 154,
+      "parent": "_RemoteHomeScreenState",
+      "signature": "  BluetoothDeviceInfo? _lastBtDevice;"
     },
     {
       "kind": "field",
       "name": "_btIsScanning",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 66,
+      "line": 157,
       "parent": "_RemoteHomeScreenState",
       "signature": "  bool _btIsScanning = false;"
     },
@@ -155,7 +225,7 @@
       "kind": "field",
       "name": "_btConnected",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 67,
+      "line": 158,
       "parent": "_RemoteHomeScreenState",
       "signature": "  bool _btConnected = false;"
     },
@@ -163,7 +233,7 @@
       "kind": "field",
       "name": "_btDevices",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 68,
+      "line": 159,
       "parent": "_RemoteHomeScreenState",
       "signature": "  List<BluetoothDeviceInfo> _btDevices = [];"
     },
@@ -171,7 +241,7 @@
       "kind": "field",
       "name": "_btStatus",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 69,
+      "line": 160,
       "parent": "_RemoteHomeScreenState",
       "signature": "  String _btStatus = 'Bluetooth: Stanby';"
     },
@@ -179,7 +249,7 @@
       "kind": "field",
       "name": "_btStateSub",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 70,
+      "line": 161,
       "parent": "_RemoteHomeScreenState",
       "signature": "  StreamSubscription<BluetoothClientState>? _btStateSub;"
     },
@@ -187,7 +257,7 @@
       "kind": "field",
       "name": "_hasUnsyncedChanges",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 72,
+      "line": 163,
       "parent": "_RemoteHomeScreenState",
       "signature": "  bool _hasUnsyncedChanges = false;"
     },
@@ -195,15 +265,23 @@
       "kind": "field",
       "name": "_pinDialogOpen",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 75,
+      "line": 166,
       "parent": "_RemoteHomeScreenState",
       "signature": "  bool _pinDialogOpen = false;"
     },
     {
       "kind": "field",
+      "name": "_pendingBtState",
+      "file": "apps/mobile_remote/lib/main.dart",
+      "line": 170,
+      "parent": "_RemoteHomeScreenState",
+      "signature": "  BluetoothClientState? _pendingBtState;"
+    },
+    {
+      "kind": "field",
       "name": "_cacheStore",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 78,
+      "line": 173,
       "parent": "_RemoteHomeScreenState",
       "signature": "  final RemoteCacheStore _cacheStore = RemoteCacheStore();"
     },
@@ -211,7 +289,7 @@
       "kind": "field",
       "name": "_backupService",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 81,
+      "line": 176,
       "parent": "_RemoteHomeScreenState",
       "signature": "  final BackupService _backupService = BackupService();"
     },
@@ -219,7 +297,7 @@
       "kind": "field",
       "name": "_didBootstrapPush",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 85,
+      "line": 180,
       "parent": "_RemoteHomeScreenState",
       "signature": "  bool _didBootstrapPush = false;"
     },
@@ -227,7 +305,7 @@
       "kind": "field",
       "name": "_config",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 87,
+      "line": 182,
       "parent": "_RemoteHomeScreenState",
       "signature": "  MosqueConfig _config = const MosqueConfig("
     },
@@ -235,7 +313,7 @@
       "kind": "field",
       "name": "_nameController",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 94,
+      "line": 189,
       "parent": "_RemoteHomeScreenState",
       "signature": "  final _nameController = TextEditingController();"
     },
@@ -243,7 +321,7 @@
       "kind": "field",
       "name": "_addressController",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 95,
+      "line": 190,
       "parent": "_RemoteHomeScreenState",
       "signature": "  final _addressController = TextEditingController();"
     },
@@ -251,7 +329,7 @@
       "kind": "field",
       "name": "_latitudeController",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 96,
+      "line": 191,
       "parent": "_RemoteHomeScreenState",
       "signature": "  final _latitudeController = TextEditingController();"
     },
@@ -259,7 +337,7 @@
       "kind": "field",
       "name": "_longitudeController",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 97,
+      "line": 192,
       "parent": "_RemoteHomeScreenState",
       "signature": "  final _longitudeController = TextEditingController();"
     },
@@ -267,7 +345,7 @@
       "kind": "field",
       "name": "_prayerOffsetControllers",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 98,
+      "line": 193,
       "parent": "_RemoteHomeScreenState",
       "signature": "  final Map<PrayerType, TextEditingController> _prayerOffsetControllers = {"
     },
@@ -275,7 +353,7 @@
       "kind": "field",
       "name": "_preAdhanController",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 101,
+      "line": 196,
       "parent": "_RemoteHomeScreenState",
       "signature": "  final _preAdhanController = TextEditingController();"
     },
@@ -283,7 +361,7 @@
       "kind": "field",
       "name": "_adhanController",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 102,
+      "line": 197,
       "parent": "_RemoteHomeScreenState",
       "signature": "  final _adhanController = TextEditingController();"
     },
@@ -291,7 +369,7 @@
       "kind": "field",
       "name": "_preIqomahController",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 103,
+      "line": 198,
       "parent": "_RemoteHomeScreenState",
       "signature": "  final _preIqomahController = TextEditingController();"
     },
@@ -299,7 +377,7 @@
       "kind": "field",
       "name": "_shalatController",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 104,
+      "line": 199,
       "parent": "_RemoteHomeScreenState",
       "signature": "  final _shalatController = TextEditingController();"
     },
@@ -307,7 +385,7 @@
       "kind": "field",
       "name": "_khutbahController",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 105,
+      "line": 200,
       "parent": "_RemoteHomeScreenState",
       "signature": "  final _khutbahController = TextEditingController();"
     },
@@ -315,7 +393,7 @@
       "kind": "field",
       "name": "_fridayKhatibController",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 106,
+      "line": 201,
       "parent": "_RemoteHomeScreenState",
       "signature": "  final _fridayKhatibController = TextEditingController();"
     },
@@ -323,7 +401,7 @@
       "kind": "field",
       "name": "_fridayMuadzinController",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 107,
+      "line": 202,
       "parent": "_RemoteHomeScreenState",
       "signature": "  final _fridayMuadzinController = TextEditingController();"
     },
@@ -331,7 +409,7 @@
       "kind": "field",
       "name": "_isFetchingLocation",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 108,
+      "line": 203,
       "parent": "_RemoteHomeScreenState",
       "signature": "  bool _isFetchingLocation = false;"
     },
@@ -339,7 +417,7 @@
       "kind": "field",
       "name": "_runningTextController",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 109,
+      "line": 204,
       "parent": "_RemoteHomeScreenState",
       "signature": "  final _runningTextController = TextEditingController();"
     },
@@ -347,7 +425,7 @@
       "kind": "field",
       "name": "_runningCategory",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 110,
+      "line": 205,
       "parent": "_RemoteHomeScreenState",
       "signature": "  String _runningCategory = _runningCategories.first;"
     },
@@ -355,7 +433,7 @@
       "kind": "field",
       "name": "_bannerHeaderController",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 112,
+      "line": 207,
       "parent": "_RemoteHomeScreenState",
       "signature": "  final _bannerHeaderController = TextEditingController();"
     },
@@ -363,7 +441,7 @@
       "kind": "field",
       "name": "_bannerTitleController",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 113,
+      "line": 208,
       "parent": "_RemoteHomeScreenState",
       "signature": "  final _bannerTitleController = TextEditingController();"
     },
@@ -371,7 +449,7 @@
       "kind": "field",
       "name": "_bannerContentController",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 114,
+      "line": 209,
       "parent": "_RemoteHomeScreenState",
       "signature": "  final _bannerContentController = TextEditingController();"
     },
@@ -379,7 +457,7 @@
       "kind": "field",
       "name": "_bannerFooterController",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 115,
+      "line": 210,
       "parent": "_RemoteHomeScreenState",
       "signature": "  final _bannerFooterController = TextEditingController();"
     },
@@ -387,7 +465,7 @@
       "kind": "field",
       "name": "_kasAmountController",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 117,
+      "line": 212,
       "parent": "_RemoteHomeScreenState",
       "signature": "  final _kasAmountController = TextEditingController();"
     },
@@ -395,7 +473,7 @@
       "kind": "field",
       "name": "_kasDescriptionController",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 118,
+      "line": 213,
       "parent": "_RemoteHomeScreenState",
       "signature": "  final _kasDescriptionController = TextEditingController();"
     },
@@ -403,7 +481,7 @@
       "kind": "field",
       "name": "_kasType",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 119,
+      "line": 214,
       "parent": "_RemoteHomeScreenState",
       "signature": "  KasType _kasType = KasType.masuk;"
     },
@@ -411,7 +489,7 @@
       "kind": "field",
       "name": "_tvPhase",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 122,
+      "line": 217,
       "parent": "_RemoteHomeScreenState",
       "signature": "  PrayerPhase _tvPhase = PrayerPhase.normal;"
     },
@@ -419,7 +497,7 @@
       "kind": "field",
       "name": "_kasTransactions",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 124,
+      "line": 219,
       "parent": "_RemoteHomeScreenState",
       "signature": "  final List<KasTransaction> _kasTransactions = ["
     },
@@ -427,7 +505,7 @@
       "kind": "field",
       "name": "_runningTexts",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 141,
+      "line": 236,
       "parent": "_RemoteHomeScreenState",
       "signature": "  final List<RunningTextMessage> _runningTexts = ["
     },
@@ -435,7 +513,7 @@
       "kind": "field",
       "name": "_banners",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 156,
+      "line": 251,
       "parent": "_RemoteHomeScreenState",
       "signature": "  final List<MediaBanner> _banners = ["
     },
@@ -443,7 +521,7 @@
       "kind": "method",
       "name": "initState",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 174,
+      "line": 269,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void initState() {"
     },
@@ -451,7 +529,7 @@
       "kind": "method",
       "name": "didChangeAppLifecycleState",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 279,
+      "line": 355,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void didChangeAppLifecycleState(AppLifecycleState state) {"
     },
@@ -459,7 +537,7 @@
       "kind": "method",
       "name": "_bottomNavIndexForPage",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 302,
+      "line": 378,
       "parent": "_RemoteHomeScreenState",
       "signature": "  int _bottomNavIndexForPage(int page) {"
     },
@@ -467,7 +545,7 @@
       "kind": "method",
       "name": "_mainPageForBottomNav",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 309,
+      "line": 384,
       "parent": "_RemoteHomeScreenState",
       "signature": "  int _mainPageForBottomNav(int bottom, int currentSub) {"
     },
@@ -475,7 +553,7 @@
       "kind": "method",
       "name": "_handleMainTabChange",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 322,
+      "line": 395,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _handleMainTabChange() {"
     },
@@ -483,7 +561,7 @@
       "kind": "method",
       "name": "_handleSubTabChange",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 337,
+      "line": 410,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _handleSubTabChange() {"
     },
@@ -491,7 +569,7 @@
       "kind": "method",
       "name": "_syncConfigControllers",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 347,
+      "line": 420,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _syncConfigControllers() {"
     },
@@ -499,7 +577,7 @@
       "kind": "method",
       "name": "_loadStartupData",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 368,
+      "line": 441,
       "parent": "_RemoteHomeScreenState",
       "signature": "  Future<void> _loadStartupData() async {"
     },
@@ -507,7 +585,7 @@
       "kind": "method",
       "name": "_applySnapshot",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 380,
+      "line": 453,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _applySnapshot(StateSnapshot snapshot) {"
     },
@@ -515,7 +593,7 @@
       "kind": "method",
       "name": "_requestTvState",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 395,
+      "line": 468,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _requestTvState() {"
     },
@@ -523,7 +601,7 @@
       "kind": "method",
       "name": "_showPinDialog",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 405,
+      "line": 497,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _showPinDialog() {"
     },
@@ -531,23 +609,23 @@
       "kind": "method",
       "name": "_closePinDialog",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 474,
+      "line": 533,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _closePinDialog() {"
     },
     {
       "kind": "method",
-      "name": "_submitPin",
+      "name": "_drainPendingBtState",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 479,
+      "line": 541,
       "parent": "_RemoteHomeScreenState",
-      "signature": "  void _submitPin(BuildContext dialogContext, TextEditingController pinController) {"
+      "signature": "  void _drainPendingBtState() {"
     },
     {
       "kind": "method",
       "name": "_loadSavedDurations",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 489,
+      "line": 582,
       "parent": "_RemoteHomeScreenState",
       "signature": "  Future<void> _loadSavedDurations() async {"
     },
@@ -555,7 +633,7 @@
       "kind": "method",
       "name": "_persistDurations",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 524,
+      "line": 617,
       "parent": "_RemoteHomeScreenState",
       "signature": "  Future<void> _persistDurations(MosqueConfig config) async {"
     },
@@ -563,7 +641,7 @@
       "kind": "method",
       "name": "_handleTvPacket",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 541,
+      "line": 634,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _handleTvPacket(SyncPacket packet) {"
     },
@@ -571,7 +649,7 @@
       "kind": "method",
       "name": "_applyTvPhase",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 555,
+      "line": 648,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _applyTvPhase(SyncPacket packet) {"
     },
@@ -579,7 +657,7 @@
       "kind": "method",
       "name": "_applyTvSnapshot",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 573,
+      "line": 666,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _applyTvSnapshot(StateSnapshot snapshot) {"
     },
@@ -587,7 +665,7 @@
       "kind": "method",
       "name": "_pushLocalDataToTv",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 592,
+      "line": 685,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _pushLocalDataToTv() {"
     },
@@ -595,7 +673,7 @@
       "kind": "method",
       "name": "_exportBackup",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 600,
+      "line": 693,
       "parent": "_RemoteHomeScreenState",
       "signature": "  Future<void> _exportBackup() async {"
     },
@@ -603,7 +681,7 @@
       "kind": "method",
       "name": "_importBackup",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 625,
+      "line": 714,
       "parent": "_RemoteHomeScreenState",
       "signature": "  Future<void> _importBackup() async {"
     },
@@ -611,7 +689,7 @@
       "kind": "method",
       "name": "_applyImportedBackup",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 681,
+      "line": 768,
       "parent": "_RemoteHomeScreenState",
       "signature": "  Future<void> _applyImportedBackup(BackupBundle bundle) async {"
     },
@@ -619,15 +697,55 @@
       "kind": "method",
       "name": "_connectToTv",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 704,
+      "line": 791,
       "parent": "_RemoteHomeScreenState",
       "signature": "  Future<void> _connectToTv() async {"
     },
     {
       "kind": "method",
+      "name": "_handleConnectionEstablished",
+      "file": "apps/mobile_remote/lib/main.dart",
+      "line": 822,
+      "parent": "_RemoteHomeScreenState",
+      "signature": "  void _handleConnectionEstablished(String kind) {"
+    },
+    {
+      "kind": "method",
+      "name": "_handleTransportDisconnected",
+      "file": "apps/mobile_remote/lib/main.dart",
+      "line": 841,
+      "parent": "_RemoteHomeScreenState",
+      "signature": "  void _handleTransportDisconnected() {"
+    },
+    {
+      "kind": "method",
+      "name": "_reconnectLast",
+      "file": "apps/mobile_remote/lib/main.dart",
+      "line": 850,
+      "parent": "_RemoteHomeScreenState",
+      "signature": "  Future<void> _reconnectLast() async {"
+    },
+    {
+      "kind": "method",
+      "name": "_showSyncConflictDialog",
+      "file": "apps/mobile_remote/lib/main.dart",
+      "line": 864,
+      "parent": "_RemoteHomeScreenState",
+      "signature": "  void _showSyncConflictDialog() {"
+    },
+    {
+      "kind": "method",
+      "name": "_disconnectFromTv",
+      "file": "apps/mobile_remote/lib/main.dart",
+      "line": 904,
+      "parent": "_RemoteHomeScreenState",
+      "signature": "  Future<void> _disconnectFromTv() async {"
+    },
+    {
+      "kind": "method",
       "name": "_buildConfigFromForm",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 742,
+      "line": 916,
       "parent": "_RemoteHomeScreenState",
       "signature": "  MosqueConfig _buildConfigFromForm() {"
     },
@@ -635,7 +753,7 @@
       "kind": "method",
       "name": "_minutesFrom",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 775,
+      "line": 949,
       "parent": "_RemoteHomeScreenState",
       "signature": "  int _minutesFrom(TextEditingController controller, int fallback) {"
     },
@@ -643,7 +761,7 @@
       "kind": "method",
       "name": "_syncAllToTv",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 781,
+      "line": 955,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _syncAllToTv() {"
     },
@@ -651,7 +769,7 @@
       "kind": "method",
       "name": "_pushAllToTv",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 791,
+      "line": 965,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _pushAllToTv() {"
     },
@@ -659,7 +777,7 @@
       "kind": "method",
       "name": "_sendConfigUpdate",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 809,
+      "line": 978,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _sendConfigUpdate() {"
     },
@@ -667,7 +785,7 @@
       "kind": "method",
       "name": "_sendQuickAction",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 834,
+      "line": 998,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _sendQuickAction(SyncAction action) {"
     },
@@ -675,7 +793,7 @@
       "kind": "method",
       "name": "_sendForcePhase",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 856,
+      "line": 1018,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _sendForcePhase(PrayerPhase phase) {"
     },
@@ -683,7 +801,7 @@
       "kind": "method",
       "name": "_getLocationFromGps",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 866,
+      "line": 1026,
       "parent": "_RemoteHomeScreenState",
       "signature": "  Future<void> _getLocationFromGps() async {"
     },
@@ -691,7 +809,7 @@
       "kind": "method",
       "name": "_addRunningText",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 935,
+      "line": 1085,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _addRunningText() {"
     },
@@ -699,7 +817,7 @@
       "kind": "method",
       "name": "_removeRunningText",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 957,
+      "line": 1107,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _removeRunningText(String id) {"
     },
@@ -707,7 +825,7 @@
       "kind": "method",
       "name": "_editRunningText",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 970,
+      "line": 1120,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _editRunningText(RunningTextMessage item) {"
     },
@@ -715,7 +833,7 @@
       "kind": "method",
       "name": "_addBanner",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1053,
+      "line": 1203,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _addBanner(String? base64Image) {"
     },
@@ -723,7 +841,7 @@
       "kind": "method",
       "name": "_removeBanner",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1084,
+      "line": 1234,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _removeBanner(String id) {"
     },
@@ -731,7 +849,7 @@
       "kind": "method",
       "name": "_toggleBanner",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1097,
+      "line": 1247,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _toggleBanner(String id, bool val) {"
     },
@@ -739,7 +857,7 @@
       "kind": "method",
       "name": "_editBanner",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1113,
+      "line": 1263,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _editBanner(MediaBanner banner) {"
     },
@@ -747,7 +865,7 @@
       "kind": "method",
       "name": "_addKasTransaction",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1191,
+      "line": 1341,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _addKasTransaction() {"
     },
@@ -755,55 +873,15 @@
       "kind": "method",
       "name": "_removeKasTransaction",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1218,
+      "line": 1368,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _removeKasTransaction(String id) {"
     },
     {
       "kind": "method",
-      "name": "_androidSdkVersion",
-      "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1231,
-      "parent": "_RemoteHomeScreenState",
-      "signature": "  int _androidSdkVersion() {"
-    },
-    {
-      "kind": "method",
-      "name": "_startScan",
-      "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1243,
-      "parent": "_RemoteHomeScreenState",
-      "signature": "  Future<void> _startScan() async {"
-    },
-    {
-      "kind": "method",
-      "name": "_runScan",
-      "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1263,
-      "parent": "_RemoteHomeScreenState",
-      "signature": "  void _runScan() {"
-    },
-    {
-      "kind": "method",
-      "name": "_stopScan",
-      "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1293,
-      "parent": "_RemoteHomeScreenState",
-      "signature": "  void _stopScan() {"
-    },
-    {
-      "kind": "method",
-      "name": "_connectP2p",
-      "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1301,
-      "parent": "_RemoteHomeScreenState",
-      "signature": "  void _connectP2p(BleDiscoveredDevice dev) {"
-    },
-    {
-      "kind": "method",
       "name": "_startBtScan",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1309,
+      "line": 1381,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _startBtScan() {"
     },
@@ -811,7 +889,7 @@
       "kind": "method",
       "name": "_stopBtScan",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1317,
+      "line": 1389,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _stopBtScan() {"
     },
@@ -819,39 +897,15 @@
       "kind": "method",
       "name": "_connectBt",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1325,
+      "line": 1397,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _connectBt(BluetoothDeviceInfo device) {"
     },
     {
       "kind": "method",
-      "name": "_showP2pPrereqDialog",
-      "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1335,
-      "parent": "_RemoteHomeScreenState",
-      "signature": "  void _showP2pPrereqDialog(P2pPrerequisites reqs) {"
-    },
-    {
-      "kind": "method",
-      "name": "_prereqRow",
-      "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1377,
-      "parent": "_RemoteHomeScreenState",
-      "signature": "  Widget _prereqRow(String label, bool enabled) {"
-    },
-    {
-      "kind": "method",
-      "name": "_enableAllP2pServices",
-      "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1395,
-      "parent": "_RemoteHomeScreenState",
-      "signature": "  Future<void> _enableAllP2pServices() async {"
-    },
-    {
-      "kind": "method",
       "name": "_showScheduleSimulation",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1442,
+      "line": 1407,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _showScheduleSimulation(MosqueConfig formConfig) {"
     },
@@ -859,7 +913,7 @@
       "kind": "method",
       "name": "_formatDurationShort",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1595,
+      "line": 1560,
       "parent": "_RemoteHomeScreenState",
       "signature": "  String _formatDurationShort(Duration? duration) {"
     },
@@ -867,7 +921,7 @@
       "kind": "method",
       "name": "dispose",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1603,
+      "line": 1568,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void dispose() {"
     },
@@ -875,15 +929,31 @@
       "kind": "method",
       "name": "build",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1639,
+      "line": 1603,
       "parent": "_RemoteHomeScreenState",
       "signature": "  Widget build(BuildContext context) {"
     },
     {
       "kind": "method",
+      "name": "_buildConnectionBadge",
+      "file": "apps/mobile_remote/lib/main.dart",
+      "line": 1793,
+      "parent": "_RemoteHomeScreenState",
+      "signature": "  Widget _buildConnectionBadge(ColorScheme colorScheme) {"
+    },
+    {
+      "kind": "method",
+      "name": "_buildDisconnectedBanner",
+      "file": "apps/mobile_remote/lib/main.dart",
+      "line": 1842,
+      "parent": "_RemoteHomeScreenState",
+      "signature": "  Widget _buildDisconnectedBanner(ThemeData theme, ColorScheme colorScheme) {"
+    },
+    {
+      "kind": "method",
       "name": "_buildContentTabBar",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1825,
+      "line": 1871,
       "parent": "_RemoteHomeScreenState",
       "signature": "  Widget _buildContentTabBar(ThemeData theme, ColorScheme colorScheme) {"
     },
@@ -891,7 +961,7 @@
       "kind": "method",
       "name": "_buildUnsyncedBanner",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1848,
+      "line": 1894,
       "parent": "_RemoteHomeScreenState",
       "signature": "  Widget _buildUnsyncedBanner(ThemeData theme, ColorScheme colorScheme) {"
     },
@@ -899,14 +969,14 @@
       "kind": "class",
       "name": "MasjidYouRemoteApp",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1878,
+      "line": 1924,
       "signature": "class MasjidYouRemoteApp extends StatelessWidget {"
     },
     {
       "kind": "method",
       "name": "build",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1882,
+      "line": 1928,
       "parent": "MasjidYouRemoteApp",
       "signature": "  Widget build(BuildContext context) {"
     },
@@ -914,142 +984,94 @@
       "kind": "function",
       "name": "main",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1895,
+      "line": 1943,
       "signature": "void main() {"
     },
     {
       "kind": "class",
-      "name": "ConnectivityTab",
-      "file": "apps/mobile_remote/lib/screens/connectivity/connectivity_tab.dart",
+      "name": "ConnectionGatewayScreen",
+      "file": "apps/mobile_remote/lib/screens/connection/connection_gateway_screen.dart",
       "line": 6,
-      "signature": "class ConnectivityTab extends StatelessWidget {"
+      "signature": "class ConnectionGatewayScreen extends StatelessWidget {"
     },
     {
       "kind": "field",
       "name": "ipController",
-      "file": "apps/mobile_remote/lib/screens/connectivity/connectivity_tab.dart",
+      "file": "apps/mobile_remote/lib/screens/connection/connection_gateway_screen.dart",
       "line": 7,
-      "parent": "ConnectivityTab",
+      "parent": "ConnectionGatewayScreen",
       "signature": "  final TextEditingController ipController;"
     },
     {
       "kind": "field",
       "name": "isConnecting",
-      "file": "apps/mobile_remote/lib/screens/connectivity/connectivity_tab.dart",
+      "file": "apps/mobile_remote/lib/screens/connection/connection_gateway_screen.dart",
       "line": 8,
-      "parent": "ConnectivityTab",
+      "parent": "ConnectionGatewayScreen",
       "signature": "  final bool isConnecting;"
     },
     {
       "kind": "field",
-      "name": "isConnected",
-      "file": "apps/mobile_remote/lib/screens/connectivity/connectivity_tab.dart",
+      "name": "onConnectIp",
+      "file": "apps/mobile_remote/lib/screens/connection/connection_gateway_screen.dart",
       "line": 9,
-      "parent": "ConnectivityTab",
-      "signature": "  final bool isConnected;"
-    },
-    {
-      "kind": "field",
-      "name": "isScanning",
-      "file": "apps/mobile_remote/lib/screens/connectivity/connectivity_tab.dart",
-      "line": 10,
-      "parent": "ConnectivityTab",
-      "signature": "  final bool isScanning;"
-    },
-    {
-      "kind": "field",
-      "name": "p2pDevices",
-      "file": "apps/mobile_remote/lib/screens/connectivity/connectivity_tab.dart",
-      "line": 11,
-      "parent": "ConnectivityTab",
-      "signature": "  final List<BleDiscoveredDevice> p2pDevices;"
-    },
-    {
-      "kind": "field",
-      "name": "p2pStatus",
-      "file": "apps/mobile_remote/lib/screens/connectivity/connectivity_tab.dart",
-      "line": 12,
-      "parent": "ConnectivityTab",
-      "signature": "  final String p2pStatus;"
-    },
-    {
-      "kind": "field",
-      "name": "onConnectWifi",
-      "file": "apps/mobile_remote/lib/screens/connectivity/connectivity_tab.dart",
-      "line": 13,
-      "parent": "ConnectivityTab",
-      "signature": "  final VoidCallback onConnectWifi;"
-    },
-    {
-      "kind": "field",
-      "name": "onStartScan",
-      "file": "apps/mobile_remote/lib/screens/connectivity/connectivity_tab.dart",
-      "line": 14,
-      "parent": "ConnectivityTab",
-      "signature": "  final VoidCallback onStartScan;"
-    },
-    {
-      "kind": "field",
-      "name": "onStopScan",
-      "file": "apps/mobile_remote/lib/screens/connectivity/connectivity_tab.dart",
-      "line": 15,
-      "parent": "ConnectivityTab",
-      "signature": "  final VoidCallback onStopScan;"
+      "parent": "ConnectionGatewayScreen",
+      "signature": "  final VoidCallback onConnectIp;"
     },
     {
       "kind": "field",
       "name": "btIsScanning",
-      "file": "apps/mobile_remote/lib/screens/connectivity/connectivity_tab.dart",
-      "line": 19,
-      "parent": "ConnectivityTab",
+      "file": "apps/mobile_remote/lib/screens/connection/connection_gateway_screen.dart",
+      "line": 11,
+      "parent": "ConnectionGatewayScreen",
       "signature": "  final bool btIsScanning;"
     },
     {
       "kind": "field",
-      "name": "btConnected",
-      "file": "apps/mobile_remote/lib/screens/connectivity/connectivity_tab.dart",
-      "line": 20,
-      "parent": "ConnectivityTab",
-      "signature": "  final bool btConnected;"
-    },
-    {
-      "kind": "field",
       "name": "btDevices",
-      "file": "apps/mobile_remote/lib/screens/connectivity/connectivity_tab.dart",
-      "line": 21,
-      "parent": "ConnectivityTab",
+      "file": "apps/mobile_remote/lib/screens/connection/connection_gateway_screen.dart",
+      "line": 12,
+      "parent": "ConnectionGatewayScreen",
       "signature": "  final List<BluetoothDeviceInfo> btDevices;"
     },
     {
       "kind": "field",
       "name": "btStatus",
-      "file": "apps/mobile_remote/lib/screens/connectivity/connectivity_tab.dart",
-      "line": 22,
-      "parent": "ConnectivityTab",
+      "file": "apps/mobile_remote/lib/screens/connection/connection_gateway_screen.dart",
+      "line": 13,
+      "parent": "ConnectionGatewayScreen",
       "signature": "  final String btStatus;"
     },
     {
       "kind": "field",
       "name": "onBtStartScan",
-      "file": "apps/mobile_remote/lib/screens/connectivity/connectivity_tab.dart",
-      "line": 23,
-      "parent": "ConnectivityTab",
+      "file": "apps/mobile_remote/lib/screens/connection/connection_gateway_screen.dart",
+      "line": 14,
+      "parent": "ConnectionGatewayScreen",
       "signature": "  final VoidCallback onBtStartScan;"
     },
     {
       "kind": "field",
       "name": "onBtStopScan",
-      "file": "apps/mobile_remote/lib/screens/connectivity/connectivity_tab.dart",
-      "line": 24,
-      "parent": "ConnectivityTab",
+      "file": "apps/mobile_remote/lib/screens/connection/connection_gateway_screen.dart",
+      "line": 15,
+      "parent": "ConnectionGatewayScreen",
       "signature": "  final VoidCallback onBtStopScan;"
+    },
+    {
+      "kind": "field",
+      "name": "onBtConnect",
+      "file": "apps/mobile_remote/lib/screens/connection/connection_gateway_screen.dart",
+      "line": 16,
+      "parent": "ConnectionGatewayScreen",
+      "signature": "  final ValueChanged<BluetoothDeviceInfo> onBtConnect;"
     },
     {
       "kind": "method",
       "name": "build",
-      "file": "apps/mobile_remote/lib/screens/connectivity/connectivity_tab.dart",
-      "line": 49,
-      "parent": "ConnectivityTab",
+      "file": "apps/mobile_remote/lib/screens/connection/connection_gateway_screen.dart",
+      "line": 32,
+      "parent": "ConnectionGatewayScreen",
       "signature": "  Widget build(BuildContext context) {"
     },
     {
@@ -1946,15 +1968,15 @@
       "kind": "method",
       "name": "cancelAuth",
       "file": "apps/mobile_remote/lib/services/bluetooth_client_service.dart",
-      "line": 304,
+      "line": 309,
       "parent": "BluetoothClientService",
-      "signature": "  void cancelAuth() {"
+      "signature": "  Future<void> cancelAuth() async {"
     },
     {
       "kind": "method",
       "name": "_onEvent",
       "file": "apps/mobile_remote/lib/services/bluetooth_client_service.dart",
-      "line": 308,
+      "line": 314,
       "parent": "BluetoothClientService",
       "signature": "  void _onEvent(BluetoothSyncEvent event) {"
     },
@@ -1962,7 +1984,7 @@
       "kind": "method",
       "name": "_handleDisconnected",
       "file": "apps/mobile_remote/lib/services/bluetooth_client_service.dart",
-      "line": 389,
+      "line": 401,
       "parent": "BluetoothClientService",
       "signature": "  void _handleDisconnected() {"
     },
@@ -1970,7 +1992,7 @@
       "kind": "method",
       "name": "_attemptReconnect",
       "file": "apps/mobile_remote/lib/services/bluetooth_client_service.dart",
-      "line": 438,
+      "line": 450,
       "parent": "BluetoothClientService",
       "signature": "  Future<void> _attemptReconnect() async {"
     },
@@ -1978,7 +2000,7 @@
       "kind": "method",
       "name": "_cancelReconnect",
       "file": "apps/mobile_remote/lib/services/bluetooth_client_service.dart",
-      "line": 455,
+      "line": 467,
       "parent": "BluetoothClientService",
       "signature": "  void _cancelReconnect() {"
     },
@@ -1986,7 +2008,7 @@
       "kind": "method",
       "name": "_cancelReconnectTimer",
       "file": "apps/mobile_remote/lib/services/bluetooth_client_service.dart",
-      "line": 460,
+      "line": 472,
       "parent": "BluetoothClientService",
       "signature": "  void _cancelReconnectTimer() {"
     },
@@ -1994,7 +2016,7 @@
       "kind": "method",
       "name": "_subscribeEvents",
       "file": "apps/mobile_remote/lib/services/bluetooth_client_service.dart",
-      "line": 465,
+      "line": 477,
       "parent": "BluetoothClientService",
       "signature": "  void _subscribeEvents() {"
     },
@@ -2002,7 +2024,7 @@
       "kind": "method",
       "name": "disconnect",
       "file": "apps/mobile_remote/lib/services/bluetooth_client_service.dart",
-      "line": 475,
+      "line": 487,
       "parent": "BluetoothClientService",
       "signature": "  Future<void> disconnect() async {"
     },
@@ -2010,183 +2032,9 @@
       "kind": "method",
       "name": "dispose",
       "file": "apps/mobile_remote/lib/services/bluetooth_client_service.dart",
-      "line": 495,
+      "line": 507,
       "parent": "BluetoothClientService",
       "signature": "  Future<void> dispose() async {"
-    },
-    {
-      "kind": "class",
-      "name": "P2pPrerequisites",
-      "file": "apps/mobile_remote/lib/services/p2p_client_service.dart",
-      "line": 9,
-      "signature": "class P2pPrerequisites {"
-    },
-    {
-      "kind": "field",
-      "name": "wifiEnabled",
-      "file": "apps/mobile_remote/lib/services/p2p_client_service.dart",
-      "line": 10,
-      "parent": "P2pPrerequisites",
-      "signature": "  final bool wifiEnabled;"
-    },
-    {
-      "kind": "field",
-      "name": "bluetoothEnabled",
-      "file": "apps/mobile_remote/lib/services/p2p_client_service.dart",
-      "line": 11,
-      "parent": "P2pPrerequisites",
-      "signature": "  final bool bluetoothEnabled;"
-    },
-    {
-      "kind": "field",
-      "name": "locationEnabled",
-      "file": "apps/mobile_remote/lib/services/p2p_client_service.dart",
-      "line": 12,
-      "parent": "P2pPrerequisites",
-      "signature": "  final bool locationEnabled;"
-    },
-    {
-      "kind": "field",
-      "name": "p2pPermissionsGranted",
-      "file": "apps/mobile_remote/lib/services/p2p_client_service.dart",
-      "line": 13,
-      "parent": "P2pPrerequisites",
-      "signature": "  final bool p2pPermissionsGranted;"
-    },
-    {
-      "kind": "field",
-      "name": "bluetoothPermissionsGranted",
-      "file": "apps/mobile_remote/lib/services/p2p_client_service.dart",
-      "line": 14,
-      "parent": "P2pPrerequisites",
-      "signature": "  final bool bluetoothPermissionsGranted;"
-    },
-    {
-      "kind": "getter",
-      "name": "allPermissionsGranted",
-      "file": "apps/mobile_remote/lib/services/p2p_client_service.dart",
-      "line": 24,
-      "parent": "P2pPrerequisites",
-      "signature": "  bool get allPermissionsGranted =>"
-    },
-    {
-      "kind": "class",
-      "name": "P2pClientService",
-      "file": "apps/mobile_remote/lib/services/p2p_client_service.dart",
-      "line": 35,
-      "signature": "class P2pClientService {"
-    },
-    {
-      "kind": "field",
-      "name": "_client",
-      "file": "apps/mobile_remote/lib/services/p2p_client_service.dart",
-      "line": 36,
-      "parent": "P2pClientService",
-      "signature": "  FlutterP2pClient? _client;"
-    },
-    {
-      "kind": "field",
-      "name": "_stateController",
-      "file": "apps/mobile_remote/lib/services/p2p_client_service.dart",
-      "line": 37,
-      "parent": "P2pClientService",
-      "signature": "  final _stateController = StreamController<HotspotClientState?>.broadcast();"
-    },
-    {
-      "kind": "field",
-      "name": "_initialized",
-      "file": "apps/mobile_remote/lib/services/p2p_client_service.dart",
-      "line": 38,
-      "parent": "P2pClientService",
-      "signature": "  bool _initialized = false;"
-    },
-    {
-      "kind": "getter",
-      "name": "stateStream",
-      "file": "apps/mobile_remote/lib/services/p2p_client_service.dart",
-      "line": 40,
-      "parent": "P2pClientService",
-      "signature": "  Stream<HotspotClientState?> get stateStream => _stateController.stream;"
-    },
-    {
-      "kind": "method",
-      "name": "_androidSdkVersion",
-      "file": "apps/mobile_remote/lib/services/p2p_client_service.dart",
-      "line": 42,
-      "parent": "P2pClientService",
-      "signature": "  int _androidSdkVersion() {"
-    },
-    {
-      "kind": "method",
-      "name": "_ensureClient",
-      "file": "apps/mobile_remote/lib/services/p2p_client_service.dart",
-      "line": 52,
-      "parent": "P2pClientService",
-      "signature": "  Future<void> _ensureClient() async {"
-    },
-    {
-      "kind": "method",
-      "name": "checkPrerequisites",
-      "file": "apps/mobile_remote/lib/services/p2p_client_service.dart",
-      "line": 63,
-      "parent": "P2pClientService",
-      "signature": "  Future<P2pPrerequisites> checkPrerequisites() async {"
-    },
-    {
-      "kind": "method",
-      "name": "askPermissionsIfNeeded",
-      "file": "apps/mobile_remote/lib/services/p2p_client_service.dart",
-      "line": 94,
-      "parent": "P2pClientService",
-      "signature": "  Future<void> askPermissionsIfNeeded() async {"
-    },
-    {
-      "kind": "method",
-      "name": "enableWifiIfNeeded",
-      "file": "apps/mobile_remote/lib/services/p2p_client_service.dart",
-      "line": 106,
-      "parent": "P2pClientService",
-      "signature": "  Future<void> enableWifiIfNeeded() async {"
-    },
-    {
-      "kind": "method",
-      "name": "enableBluetoothIfNeeded",
-      "file": "apps/mobile_remote/lib/services/p2p_client_service.dart",
-      "line": 113,
-      "parent": "P2pClientService",
-      "signature": "  Future<void> enableBluetoothIfNeeded() async {"
-    },
-    {
-      "kind": "method",
-      "name": "enableLocationIfNeeded",
-      "file": "apps/mobile_remote/lib/services/p2p_client_service.dart",
-      "line": 120,
-      "parent": "P2pClientService",
-      "signature": "  Future<void> enableLocationIfNeeded() async {"
-    },
-    {
-      "kind": "method",
-      "name": "stopScan",
-      "file": "apps/mobile_remote/lib/services/p2p_client_service.dart",
-      "line": 145,
-      "parent": "P2pClientService",
-      "signature": "  Future<void> stopScan() async {"
-    },
-    {
-      "kind": "method",
-      "name": "connectTo",
-      "file": "apps/mobile_remote/lib/services/p2p_client_service.dart",
-      "line": 151,
-      "parent": "P2pClientService",
-      "signature": "  Future<bool> connectTo(BleDiscoveredDevice device) async {"
-    },
-    {
-      "kind": "method",
-      "name": "disconnect",
-      "file": "apps/mobile_remote/lib/services/p2p_client_service.dart",
-      "line": 163,
-      "parent": "P2pClientService",
-      "signature": "  Future<void> disconnect() async {"
     },
     {
       "kind": "class",
@@ -2246,7 +2094,7 @@
       "kind": "getter",
       "name": "isConnected",
       "file": "apps/mobile_remote/lib/services/ws_client.dart",
-      "line": 18,
+      "line": 24,
       "parent": "RemoteWsClient",
       "signature": "  bool get isConnected => _isConnected;"
     },
@@ -2254,7 +2102,7 @@
       "kind": "field",
       "name": "_ipv4",
       "file": "apps/mobile_remote/lib/services/ws_client.dart",
-      "line": 20,
+      "line": 26,
       "parent": "RemoteWsClient",
       "signature": "  static final RegExp _ipv4 = RegExp("
     },
@@ -2262,7 +2110,7 @@
       "kind": "method",
       "name": "isValidIp",
       "file": "apps/mobile_remote/lib/services/ws_client.dart",
-      "line": 25,
+      "line": 31,
       "parent": "RemoteWsClient",
       "signature": "  static bool isValidIp(String ipAddress) => _ipv4.hasMatch(ipAddress);"
     },
@@ -2270,7 +2118,7 @@
       "kind": "method",
       "name": "_disconnectChannel",
       "file": "apps/mobile_remote/lib/services/ws_client.dart",
-      "line": 55,
+      "line": 78,
       "parent": "RemoteWsClient",
       "signature": "  void _disconnectChannel() {"
     },
@@ -2278,7 +2126,7 @@
       "kind": "method",
       "name": "sendPacket",
       "file": "apps/mobile_remote/lib/services/ws_client.dart",
-      "line": 61,
+      "line": 84,
       "parent": "RemoteWsClient",
       "signature": "  void sendPacket(SyncPacket packet) {"
     },
@@ -2286,7 +2134,7 @@
       "kind": "method",
       "name": "sendConfigUpdate",
       "file": "apps/mobile_remote/lib/services/ws_client.dart",
-      "line": 70,
+      "line": 93,
       "parent": "RemoteWsClient",
       "signature": "  void sendConfigUpdate(MosqueConfig config) {"
     },
@@ -2294,7 +2142,7 @@
       "kind": "method",
       "name": "sendRunningTextsUpdate",
       "file": "apps/mobile_remote/lib/services/ws_client.dart",
-      "line": 77,
+      "line": 100,
       "parent": "RemoteWsClient",
       "signature": "  void sendRunningTextsUpdate(List<RunningTextMessage> messages) {"
     },
@@ -2302,7 +2150,7 @@
       "kind": "method",
       "name": "sendBannersUpdate",
       "file": "apps/mobile_remote/lib/services/ws_client.dart",
-      "line": 86,
+      "line": 109,
       "parent": "RemoteWsClient",
       "signature": "  void sendBannersUpdate(List<MediaBanner> banners) {"
     },
@@ -2310,7 +2158,7 @@
       "kind": "method",
       "name": "sendKasUpdate",
       "file": "apps/mobile_remote/lib/services/ws_client.dart",
-      "line": 95,
+      "line": 118,
       "parent": "RemoteWsClient",
       "signature": "  void sendKasUpdate(List<KasTransaction> transactions) {"
     },
@@ -2318,7 +2166,7 @@
       "kind": "method",
       "name": "sendSkipAdhan",
       "file": "apps/mobile_remote/lib/services/ws_client.dart",
-      "line": 105,
+      "line": 128,
       "parent": "RemoteWsClient",
       "signature": "  void sendSkipAdhan() {"
     },
@@ -2326,7 +2174,7 @@
       "kind": "method",
       "name": "sendStartShalat",
       "file": "apps/mobile_remote/lib/services/ws_client.dart",
-      "line": 110,
+      "line": 133,
       "parent": "RemoteWsClient",
       "signature": "  void sendStartShalat() {"
     },
@@ -2334,7 +2182,7 @@
       "kind": "method",
       "name": "sendStartIqomah",
       "file": "apps/mobile_remote/lib/services/ws_client.dart",
-      "line": 115,
+      "line": 138,
       "parent": "RemoteWsClient",
       "signature": "  void sendStartIqomah() {"
     },
@@ -2342,7 +2190,7 @@
       "kind": "method",
       "name": "sendFinishShalat",
       "file": "apps/mobile_remote/lib/services/ws_client.dart",
-      "line": 120,
+      "line": 143,
       "parent": "RemoteWsClient",
       "signature": "  void sendFinishShalat() {"
     },
@@ -2350,7 +2198,7 @@
       "kind": "method",
       "name": "sendForcePhase",
       "file": "apps/mobile_remote/lib/services/ws_client.dart",
-      "line": 125,
+      "line": 148,
       "parent": "RemoteWsClient",
       "signature": "  void sendForcePhase(PrayerPhase phase) {"
     },
@@ -2358,7 +2206,7 @@
       "kind": "method",
       "name": "disconnect",
       "file": "apps/mobile_remote/lib/services/ws_client.dart",
-      "line": 132,
+      "line": 155,
       "parent": "RemoteWsClient",
       "signature": "  void disconnect() {"
     },
@@ -3968,14 +3816,14 @@
       "kind": "class",
       "name": "AdminMenuOverlay",
       "file": "apps/tv_display/lib/widgets/admin_menu_overlay.dart",
-      "line": 13,
+      "line": 23,
       "signature": "class AdminMenuOverlay extends StatefulWidget {"
     },
     {
       "kind": "field",
       "name": "btEnabled",
       "file": "apps/tv_display/lib/widgets/admin_menu_overlay.dart",
-      "line": 15,
+      "line": 25,
       "parent": "AdminMenuOverlay",
       "signature": "  final bool btEnabled;"
     },
@@ -3983,7 +3831,7 @@
       "kind": "field",
       "name": "pin",
       "file": "apps/tv_display/lib/widgets/admin_menu_overlay.dart",
-      "line": 18,
+      "line": 28,
       "parent": "AdminMenuOverlay",
       "signature": "  final String? pin;"
     },
@@ -3991,7 +3839,7 @@
       "kind": "field",
       "name": "statusText",
       "file": "apps/tv_display/lib/widgets/admin_menu_overlay.dart",
-      "line": 21,
+      "line": 31,
       "parent": "AdminMenuOverlay",
       "signature": "  final String? statusText;"
     },
@@ -3999,7 +3847,7 @@
       "kind": "field",
       "name": "isError",
       "file": "apps/tv_display/lib/widgets/admin_menu_overlay.dart",
-      "line": 24,
+      "line": 34,
       "parent": "AdminMenuOverlay",
       "signature": "  final bool isError;"
     },
@@ -4007,7 +3855,7 @@
       "kind": "field",
       "name": "onToggleBluetooth",
       "file": "apps/tv_display/lib/widgets/admin_menu_overlay.dart",
-      "line": 27,
+      "line": 37,
       "parent": "AdminMenuOverlay",
       "signature": "  final ValueChanged<bool> onToggleBluetooth;"
     },
@@ -4015,23 +3863,15 @@
       "kind": "field",
       "name": "onClose",
       "file": "apps/tv_display/lib/widgets/admin_menu_overlay.dart",
-      "line": 30,
+      "line": 40,
       "parent": "AdminMenuOverlay",
       "signature": "  final VoidCallback onClose;"
-    },
-    {
-      "kind": "field",
-      "name": "onCopyPin",
-      "file": "apps/tv_display/lib/widgets/admin_menu_overlay.dart",
-      "line": 33,
-      "parent": "AdminMenuOverlay",
-      "signature": "  final VoidCallback onCopyPin;"
     },
     {
       "kind": "method",
       "name": "createState",
       "file": "apps/tv_display/lib/widgets/admin_menu_overlay.dart",
-      "line": 47,
+      "line": 53,
       "parent": "AdminMenuOverlay",
       "signature": "  State<AdminMenuOverlay> createState() => _AdminMenuOverlayState();"
     },
@@ -4039,14 +3879,14 @@
       "kind": "class",
       "name": "_AdminMenuOverlayState",
       "file": "apps/tv_display/lib/widgets/admin_menu_overlay.dart",
-      "line": 50,
+      "line": 56,
       "signature": "class _AdminMenuOverlayState extends State<AdminMenuOverlay>"
     },
     {
       "kind": "field",
       "name": "_controller",
       "file": "apps/tv_display/lib/widgets/admin_menu_overlay.dart",
-      "line": 52,
+      "line": 58,
       "parent": "_AdminMenuOverlayState",
       "signature": "  late final AnimationController _controller;"
     },
@@ -4054,7 +3894,7 @@
       "kind": "field",
       "name": "_slideIn",
       "file": "apps/tv_display/lib/widgets/admin_menu_overlay.dart",
-      "line": 53,
+      "line": 59,
       "parent": "_AdminMenuOverlayState",
       "signature": "  late final Animation<Offset> _slideIn;"
     },
@@ -4062,15 +3902,23 @@
       "kind": "field",
       "name": "_slideOut",
       "file": "apps/tv_display/lib/widgets/admin_menu_overlay.dart",
-      "line": 54,
+      "line": 60,
       "parent": "_AdminMenuOverlayState",
       "signature": "  late final Animation<Offset> _slideOut;"
     },
     {
       "kind": "field",
+      "name": "_panelScope",
+      "file": "apps/tv_display/lib/widgets/admin_menu_overlay.dart",
+      "line": 64,
+      "parent": "_AdminMenuOverlayState",
+      "signature": "  late final FocusScopeNode _panelScope;"
+    },
+    {
+      "kind": "field",
       "name": "_closing",
       "file": "apps/tv_display/lib/widgets/admin_menu_overlay.dart",
-      "line": 57,
+      "line": 67,
       "parent": "_AdminMenuOverlayState",
       "signature": "  bool _closing = false;"
     },
@@ -4078,7 +3926,7 @@
       "kind": "method",
       "name": "initState",
       "file": "apps/tv_display/lib/widgets/admin_menu_overlay.dart",
-      "line": 60,
+      "line": 70,
       "parent": "_AdminMenuOverlayState",
       "signature": "  void initState() {"
     },
@@ -4086,7 +3934,7 @@
       "kind": "method",
       "name": "dispose",
       "file": "apps/tv_display/lib/widgets/admin_menu_overlay.dart",
-      "line": 81,
+      "line": 92,
       "parent": "_AdminMenuOverlayState",
       "signature": "  void dispose() {"
     },
@@ -4094,7 +3942,7 @@
       "kind": "method",
       "name": "_close",
       "file": "apps/tv_display/lib/widgets/admin_menu_overlay.dart",
-      "line": 87,
+      "line": 99,
       "parent": "_AdminMenuOverlayState",
       "signature": "  void _close() {"
     },
@@ -4102,8 +3950,109 @@
       "kind": "method",
       "name": "build",
       "file": "apps/tv_display/lib/widgets/admin_menu_overlay.dart",
-      "line": 96,
+      "line": 108,
       "parent": "_AdminMenuOverlayState",
+      "signature": "  Widget build(BuildContext context) {"
+    },
+    {
+      "kind": "class",
+      "name": "_AdminAction",
+      "file": "apps/tv_display/lib/widgets/admin_menu_overlay.dart",
+      "line": 304,
+      "signature": "class _AdminAction {"
+    },
+    {
+      "kind": "field",
+      "name": "icon",
+      "file": "apps/tv_display/lib/widgets/admin_menu_overlay.dart",
+      "line": 305,
+      "parent": "_AdminAction",
+      "signature": "  final IconData icon;"
+    },
+    {
+      "kind": "field",
+      "name": "label",
+      "file": "apps/tv_display/lib/widgets/admin_menu_overlay.dart",
+      "line": 306,
+      "parent": "_AdminAction",
+      "signature": "  final String label;"
+    },
+    {
+      "kind": "field",
+      "name": "subtitle",
+      "file": "apps/tv_display/lib/widgets/admin_menu_overlay.dart",
+      "line": 307,
+      "parent": "_AdminAction",
+      "signature": "  final String subtitle;"
+    },
+    {
+      "kind": "field",
+      "name": "selected",
+      "file": "apps/tv_display/lib/widgets/admin_menu_overlay.dart",
+      "line": 310,
+      "parent": "_AdminAction",
+      "signature": "  final bool selected;"
+    },
+    {
+      "kind": "field",
+      "name": "onActivate",
+      "file": "apps/tv_display/lib/widgets/admin_menu_overlay.dart",
+      "line": 311,
+      "parent": "_AdminAction",
+      "signature": "  final VoidCallback onActivate;"
+    },
+    {
+      "kind": "class",
+      "name": "_FocusableAction",
+      "file": "apps/tv_display/lib/widgets/admin_menu_overlay.dart",
+      "line": 324,
+      "signature": "class _FocusableAction extends StatefulWidget {"
+    },
+    {
+      "kind": "field",
+      "name": "action",
+      "file": "apps/tv_display/lib/widgets/admin_menu_overlay.dart",
+      "line": 325,
+      "parent": "_FocusableAction",
+      "signature": "  final _AdminAction action;"
+    },
+    {
+      "kind": "field",
+      "name": "autofocus",
+      "file": "apps/tv_display/lib/widgets/admin_menu_overlay.dart",
+      "line": 328,
+      "parent": "_FocusableAction",
+      "signature": "  final bool autofocus;"
+    },
+    {
+      "kind": "method",
+      "name": "createState",
+      "file": "apps/tv_display/lib/widgets/admin_menu_overlay.dart",
+      "line": 333,
+      "parent": "_FocusableAction",
+      "signature": "  State<_FocusableAction> createState() => _FocusableActionState();"
+    },
+    {
+      "kind": "class",
+      "name": "_FocusableActionState",
+      "file": "apps/tv_display/lib/widgets/admin_menu_overlay.dart",
+      "line": 336,
+      "signature": "class _FocusableActionState extends State<_FocusableAction> {"
+    },
+    {
+      "kind": "field",
+      "name": "_focused",
+      "file": "apps/tv_display/lib/widgets/admin_menu_overlay.dart",
+      "line": 337,
+      "parent": "_FocusableActionState",
+      "signature": "  bool _focused = false;"
+    },
+    {
+      "kind": "method",
+      "name": "build",
+      "file": "apps/tv_display/lib/widgets/admin_menu_overlay.dart",
+      "line": 340,
+      "parent": "_FocusableActionState",
       "signature": "  Widget build(BuildContext context) {"
     },
     {

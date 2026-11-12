@@ -15,6 +15,12 @@ class RemoteWsClient {
   /// transport lain (misal Bluetooth) bisa ikut dikirim.
   void Function(SyncPacket packet)? onSendPacket;
 
+  /// Dipanggil saat koneksi WebSocket benar-benar terbuka.
+  void Function()? onConnected;
+
+  /// Dipanggil saat koneksi WebSocket terputus/tertutup.
+  void Function()? onDisconnected;
+
   bool get isConnected => _isConnected;
 
   static final RegExp _ipv4 = RegExp(
@@ -44,7 +50,24 @@ class RemoteWsClient {
               message is List<int> ? utf8.decode(message) : message.toString();
           onPacket?.call(SyncPacket.fromJson(text));
         } catch (_) {}
-      });
+      }, onDone: () {
+        if (identical(_channel, channel)) {
+          _channel = null;
+        }
+        if (_isConnected) {
+          _isConnected = false;
+          onDisconnected?.call();
+        }
+      }, onError: (_) {
+        if (identical(_channel, channel)) {
+          _channel = null;
+        }
+        if (_isConnected) {
+          _isConnected = false;
+          onDisconnected?.call();
+        }
+      }, cancelOnError: true);
+      onConnected?.call();
       return true;
     } catch (e) {
       _disconnectChannel();
@@ -130,7 +153,12 @@ class RemoteWsClient {
   }
 
   void disconnect() {
+    final wasConnected = _isConnected;
     _channel?.sink.close();
+    _channel = null;
     _isConnected = false;
+    if (wasConnected) {
+      onDisconnected?.call();
+    }
   }
 }
