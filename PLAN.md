@@ -1,6 +1,6 @@
 # PLAN: Perbaikan WiFi Direct Discovery + Prasyarat Check
 
-## Status: DRAFT
+## Status: **SELESAI** (diimplementasikan di branch `feat/tv-admin-dpad`)
 
 ---
 
@@ -395,30 +395,28 @@ User tap "Cari TV"
 
 ---
 
-## Risiko & Mitigasi
+## Catatan Implementasi Nyata vs Rencana Awal
 
-| Risiko | Mitigasi |
-|--------|----------|
-| TV Android tanpa BLE | Dialog tawarkan "Mode IP Saja" → WS server tetap jalan |
-| User tolak permission | Dialog bisa ditampilkan ulang, atau pilih "Mode IP Saja" |
-| `enableLocationServices()` buka settings tapi user tidak nyalakan | Re-check setelah return, kalau masih mati tampilkan dialog lagi |
-| Android TV chipsets yang tidak support `LocalOnlyHotspot` | Error di catch → fallback ke `directIpOnly` |
-| Scan timeout terlalu pendek (15s) | Sudah cukup untuk BLE scan; bisa ditambah ke 20s jika perlu |
+| Item Rencana Awal | Status Nyata | Catatan |
+|---|---|---|
+| `p2p_client_service.dart` (Mobile Remote WiFi Direct) | **Tidak diimplementasikan** | Jalur sync utama sudah pindah ke **Bluetooth Classic RFCOMM** (`packages/bluetooth_sync`). Mobile Remote hanya memakai Bluetooth untuk discovery & koneksi ke TV. WiFi Direct dipertahankan di TV side saja (`p2p_host_service.dart`) untuk perangkat yang mendukungnya. |
+| `onDone` callback di `_startScan()` mobile_remote | **Tidak diperlukan** | Bluetooth discovery memakai event stream (`discovered`, `discoveryFinished`), bukan callback `onDone` seperti WiFi Direct. |
+| Prerequisite check di Mobile Remote | **Digantikan** | Validasi hardware/izin Bluetooth & Location sudah di-handle di `BluetoothClientService.startDiscovery()` (ADR-017) dan dialog gatekeeper di `ConnectionGatewayScreen`. |
 
----
+> **Ringkasan**: Branch ini menyelesaikan validasi prasyarat **WiFi Direct di sisi TV Host** (`p2p_host_service.dart` + `tv_display/main.dart`) lengkap dengan dialog interaktif & fallback "Mode IP Saja". Jalur WiFi Direct di Mobile Remote **tidak lagi dipakai** karena Bluetooth RFCOMM lebih stabil.
 
 ## Checklist Implementasi
 
-- [ ] Tambah `P2pPrerequisites` model di `p2p_host_service.dart`
-- [ ] Tambah `checkPrerequisites()` method di `p2p_host_service.dart`
-- [ ] Tambah helper methods (`enableWifiIfNeeded`, `enableBluetoothIfNeeded`, `enableLocationIfNeeded`) di `p2p_host_service.dart`
-- [ ] Tambah logging di `p2p_host_service.dart`
-- [ ] Ubah `_initP2pHost()` di `tv_display/main.dart` jadi async + prerequisite check
-- [ ] Tambah `_showP2pPrereqDialog()` di `tv_display/main.dart`
-- [ ] Tambah `_enableAllP2pServices()` di `tv_display/main.dart`
-- [ ] Tambah `P2pMode` enum dan state di `tv_display/main.dart`
-- [ ] Update HeaderClock props berdasarkan `_p2pMode`
-- [ ] Tambah Location check di `p2p_client_service.dart:startScan()`
-- [ ] Handle `onDone` callback di `mobile_remote/main.dart:_startScan()`
-- [ ] Test di device asli (HP + TV/STB)
-- [ ] Lint & typecheck pass
+- [x] Tambah `P2pPrerequisites` model di `p2p_host_service.dart`
+- [x] Tambah `checkPrerequisites()` method di `p2p_host_service.dart`
+- [x] Tambah helper methods (`enableWifiIfNeeded`, `enableBluetoothIfNeeded`, `enableLocationIfNeeded`) di `p2p_host_service.dart`
+- [x] Tambah logging di `p2p_host_service.dart`
+- [x] Ubah `_initP2pHost()` di `tv_display/main.dart` jadi async + prerequisite check
+- [x] Tambah `_showP2pPrereqDialog()` di `tv_display/main.dart`
+- [x] Tambah `_enableAllP2pServices()` di `tv_display/main.dart`
+- [x] Tambah `P2pMode` enum dan state di `tv_display/main.dart`
+- [x] Update HeaderClock props berdasarkan `_p2pMode`
+- [x] Tambah Location check di `p2p_client_service.dart:startScan()` — **DITINGGALKAN** (mobile_remote tidak memakai WiFi Direct, hanya Bluetooth RFCOMM)
+- [x] Handle `onDone` callback di `mobile_remote/main.dart:_startScan()` — **DITINGGALKAN** (mobile_remote tidak memakai WiFi Direct, hanya Bluetooth RFCOMM)
+- [x] Test di device asli (HP + TV/STB)
+- [x] Lint & typecheck pass

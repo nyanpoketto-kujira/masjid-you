@@ -39,6 +39,7 @@ Sebelum memulai tugas apa pun yang menyentuh kode, baca panduan ini dan ikuti
 - `docs/MAP.md` — peta arsitektur & widget (ikuti saat bekerja di TV / Remote / shared_models).
 - `docs/DECISIONS.md` — ADR; baca sebelum mengubah keputusan desain (mis. fallback UI, transport).
 - `docs/bt_rfcomm_rough_plan.md` — daftar bug/status jalur Bluetooth RFCOMM.
+- `docs/PLAN.md` — rencana implementasi & status checklist (update saat selesai).
 - Bahasa dokumen: **Indonesia**. Commit message: konvensi conventional (feat/fix/refactor/docs).
 - Analisis/uji: `flutter analyze` dan `flutter test` di `apps/*` dan `packages/*` (lihat `docs/MAP.md` §7).
 
