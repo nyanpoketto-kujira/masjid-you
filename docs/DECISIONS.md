@@ -24,6 +24,9 @@
 15. [ADR-015 — Validasi Prasyarat WiFi Direct di Mobile Remote](#adr-015)
 16. [ADR-016 — Transport Bluetooth Classic (RFCOMM) sebagai jalur sync tanpa router](#adr-016)
 17. [ADR-017 — Bluetooth Discovery Location Services Check (Android ≤11)](#adr-017)
+18. [ADR-018 — Menu Admin Side Panel D-Pad + Autentikasi PIN Challenge-Response Bluetooth](#adr-018)
+19. [ADR-019 — Connection Gatekeeper Remote + Keamanan Dialog PIN (Red Screen `_dependents.isEmpty`)](#adr-019)
+20. [ADR-020 — Perbaikan Umpan Balik Koneksi Remote (snackbar `??` + nonce challenge)](#adr-020)
 
 ---
 
@@ -498,6 +501,94 @@ Remote (Android 11, SDK 30) tidak menemukan TV saat discovery meskipun izin `BLU
 - Daftar file yang diubah (8 file): `BluetoothSyncPlugin.kt`, `bluetooth_sync.dart`, `bluetooth_client_service.dart`, `connectivity_tab.dart`, `main.dart`, `bluetooth_sync_test.dart`, `bluetooth_client_service_test.dart`, `DECISIONS.md`.
 - Test coverage: 68 total (35 mobile_remote + 33 bluetooth_sync); semua pass.
 - APK dibangun ulang & diinstall ke Remote device; diverifikasi berfungsi.
+
+---
+
+## ADR-018 — Menu Admin Side Panel D-Pad + Autentikasi PIN Challenge-Response Bluetooth
+
+### Konteks
+Setelah jalur Bluetooth RFCOMM (ADR-016) aktif, dua masalah tersisa di sisi TV:
+
+1. **UX Android TV**: pengaturan koneksi Bluetooth hanya bisa diakses lewat dialog tengah layar; tidak ramah remote D-Pad (tidak ada focus highlight, autofocus, atau cara menutup dengan tombol Back yang jelas). Header juga memuat chip "Remote Sync IP" & "Mode Bluetooth" yang memakan ruang vertikal konten utama.
+2. **Keamanan**: begitu host RFCOMM listening, perangkat manapun yang tahu UUID bisa connect dan mengirim `SyncPacket` — tanpa autentikasi sama sekali. Layar TV publik juga langsung memunculkan dialog discoverable Bluetooth saat app dibuka, mengganggu tampilan.
+
+### Keputusan
+**UI — `AdminMenuOverlay` (side panel kanan):**
+
+- Tombol Back remote ditangkap di root lewat `PopScope(canPop: false)` di `MasjidDisplayScreen` → membuka panel admin, bukan keluar aplikasi. Panel punya `PopScope` sendiri: Back di dalam panel menutup panel (slide-out), bukan menutup aplikasi; tombol `goBack` keyboard juga dipetakan ke tutup.
+- Panel slide-in dari sisi KANAN (400px, full-height, ala drawer Android TV) menggantikan dialog tengah; animasi 260ms `easeOutCubic`, scrim hitam pekat 0.85 yang bisa diketuk untuk menutup.
+- Ramah D-Pad penuh: menu berupa daftar aksi (toggle koneksi → salin PIN → kembali) yang dibungkus `Focus` per item di dalam `FocusScope` panel dengan autofocus di item pertama — kursor remote tidak pernah nyasar ke konten latar. Navigasi D-Pad Atas/Bawah berpindah antar item lewat traversal default Flutter; OK/`enter` memicu aksi aktif. Indikator fokus kontras: border teal 2px + glow (`BoxShadow` primary 0.35) + latar primary 0.12, animasi 120ms. Saat panel tertutup, `FocusScopeNode` panel di-unfocus sehingga fokus kembali ke layar utama.
+- Item "Salin PIN" hanya ada saat koneksi aktif (PIN tampil); saat toggle dimatikan item tersebut hilang dan fokus jatuh ke item berikutnya.
+
+> **Diubah oleh ADR-020**: aksi "Salin PIN" dihapus dan kartu PIN dipindahkan ke paling atas panel agar terbaca dari jarak jauh tanpa navigasi D-Pad.
+- Chip "Remote Sync IP" & "Mode Bluetooth" dihapus dari `HeaderClock`; nama masjid diperbesar ke 30px. Running text bar diubah menjadi full-width 44px flush dasar layar (tanpa margin/radius).
+- Semua container panel memakai `RoundedRectangleBorder` eksplisit (radius 12/16) untuk menimpa `cardTheme` global `M3ShapeBorder` puffy yang rusak saat di-stretch di panel sempit.
+
+**Security — autentikasi PIN Challenge-Response di `BluetoothHostService`:**
+
+- Host **tidak lagi auto-start saat app dibuka** — hanya berjalan saat toggle "Nyalakan Koneksi" di menu admin dinyalakan. Dialog discoverable hanya muncul saat itu.
+- PIN 4 digit acak (`Random.secure()`) di-generate ulang **tiap toggle ON** dan ditampilkan di panel; PIN lama kedaluwarsa otomatis.
+- Protokol baru di `SyncAction` (`packages/shared_models`): `authChallenge` (TV→Remote, payload nonce hex 128-bit), `authResponse` (Remote→TV, pin+nonce), `authSuccess`, `authFailure`.
+- Nonce di-regenerate **tiap koneksi baru** — challenge tidak bisa di-replay dari sesi sebelumnya (PIN bisa saja terlihat orang di layar TV).
+- Paket data apapun yang masuk sebelum autentikasi **ditolak** di `_handlePacket`; `broadcast()` juga hanya bekerja bila `_authenticated == true`.
+- PIN salah 3x → TV mengirim `authFailure` terakhir, memutus koneksi native (`BluetoothSync.disconnect()`), dan kembali listening; Remote harus connect ulang (PIN di panel masih sama sampai toggle di-reset).
+- Sisi Remote: `BluetoothClientService` menyimpan nonce (`_pendingNonce`) saat `authChallenge` masuk, memicu `onAuthChallenge` → `RemoteHomeScreen` menampilkan dialog PIN (`_showPinDialog`/`_submitPin`) → `submitPin()` mengirim `authResponse`. `authFailure` ditampilkan sebagai error; `authSuccess` menandai jalur siap.
+
+### Konsekuensi
+- Layar utama TV bersih dari popup sistem saat startup; satu-satunya cara mengaktifkan Bluetooth adalah lewat panel admin yang hanya bisa dibuka dengan remote.
+- Siapapun yang tidak bisa melihat layar TV tidak bisa menghubungkan Remote (pengetahuan PIN = kehadiran fisik di depan TV), dengan nonce mencegah replay attack.
+- Header kehilangan indikator status konektivitas langsung; status kini hanya terlihat saat panel admin dibuka (dipilih secara sadar untuk memaksimalkan ruang konten).
+- Paket auth `authChallenge/authResponse/authSuccess/authFailure` diabaikan oleh client/server WebSocket lama — protokol WS tidak berubah dan tetap tanpa autentikasi (asumsi LAN tepercaya tetap berlaku, lihat ADR-003).
+- Test coverage: 55 test `tv_display` + 39 test `mobile_remote` lulus, termasuk `admin_menu_overlay_test.dart` (slide-in kanan + container rounded, PIN tampil, Back menutup, fokus D-Pad autofocus/OK/arrow-down) dan `bluetooth_host_service_test.dart` (challenge-response, lockout 3x).
+
+---
+
+## ADR-019 — Connection Gatekeeper Remote + Keamanan Dialog PIN (Red Screen `_dependents.isEmpty`)
+
+### Konteks
+Remote mengakses seluruh menu (Pengaturan/Konten/Tes) sekaligus tanpa status koneksi, dan tab Konektivitas masih membawa jalur WiFi Direct yang sudah tidak dipakai. Lebih parah, saat mengklik perangkat TV di kartu Bluetooth alurnya: RFCOMM connect → TV kirim `authChallenge` → dialog PIN dibuka. Bila **PIN salah** lalu pengguna menekan **"Batal"**, aplikasi crash Red Screen:
+
+```
+framework.dart: Failed assertion: line 6268 pos 12: '_dependents.isEmpty': is not true
+```
+
+Dua penyebab terverifikasi (dijepit dengan widget test yang mereproduksi alur itu):
+1. **Dialog dibuat di pemanggil**: `TextEditingController` dibuat di `_RemoteHomeScreenState` lalu di-`dispose()` dari `.then()` milik `showDialog`. Selama animasi keluar route, `TextField` masih memakai controller yang sudah dibuang → *"TextEditingController was used after being disposed"* + `RenderFlex overflowed by 99748 pixels`.
+2. **`setState` saat route dialog masih aktif**: listener `stateStream` Bluetooth memanggil `setState` pada subtree yang sedang ditukar (gatekeeper ↔ menu utama) sementara route dialog masih menjadi dependent tree → assertion `_dependents.isEmpty`. `ScaffoldMessenger.of(context)` juga menahan `ScaffoldState` dari subtree itu, sehingga snackbar "PIN salah" ikut memperburuk keadaan.
+
+### Keputusan
+1. **`_PinDialog` sebagai `StatefulWidget`**: controller dimiliki dialog sendiri dan dibuang di `State.dispose` — tidak ada dispose manual dari pemanggil.
+2. **Kunci global**: `appNavigatorKey` (NavigatorState) + `appMessengerKey` (ScaffoldMessengerState) dipasang ke `MaterialApp`. Dialog PIN dibuka dengan `useRootNavigator: true` dan ditutup via `appNavigatorKey.currentState?.pop()`; snackbar lewat `appMessengerKey.currentState` (fallback aman bila null). Tidak ada lagi dialog/snackbar yang bergantung pada context/ScaffoldState dari subtree yang bisa dibongkar.
+3. **State BT ditahan selama pairing**: listener `stateStream` menyimpan event terakhir ke `_pendingBtState` bila `_pinDialogOpen == true`, dan **tidak** memanggil `setState`. State diterapkan oleh `_drainPendingBtState()` hanya setelah route dialog benar-benar lepas (dari `.then()`).
+4. **Tombol "Batal" urutan aman**: `hideCurrentSnackBar()` → `pop()` → `unawaited(cancelAuth())`. Tanpa `setState` selagi route dialog hidup.
+5. **`cancelAuth()` menjadi async dan memutus socket**: hanya membuang nonce membuat sesi RFCOMM menggantung; event `disconnected` yang menyusul (selagi dialog masih hidup) adalah pemicu langsung assertion. Memutus koneksi mengembalikan UI ke standby sehingga penutupan dialog bersih dan pengguna kembali ke layar sambungan.
+
+### Konsekuensi
+- Crash Red Screen hilang; regresi dikunci test `pin_dialog_bluetooth_flow_test.dart` yang menjalankan alur lengkap discovery → connect → `authChallenge` → dialog PIN → `authFailure` → Batal dan menolak assertion framework (`_dependents.isEmpty`, controller disposed, overflow). Sebelum fix, test yang sama gagal dengan tepat exception tersebut.
+- Dialog PIN kini aman terhadap rebuild apa pun dari event koneksi (TV memutus saat dialog terbuka, PIN salah berulang, reconnect cepat).
+- Konsekuensi sadar: selama dialog pairing terbuka, status Bluetooth di layar sambungan tidak ter-update realtime (yang tertampil adalah state saat dialog dibuka). Ini tradeoff yang diterima — setelah dialog ditutup state terakhir langsung diterapkan.
+- Catatan lingkungan tes: `MockStreamHandler` plugin butuh `tester.runAsync` agar pesan platform benar-benar terkirim di widget test; tanpa itu event `data` tampak "hilang" padahal bukan bug produksi.
+
+---
+
+## ADR-020 — Perbaikan Umpan Balik Koneksi Remote (snackbar `??` + nonce challenge)
+
+### Konteks
+Setelah refactor gatekeeper (ADR-019), dua keluhan pengguna saat memakai Remote:
+
+1. **Tombol "Hubungkan" (koneksi IP) tampak mati**: menekan tombol tidak memunculkan apa pun — tidak sukses, tidak gagal, tidak pesan. Penyebab: penggantian massal `ScaffoldMessenger.of(context)` menjadi `appMessengerKey.currentState ?? ScaffoldMessenger.of(context).showSnackBar(...)` pada 16 situs. Operator `??` **mengembalikan operand kiri** bila non-null, sehingga `showSnackBar(...)` (operand kanan) **tidak pernah dievaluasi**. Seluruh umpan balik koneksi hilang.
+2. **PIN Bluetooth yang benar ditolak TV**: TV mengirim `authChallenge` segera setelah koneksi terbentuk, tetapi `BluetoothClientService` men-_clear_ `_pendingNonce = null` di case `BluetoothSyncEventType.connected`. Urutan event platform channel **tidak dijamin** — event `data` (challenge) bisa diproses lebih dahulu, lalu nonce yang sudah masuk dibuang oleh handler `connected`. Akibatnya `respondWithPin()` berhenti lebih awal dan TV tidak pernah menerima jawaban PIN yang sah.
+
+### Keputusan
+1. **Satu jalur umpan balik**: semua snackbar memakai helper `_showSnack(message, {background})` yang menulis ke `appMessengerKey.currentState` (global, stabil lintas transisi). Tidak ada lagi ekspresi `??` yang menelan pemanggilan method.
+2. **Nonce challenge tidak boleh dibuang oleh event `connected`**: baris `_pendingNonce = null` dihapus dari case `connected`; nonce hanya dibuang pada `disconnect()`, `authFailure`, atau saat challenge baru benar-benar tiba. `_authenticated = false` tetap di-set karena setiap koneksi baru memang mengulang autentikasi.
+3. **Panel admin TV**: aksi D-Pad "Salin PIN" dihapus; kartu PIN 4-digit dipindahkan ke **paling atas** panel (di bawah judul + deskripsi, sebelum toggle koneksi) agar langsung terbaca dari jarak jauh. Akses fokus D-Pad tersisa: toggle koneksi → kembali.
+
+### Konsekuensi
+- Pengguna kembali mendapat konfirmasi eksplisit saat koneksi IP gagal, dan melihat pesan "PIN salah" beserta nomor percobaan.
+- Urutan event platform channel tidak lagi menjadi sumber kegagalan diam-diam (silent failure) pada autentikasi.
+- Kartu PIN di TV kini terbaca tanpa navigasi D-Pad tambahan; salin PIN lewat clipboard (yang di TV jarang berguna) sengaja dihilangkan.
+- Regresi dikunci test: alur BT kini mengirim event `data` (challenge) **sebelum** event `connected`, mengetik PIN, lalu memverifikasi paket `authResponse` benar-benar terkirim dengan `pin` + `nonce` yang sama, dan ditutup oleh `authSuccess`.
 
 ---
 

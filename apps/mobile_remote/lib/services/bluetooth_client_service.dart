@@ -61,11 +61,28 @@ class BluetoothClientService {
   String? _peerName;
   String? _error;
 
-  /// Perangkat tujuan sambung ulang (diisi setelah connect berhasil).
-  BluetoothDeviceInfo? _lastDevice;
+  /// Nonce challenge aktif dari TV (untuk mengirim authResponse).
+  String? _pendingNonce;
+
+  /// `true` bila TV sudah menerima PIN yang benar.
+  bool _authenticated = false;
 
   /// Dipanggil setiap kali [SyncPacket] masuk dari TV.
   void Function(SyncPacket packet)? onPacket;
+
+  /// Dipanggil saat TV mengirim `authChallenge` (Remote harus menampilkan
+  /// dialog PIN). Payload challenge (`nonce`) disimpan internal.
+  void Function(SyncPacket challenge)? onAuthChallenge;
+
+  /// Dipanggil saat TV mengirim `authFailure` (PIN salah / sesi tidak valid).
+  void Function(SyncPacket failure)? onAuthFailure;
+
+  /// Dipanggil saat TV mengirim `authSuccess` — jalur siap dipakai. UI
+  /// biasanya meminta state awal TV (`getInitialState`) di sini.
+  void Function()? onAuthenticated;
+
+  /// Perangkat tujuan sambung ulang (diisi setelah connect berhasil).
+  BluetoothDeviceInfo? _lastDevice;
 
   BluetoothClientService({
     this.maxReconnectAttempts = 3,
@@ -84,6 +101,9 @@ class BluetoothClientService {
   Stream<BluetoothClientState> get stateStream => _stateController.stream;
 
   bool get isConnected => _connected;
+
+  /// `true` bila jalur Bluetooth sudah ter-autentikasi (boleh kirim data).
+  bool get isAuthenticated => _authenticated;
 
   /// Tentukan apakah koneksi Bluetooth harus diputus saat lifecycle app berubah.
   ///
@@ -218,15 +238,77 @@ class BluetoothClientService {
     }
   }
 
-  /// Kirim [packet] ke TV (jika ada koneksi aktif).
+  /// Kirim [packet] ke TV (hanya bila koneksi aktif & sudah autentikasi).
   Future<void> sendPacket(SyncPacket packet) async {
     if (!_connected) return;
+    // Sebelum auth, paket data dilarang — hanya authResponse yang boleh
+    // keluar (dikirim lewat respondWithPin).
+    if (!_authenticated && packet.action != SyncAction.authResponse) return;
     final bytes = Uint8List.fromList(utf8.encode(packet.toJson()));
     try {
       await BluetoothSync.send(bytes);
     } catch (e) {
       debugPrint('BT send failed: $e');
     }
+  }
+
+  /// Rute paket dari TV: paket auth diproses internal, paket data hanya
+  /// diteruskan ke [onPacket] setelah TV menerima PIN yang benar.
+  void _handlePacket(SyncPacket packet) {
+    switch (packet.action) {
+      case SyncAction.authChallenge:
+        // Simpan nonce; UI menampilkan dialog PIN lewat onAuthChallenge.
+        _pendingNonce = packet.payload['nonce'] as String?;
+        onAuthChallenge?.call(packet);
+        break;
+      case SyncAction.authSuccess:
+        _authenticated = true;
+        _pendingNonce = null;
+        onAuthenticated?.call();
+        break;
+      case SyncAction.authFailure:
+        _pendingNonce = null;
+        onAuthFailure?.call(packet);
+        break;
+      case SyncAction.authResponse:
+        // Tidak seharusnya datang dari TV; abaikan.
+        break;
+      default:
+        if (!_authenticated) {
+          debugPrint('Bluetooth paket ${packet.action} ditolak: belum '
+              'autentikasi.');
+          return;
+        }
+        onPacket?.call(packet);
+        break;
+    }
+  }
+
+  /// Kirim jawaban PIN ke TV sebagai respons challenge aktif.
+  Future<void> respondWithPin(String pin) async {
+    final nonce = _pendingNonce;
+    if (!_connected || nonce == null) return;
+    final packet = SyncPacket(
+      action: SyncAction.authResponse,
+      payload: {'pin': pin, 'nonce': nonce},
+    );
+    final bytes = Uint8List.fromList(utf8.encode(packet.toJson()));
+    try {
+      await BluetoothSync.send(bytes);
+    } catch (e) {
+      debugPrint('BT auth response send failed: $e');
+    }
+  }
+
+  /// Batalkan sesi autentikasi: buang challenge dan tutup koneksi.
+  ///
+  /// Sengaja memutus socket — bila hanya nonce dibuang, sesi RFCOMM tetap
+  /// hidup dan event `disconnected` yang menyusul akan mengubah state UI
+  /// saat route dialog masih aktif. Pemutusan membuat UI kembali ke
+  /// keadaan standby (tanpa koneksi), sehingga dialog bisa ditutup aman.
+  Future<void> cancelAuth() async {
+    _pendingNonce = null;
+    await disconnect();
   }
 
   void _onEvent(BluetoothSyncEvent event) {
@@ -261,6 +343,16 @@ class BluetoothClientService {
         _cancelReconnect();
         _peerName = event.deviceName ?? _lastDevice?.name;
         _error = null;
+        // Koneksi baru: auth diulang. Data belum boleh dikirim sampai TV
+        // mengirim authSuccess.
+        _authenticated = false;
+        // CATATAN: jangan set `_pendingNonce = null` di sini. TV mengirim
+        // `authChallenge` segera setelah connect, dan event `data` bisa
+        // diproses LEBIH DULU daripada event `connected` (urutan platform
+        // channel tidak dijamin). Membuang nonce di sini menghapus challenge
+        // yang sudah masuk sehingga PIN Remote tidak pernah diterima TV.
+        // Nonce dibuang pada `disconnect()`, `authFailure`, atau saat
+        // challenge baru benar-benar tiba.
         if (_lastDevice == null && event.deviceAddress != null) {
           _lastDevice = BluetoothDeviceInfo(
             name: _peerName ?? '?',
@@ -277,7 +369,7 @@ class BluetoothClientService {
         final bytes = event.data;
         if (bytes != null) {
           try {
-            onPacket?.call(SyncPacket.fromJson(utf8.decode(bytes)));
+            _handlePacket(SyncPacket.fromJson(utf8.decode(bytes)));
           } catch (_) {
             // Paket tidak valid; abaikan.
           }
@@ -294,6 +386,8 @@ class BluetoothClientService {
         _connected = false;
         _connecting = false;
         _discovering = false;
+        _authenticated = false;
+        _pendingNonce = null;
         _setError(message);
         if (!wasDiscovering && (wasConnected || _lastDevice != null)) {
           _scheduleReconnect(message: message, fromError: true);
@@ -311,6 +405,8 @@ class BluetoothClientService {
     _connected = false;
     _connecting = false;
     _peerName = null;
+    _authenticated = false;
+    _pendingNonce = null;
     if (wasConnected || _lastDevice != null) {
       _setError('Koneksi ke TV terputus.');
       _scheduleReconnect();
@@ -400,6 +496,8 @@ class BluetoothClientService {
     _peerName = null;
     _devices = const [];
     _error = null;
+    _authenticated = false;
+    _pendingNonce = null;
     try {
       await BluetoothSync.disconnect();
     } catch (_) {}

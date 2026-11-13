@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# Pre-commit hook: regenerate docs/codebase_index.* when lib/ Dart sources
+# (or the indexer itself) changed, then stage the generated files.
+#
+# Install: tools/install-git-hooks.sh
+set -euo pipefail
+
+root="$(git rev-parse --show-toplevel)"
+cd "$root"
+
+if git diff --cached --name-only -- \
+    'apps/*/lib/**/*.dart' \
+    'packages/*/lib/**/*.dart' \
+    'tools/codebase_index.dart' | grep -q .; then
+  if command -v dart >/dev/null 2>&1; then
+    dart run tools/codebase_index.dart >/dev/null
+    git add docs/codebase_index.json docs/codebase_index.md
+  else
+    echo "codebase-lookup: dart tidak ditemukan; lewati regenerasi indeks." >&2
+  fi
+fi

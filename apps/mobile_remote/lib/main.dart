@@ -1,16 +1,13 @@
 import 'dart:async';
-import 'dart:io';
-
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:shared_models/shared_models.dart';
-import 'package:flutter_p2p_connection/flutter_p2p_connection.dart';
 import 'package:bluetooth_sync/bluetooth_sync.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../services/ws_client.dart';
-import '../services/p2p_client_service.dart';
 import '../services/bluetooth_client_service.dart';
 import '../services/remote_cache_store.dart';
 import '../services/backup_service.dart';
@@ -20,7 +17,7 @@ import 'screens/settings/settings_tab.dart';
 import 'screens/content/running_text_subtab.dart';
 import 'screens/content/banners_subtab.dart';
 import 'screens/content/kas_subtab.dart';
-import 'screens/connectivity/connectivity_tab.dart';
+import 'screens/connection/connection_gateway_screen.dart';
 import 'screens/simulation/simulation_tab.dart';
 
 import '../widgets/m3_pressable.dart';
@@ -42,6 +39,101 @@ class RemoteHomeScreen extends StatefulWidget {
   State<RemoteHomeScreen> createState() => _RemoteHomeScreenState();
 }
 
+/// Global navigator key — dipakai dialog koneksi (PIN, resolusi sinkronisasi)
+/// agar tetap punya context yang valid walau body sedang bertransisi dari
+/// layar sambungan ke menu utama (menghindari dependensi pada subtree yang
+/// dihancurkan di tengah transisi).
+final GlobalKey<NavigatorState> appNavigatorKey = GlobalKey<NavigatorState>();
+
+/// Global messenger key — SnackBar harus dipasang ke state yang stabil
+/// (di atas root Scaffold) supaya tidak mereferensi ScaffoldState dari
+/// subtree yang sedang dibongkar saat transisi gatekeeper <-> menu utama.
+final GlobalKey<ScaffoldMessengerState> appMessengerKey =
+    GlobalKey<ScaffoldMessengerState>();
+
+/// Dialog input PIN 4-digit untuk autentikasi Bluetooth.
+///
+/// Widget ini MEMILIKI [TextEditingController]-nya sendiri dan membuangnya
+/// di [State.dispose]. Pada versi sebelumnya controller dibuat di pemanggil
+/// lalu di-dispose manual dari `.then()` milik `showDialog` — controller itu
+/// masih dipakai TextField saat route dialog sedang animasi keluar, sehingga
+/// muncul exception "TextEditingController was used after being disposed".
+class _PinDialog extends StatefulWidget {
+  final ValueChanged<String> onSubmit;
+  final VoidCallback onCancel;
+
+  const _PinDialog({required this.onSubmit, required this.onCancel});
+
+  @override
+  State<_PinDialog> createState() => _PinDialogState();
+}
+
+class _PinDialogState extends State<_PinDialog> {
+  final _pinController = TextEditingController();
+
+  @override
+  void dispose() {
+    _pinController.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    final pin = _pinController.text.trim();
+    if (pin.length != 4) return;
+    widget.onSubmit(pin);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      icon: const Icon(Icons.password, size: 40),
+      title: const Text('Masukkan PIN TV'),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'TV meminta PIN untuk mengizinkan koneksi ini. Lihat PIN '
+              'di Menu Admin TV (tekan tombol Back pada remote).',
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _pinController,
+              autofocus: true,
+              keyboardType: TextInputType.number,
+              obscureText: true,
+              maxLength: 4,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 28, letterSpacing: 12),
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+                LengthLimitingTextInputFormatter(4),
+              ],
+              decoration: const InputDecoration(
+                counterText: '',
+                hintText: '••••',
+                border: OutlineInputBorder(),
+              ),
+              onSubmitted: (_) => _submit(),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: widget.onCancel,
+          child: const Text('Batal'),
+        ),
+        FilledButton(
+          onPressed: _submit,
+          child: const Text('Hubungkan'),
+        ),
+      ],
+    );
+  }
+}
+
 class _RemoteHomeScreenState extends State<RemoteHomeScreen>
     with TickerProviderStateMixin, WidgetsBindingObserver {
   int _tabIndex = 0;
@@ -52,14 +144,14 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
 
   final _ipController = TextEditingController(text: '192.168.1.');
   final _client = RemoteWsClient();
-  final _p2pClient = P2pClientService();
   final _btClient = BluetoothClientService();
   bool _isConnecting = false;
   bool _isConnected = false;
-  bool _isScanning = false;
-  bool _btWasConnected = false;
-  List<BleDiscoveredDevice> _p2pDevices = [];
-  String _p2pStatus = 'WiFi Direct: Stanby';
+  bool _wasConnected = false;
+  bool _showDisconnectedNotice = false;
+  bool _syncDialogOpen = false;
+  String? _lastConnectionKind;
+  BluetoothDeviceInfo? _lastBtDevice;
 
   // Status Bluetooth (Mode Direct sul pandana).
   bool _btIsScanning = false;
@@ -69,6 +161,13 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
   StreamSubscription<BluetoothClientState>? _btStateSub;
 
   bool _hasUnsyncedChanges = false;
+
+  /// `true` bila dialog PIN sedang terbuka (dipakai `_closePinDialog`).
+  bool _pinDialogOpen = false;
+
+  /// State Bluetooth tertunda selama dialog PAIRing terbuka; diterapkan
+  /// setelah dialog ditutup agar rebuild tidak membongkar route dialog.
+  BluetoothClientState? _pendingBtState;
 
   /// Cache lokal snapshot TV (trust source) — nilai awal form saat startup.
   final RemoteCacheStore _cacheStore = RemoteCacheStore();
@@ -169,7 +268,7 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
   @override
   void initState() {
     super.initState();
-    _mainTabController = TabController(length: 6, vsync: this);
+    _mainTabController = TabController(length: 5, vsync: this);
     _subTabController = TabController(length: 3, vsync: this);
     _mainTabController.addListener(_handleMainTabChange);
     _subTabController.addListener(_handleSubTabChange);
@@ -177,67 +276,79 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
 
     WidgetsBinding.instance.addObserver(this);
     _client.onPacket = _handleTvPacket;
+    _client.onConnected = () => _handleConnectionEstablished('ip');
+    _client.onDisconnected = _handleTransportDisconnected;
     _btClient.onPacket = _handleTvPacket;
     // Pasrik bacak keluar WS -> mirror ke Bluetooth (agar jalur BT saja
     // yang tersambung, paket tetap terkirim).
     _client.onSendPacket = (packet) {
       _btClient.sendPacket(packet);
     };
-    _btStateSub = _btClient.stateStream.listen((state) {
+    // TV meminta PIN: tampilkan dialog PIN.
+    _btClient.onAuthChallenge = (challenge) {
+      _showPinDialog();
+    };
+    // PIN benar: jalur siap — minta keadaan awal TV (trust source).
+    _btClient.onAuthenticated = () {
+      _closePinDialog();
+      _handleConnectionEstablished('bluetooth');
+    };
+    // PIN salah / sesi tidak valid.
+    _btClient.onAuthFailure = (failure) {
       if (mounted) {
-        setState(() {
-          _btConnected = state.isConnected;
-          _btDevices = state.devices;
-          _btIsScanning = state.isScanning;
-          switch (state.status) {
-            case BluetoothClientStatus.connected:
-              _btStatus =
-                  'Bluetooth: Terhubung ke TV (${state.peerName ?? 'TV'})';
-              _isConnected = true;
-              _hasUnsyncedChanges = false;
-              break;
-            case BluetoothClientStatus.error:
-              _btStatus = 'Bluetooth: ${state.error ?? 'gagal'}';
-              break;
-            case BluetoothClientStatus.discovering:
-              _btStatus =
-                  'Bluetooth: Mencari TV... (${state.devices.length} ditemukan)';
-              break;
-            case BluetoothClientStatus.reconnecting:
-              _btStatus = 'Bluetooth: Menyambung ulang...';
-              break;
-            case BluetoothClientStatus.connecting:
-              _btStatus = 'Bluetooth: Menyambung...';
-              break;
-            case BluetoothClientStatus.idle:
-              _btStatus = state.devices.isEmpty
-                  ? 'Bluetooth: Stanby'
-                  : 'Bluetooth: Scan selesai. ${state.devices.length} perangkat.';
-              break;
-          }
-        });
-        // Saat koneksi BT baru terbentuk (transisi false->true), minta keadaan
-        // awal dari TV. TV adalah trust source: Remote TIDAK menimpa data TV
-        // saat menyambung; bootstrap hanya bila TV masih kosong.
-        if (state.isConnected && !_btWasConnected) {
-          _requestTvState();
+        final message = failure.payload['error'] as String?;
+        // Biarkan dialog PIN terbuka agar user bisa mengulang; tampilkan
+        // pesan kesalahan.
+        _showSnack(
+          message ?? 'PIN salah — periksa PIN di menu admin TV.',
+          background: Theme.of(context).colorScheme.error,
+        );
+      }
+    };
+    _btStateSub = _btClient.stateStream.listen((state) {
+      if (!mounted) return;
+      // Saat dialog PAIRing (PIN) terbuka, event state masih boleh masuk
+      // (mis. status connecting -> error saat koneksi gagal/pembatalan).
+      // Rebuild subtree di saat itu bisa membongkar route dialog yang masih
+      // menjadi dependent tree -> assertion '_dependents.isEmpty'.
+      // Tahan sampai dialog benar-benar tertutup, lalu terapkan state terakhir.
+      if (_pinDialogOpen) {
+        _pendingBtState = state;
+        return;
+      }
+      final wasBtConnected = _btConnected;
+      setState(() {
+        _btConnected = state.isConnected;
+        _btDevices = state.devices;
+        _btIsScanning = state.isScanning;
+        switch (state.status) {
+          case BluetoothClientStatus.connected:
+            _btStatus = 'Bluetooth: Terhubung ke TV (${state.peerName ?? 'TV'})';
+            break;
+          case BluetoothClientStatus.error:
+            _btStatus = 'Bluetooth: ${state.error ?? 'gagal'}';
+            break;
+          case BluetoothClientStatus.discovering:
+            _btStatus = 'Bluetooth: Mencari TV... (${state.devices.length} ditemukan)';
+            break;
+          case BluetoothClientStatus.reconnecting:
+            _btStatus = 'Bluetooth: Menyambung ulang...';
+            break;
+          case BluetoothClientStatus.connecting:
+            _btStatus = 'Bluetooth: Menyambung...';
+            break;
+          case BluetoothClientStatus.idle:
+            _btStatus = state.devices.isEmpty
+                ? 'Bluetooth: Stanby'
+                : 'Bluetooth: Scan selesai. ${state.devices.length} perangkat.';
+            break;
         }
-        _btWasConnected = state.isConnected;
+      });
+      if (wasBtConnected && !state.isConnected) {
+        _handleTransportDisconnected();
       }
     });
     _loadStartupData();
-
-    _p2pClient.stateStream.listen((state) {
-      if (state == null || !state.isActive || !mounted) return;
-      final hostIp = state.hostGatewayIpAddress;
-      if (hostIp != null && hostIp.isNotEmpty && hostIp != _ipController.text) {
-        setState(() {
-          _ipController.text = hostIp;
-          _p2pStatus = 'WiFi Direct: Terhubung ke TV!';
-        });
-        _connectToTv();
-      }
-    });
   }
 
   @override
@@ -261,13 +372,12 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
 
   /// Sinkronkan dua `TabController` agar swipe antar halaman menyatu.
   ///
-  /// `_mainTabController` (6 halaman) menggerakkan seluruh aplikasi, sedangkan
+  /// `_mainTabController` (5 halaman) menggerakkan seluruh aplikasi, sedangkan
   /// `_subTabController` (3 sub-tab Konten) hanya menggerakkan indikator
   /// Top Tab Bar. `_syncingControllers` memutus loop antar-listener.
   int _bottomNavIndexForPage(int page) {
     if (page >= 1 && page <= 3) return 1; // Konten
-    if (page == 4) return 2; // Konektivitas
-    if (page == 5) return 3; // Tes
+    if (page == 4) return 2; // Tes
     return 0; // Pengaturan
   }
 
@@ -277,8 +387,6 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
         return currentSub + 1; // Konten -> sub-tab terakhir dilihat
       case 2:
         return 4;
-      case 3:
-        return 5;
       default:
         return 0;
     }
@@ -362,6 +470,112 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
       action: SyncAction.getInitialState,
       payload: {},
     ));
+  }
+
+  /// Tampilkan SnackBar lewat messenger global (stabil lintas transisi
+  /// gatekeeper <-> menu utama). Hindari menahan ScaffoldState lama yang
+  /// bisa menjadi dependent subtree yang sedang dibongkar.
+  ///
+  /// Pesan selalu dipasang ke [appMessengerKey] — jangan menulis pola
+  /// `appMessengerKey.currentState ?? ScaffoldMessenger.of(context)...`:
+  /// operator `??` mengembalikan operand kiri bila non-null sehingga
+  /// `showSnackBar(...)` tidak pernah dievaluasi (umpan balik hilang).
+   void _showSnack(String message, {Color? background}) {
+     final messenger = appMessengerKey.currentState;
+     if (messenger == null) return;
+     messenger.showSnackBar(
+       SnackBar(
+         content: Text(message),
+         backgroundColor: background,
+       ),
+     );
+   }
+ 
+  /// Tampilkan dialog input PIN 4 digit yang diminta TV. PIN dikirim via
+  /// [BluetoothClientService.respondWithPin]; dialog menutup sendiri saat
+  /// TV mengirim `authSuccess`.
+  void _showPinDialog() {
+    if (_pinDialogOpen) return;
+    final navigatorContext = appNavigatorKey.currentContext;
+    if (!mounted || navigatorContext == null) return;
+    _pinDialogOpen = true;
+    showDialog<void>(
+      context: navigatorContext,
+      barrierDismissible: false,
+      useRootNavigator: true,
+      builder: (dialogContext) {
+        return _PinDialog(
+          onSubmit: (pin) => _btClient.respondWithPin(pin),
+          onCancel: () {
+            // Tutup snackbar sisa kesalahan lebih dulu, lalu tutup dialog
+            // lewat navigator root. Jangan setState di sini: route dialog
+            // masih aktif dan subtree-nya sedang dibaca — itulah sumber
+            // assertion '_dependents.isEmpty' pada crash Red Screen.
+            appMessengerKey.currentState?.hideCurrentSnackBar();
+            appNavigatorKey.currentState?.pop();
+            // Putus sesi BT setelah dialog tertutup; state yang masuk
+            // ditahan (_pendingBtState) lalu diterapkan setelah route lepas.
+            unawaited(_btClient.cancelAuth());
+          },
+        );
+      },
+    ).then((_) {
+      // Dialog ditutup (auth sukses / batal / TV memutus). Route sudah
+      // dilepas, jadi aman menerapkan state yang tertahan tadi.
+      if (mounted) {
+        _pinDialogOpen = false;
+        _drainPendingBtState();
+      }
+    });
+  }
+
+  /// Tutup dialog PIN bila sedang terbuka (dipanggil saat auth sukses).
+  void _closePinDialog() {
+    if (!_pinDialogOpen) return;
+    appMessengerKey.currentState?.hideCurrentSnackBar();
+    appNavigatorKey.currentState?.pop();
+  }
+
+  /// Terapkan state BT yang tertahan selama dialog PIN terbuka. Dipanggil
+  /// setelah route dialog tertutup (bukan selagi dialog masih aktif).
+  void _drainPendingBtState() {
+    if (!mounted) return;
+    final pending = _pendingBtState;
+    _pendingBtState = null;
+    if (pending == null) return;
+    final wasBtConnected = _btConnected;
+    setState(() {
+      _btConnected = pending.isConnected;
+      _btDevices = pending.devices;
+      _btIsScanning = pending.isScanning;
+      switch (pending.status) {
+        case BluetoothClientStatus.connected:
+          _btStatus =
+              'Bluetooth: Terhubung ke TV (${pending.peerName ?? 'TV'})';
+          break;
+        case BluetoothClientStatus.error:
+          _btStatus = 'Bluetooth: ${pending.error ?? 'gagal'}';
+          break;
+        case BluetoothClientStatus.discovering:
+          _btStatus =
+              'Bluetooth: Mencari TV... (${pending.devices.length} ditemukan)';
+          break;
+        case BluetoothClientStatus.reconnecting:
+          _btStatus = 'Bluetooth: Menyambung ulang...';
+          break;
+        case BluetoothClientStatus.connecting:
+          _btStatus = 'Bluetooth: Menyambung...';
+          break;
+        case BluetoothClientStatus.idle:
+          _btStatus = pending.devices.isEmpty
+              ? 'Bluetooth: Stanby'
+              : 'Bluetooth: Scan selesai. ${pending.devices.length} perangkat.';
+          break;
+      }
+    });
+    if (wasBtConnected && !pending.isConnected) {
+      _handleTransportDisconnected();
+    }
   }
 
   /// Muat durasi siklus waktu shalat dari SharedPreferences (persist lokal).
@@ -490,14 +704,10 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
     );
     if (!mounted) return;
     if (savedPath == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Export dibatalkan.')),
-      );
+      _showSnack('Export dibatalkan.');
       return;
     }
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Backup disimpan: $savedPath')),
-    );
+    _showSnack('Backup disimpan: $savedPath');
   }
 
   /// Import backup dari file JSON yang dipilih user, dengan konfirmasi.
@@ -506,9 +716,7 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
     if (!mounted) return;
     final bundle = result.bundle;
     if (!result.success || bundle == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(result.errorMessage ?? 'Impor gagal.')),
-      );
+      _showSnack(result.errorMessage ?? 'Impor gagal.');
       return;
     }
 
@@ -589,25 +797,15 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
       if (!mounted) return;
       if (!ok) {
         setState(() {
-          // Kalau BT sedang aktif, isConnected tetap true (jalur BT).
           _isConnected = _btConnected;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Koneksi gagal: alamat IP tidak valid atau TV tidak terhubung')),
-        );
-        return;
+        _showSnack('Koneksi gagal: alamat IP tidak valid atau TV tidak terhubung');
       }
-      setState(() {
-        _isConnected = true;
-        _hasUnsyncedChanges = false;
-      });
-      // TV adalah trust source: cukup minta keadaan awal, jangan menimpa TV.
-      _requestTvState();
+      // Sukses: `_handleConnectionEstablished('ip')` dipanggil oleh
+      // callback `onConnected` dari RemoteWsClient.
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Koneksi gagal: $e')),
-        );
+        _showSnack('Koneksi gagal: $e');
       }
     } finally {
       if (mounted) {
@@ -616,6 +814,103 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
         });
       }
     }
+  }
+
+  /// Dipanggil setiap kali transport berhasil tersambung & terverifikasi
+  /// (WS `onConnected` / BT `onAuthenticated`). Reconnect memunculkan dialog
+  /// resolusi sinkronisasi; koneksi pertama langsung masuk menu utama.
+  void _handleConnectionEstablished(String kind) {
+    if (!mounted) return;
+    final isReconnect = _wasConnected || _showDisconnectedNotice;
+    _lastConnectionKind = kind;
+    setState(() {
+      _isConnected = true;
+      _showDisconnectedNotice = false;
+      _hasUnsyncedChanges = false;
+    });
+    if (isReconnect) {
+      _showSyncConflictDialog();
+    } else {
+      _wasConnected = true;
+      _requestTvState();
+    }
+  }
+
+  /// Transport putus tiba-tiba (WS `onDisconnected` / BT stream kehilangan
+  /// koneksi). Tampilkan banner dengan aksi sambungkan ulang.
+  void _handleTransportDisconnected() {
+    if (!mounted || !_isConnected) return;
+    setState(() {
+      _isConnected = false;
+      _showDisconnectedNotice = true;
+    });
+  }
+
+  /// Coba sambungkan ulang memakai transport terakhir yang diketahui.
+  Future<void> _reconnectLast() async {
+    if (_lastConnectionKind == 'bluetooth' && _lastBtDevice != null) {
+      _connectBt(_lastBtDevice!);
+      return;
+    }
+    if (_lastBtDevice != null) {
+      _connectBt(_lastBtDevice!);
+      return;
+    }
+    await _connectToTv();
+  }
+
+  /// Dialog resolusi konflik sinkronisasi setelah reconnect: pilih sumber
+  /// kebenaran (TV atau data lokal HP yang sedang diedit).
+  void _showSyncConflictDialog() {
+    if (_syncDialogOpen || !mounted) return;
+    _syncDialogOpen = true;
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return AlertDialog(
+          icon: const Icon(Icons.sync, size: 40),
+          title: const Text('Sinkronisasi Data'),
+          content: const Text(
+            'Koneksi terhubung kembali. Pilih sumber pengaturan yang '
+            'ingin digunakan:',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+                // TV sebagai sumber: minta snapshot resmi, terapkan ke HP.
+                _requestTvState();
+              },
+              child: const Text('Gunakan Data TV'),
+            ),
+            FilledButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+                // HP sebagai sumber: kirim seluruh data lokal ke TV.
+                _pushAllToTv();
+              },
+              child: const Text('Gunakan Data HP'),
+            ),
+          ],
+        );
+      },
+    ).then((_) {
+      _syncDialogOpen = false;
+    });
+  }
+
+  /// Putuskan koneksi aktif dan kembalikan pengguna ke layar sambungan.
+  Future<void> _disconnectFromTv() async {
+    _lastConnectionKind = null;
+    await _btClient.disconnect();
+    _client.disconnect();
+    if (!mounted) return;
+    setState(() {
+      _isConnected = false;
+      _btConnected = false;
+      _showDisconnectedNotice = false;
+    });
   }
 
   MosqueConfig _buildConfigFromForm() {
@@ -669,10 +964,7 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
 
   void _pushAllToTv() {
     if (!_isConnected) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Belum terhubung ke TV. Menyambungkan ulang...')),
-      );
+      _showSnack('Belum terhubung ke TV. Menyambungkan ulang...');
       _connectToTv();
       return;
     }
@@ -680,9 +972,7 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
     setState(() {
       _hasUnsyncedChanges = false;
     });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Semua data berhasil dikirim ke TV!')),
-    );
+    _showSnack('Semua data berhasil dikirim ke TV!');
   }
 
   void _sendConfigUpdate() {
@@ -695,26 +985,19 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
       setState(() {
         _hasUnsyncedChanges = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Pengaturan berhasil diperbarui di TV!')),
-      );
+      _showSnack('Pengaturan berhasil diperbarui di TV!');
     } else {
       setState(() {
         _hasUnsyncedChanges = true;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Pengaturan disimpan lokal (belum dikirim).')),
-      );
+      _showSnack('Pengaturan disimpan lokal (belum dikirim).');
     }
   }
 
   /// Kirim aksi cepat (skip) ke TV. Valid hanya saat TV berada di fase terkait.
   void _sendQuickAction(SyncAction action) {
     if (!_isConnected) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Belum terhubung ke TV. Sambungkan dulu.')),
-      );
+      _showSnack('Belum terhubung ke TV. Sambungkan dulu.');
       return;
     }
     switch (action) {
@@ -734,9 +1017,7 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
   /// Kirim perintah paksa fase ke TV (dari Menu Tes).
   void _sendForcePhase(PrayerPhase phase) {
     if (!_isConnected) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Belum terhubung ke TV. Sambungkan dulu.')),
-      );
+      _showSnack('Belum terhubung ke TV. Sambungkan dulu.');
       return;
     }
     _client.sendForcePhase(phase);
@@ -750,9 +1031,7 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
       final isEnabled = await Geolocator.isLocationServiceEnabled();
       if (!isEnabled) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Layanan lokasi (GPS) tidak aktif.')),
-          );
+          _showSnack('Layanan lokasi (GPS) tidak aktif.');
         }
         return;
       }
@@ -762,9 +1041,7 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
         permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Izin lokasi GPS ditolak.')),
-            );
+            _showSnack('Izin lokasi GPS ditolak.');
           }
           return;
         }
@@ -772,9 +1049,7 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
 
       if (permission == LocationPermission.deniedForever) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Izin GPS ditolak permanen.')),
-          );
+          _showSnack('Izin GPS ditolak permanen.');
         }
         return;
       }
@@ -792,15 +1067,11 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
           _longitudeController.text = pos.longitude.toStringAsFixed(6);
           _hasUnsyncedChanges = true;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Koordinat GPS berhasil diambil!')),
-        );
+        _showSnack('Koordinat GPS berhasil diambil!');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal mengambil GPS: $e')),
-        );
+        _showSnack('Gagal mengambil GPS: $e');
       }
     } finally {
       if (mounted) {
@@ -1107,84 +1378,6 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
     }
   }
 
-  int _androidSdkVersion() {
-    if (!Platform.isAndroid) return 0;
-    final match = RegExp(r'SDK\s+(\d+)')
-        .firstMatch(Platform.operatingSystemVersion);
-    if (match != null) {
-      return int.tryParse(match.group(1) ?? '') ?? 0;
-    }
-    return 0;
-  }
-
-  /// Validasi prasyarat WiFi Direct sebelum scan. Mirip TV (ADR-014):
-  /// jika sistem belum siap, tampilkan dialog "WiFi Direct Belum Siap".
-  Future<void> _startScan() async {
-    final locationRequired = Platform.isAndroid && _androidSdkVersion() < 31;
-    try {
-      final reqs = await _p2pClient.checkPrerequisites();
-      if (!mounted) return;
-      if (reqs.isReady(locationRequired: locationRequired)) {
-        _runScan();
-      } else {
-        _showP2pPrereqDialog(reqs);
-      }
-    } catch (e) {
-      debugPrint('P2P prereq check failed: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal memeriksa kesiapan WiFi Direct: $e')),
-        );
-      }
-    }
-  }
-
-  void _runScan() {
-    if (!mounted) return;
-    setState(() {
-      _isScanning = true;
-      _p2pDevices.clear();
-      _p2pStatus = 'WiFi Direct: Mencari TV...';
-    });
-    _p2pClient.startScan(
-      (devices) {
-        if (mounted) {
-          setState(() {
-            _p2pDevices = devices;
-          });
-        }
-      },
-      onDone: () {
-        if (mounted) {
-          setState(() {
-            _isScanning = false;
-            if (_p2pDevices.isEmpty) {
-              _p2pStatus = 'WiFi Direct: Tidak ada TV ditemukan.';
-            } else {
-              _p2pStatus = 'WiFi Direct: Scan selesai.';
-            }
-          });
-        }
-      },
-    );
-  }
-
-  void _stopScan() {
-    _p2pClient.stopScan();
-    setState(() {
-      _isScanning = false;
-      _p2pStatus = 'WiFi Direct: Scan berhenti.';
-    });
-  }
-
-  void _connectP2p(BleDiscoveredDevice dev) {
-    _stopScan();
-    setState(() {
-      _p2pStatus = 'WiFi Direct: Menyambung...';
-    });
-    _p2pClient.connectTo(dev);
-  }
-
   void _startBtScan() {
     setState(() {
       _btIsScanning = true;
@@ -1202,120 +1395,13 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
   }
 
   void _connectBt(BluetoothDeviceInfo device) {
+    _lastBtDevice = device;
     _btClient.stopDiscovery();
     setState(() {
       _btIsScanning = false;
       _btStatus = 'Bluetooth: Menyambung ke ${device.name}...';
     });
     _btClient.connectTo(device);
-  }
-
-  /// Dialog validasi prasyarat WiFi Direct — mirror dari TV (main.dart).
-  void _showP2pPrereqDialog(P2pPrerequisites reqs) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        icon: Icon(
-          Icons.wifi_tethering,
-          size: 48,
-          color: Theme.of(context).colorScheme.primary,
-        ),
-        title: const Text('WiFi Direct Belum Siap'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Beberapa fitur belum aktif untuk mencari TV via WiFi Direct.',
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-            const SizedBox(height: 16),
-            _prereqRow('Wi-Fi', reqs.wifiEnabled),
-            _prereqRow('Bluetooth', reqs.bluetoothEnabled),
-            _prereqRow('Lokasi (GPS)', reqs.locationEnabled),
-            _prereqRow('Izin Perangkat', reqs.allPermissionsGranted),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Mode IP Saja'),
-          ),
-          FilledButton(
-            onPressed: () async {
-              Navigator.of(ctx).pop();
-              await _enableAllP2pServices();
-            },
-            child: const Text('Aktifkan & Mulai'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _prereqRow(String label, bool enabled) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        children: [
-          Icon(
-            enabled ? Icons.check_circle : Icons.cancel,
-            color: enabled ? Colors.green : Colors.red,
-            size: 20,
-          ),
-          const SizedBox(width: 8),
-          Text(label),
-        ],
-      ),
-    );
-  }
-
-  /// Aktifkan layanan yang mati (Wi-Fi/Bluetooth/Lokasi), lalu ulangi scan.
-  Future<void> _enableAllP2pServices() async {
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Row(
-            children: [
-              Icon(Icons.info_outline, color: Colors.white),
-              SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  'Membuka Pengaturan. Silakan aktifkan layanan (Wi-Fi, Bluetooth, '
-                  'atau Lokasi) yang diminta, lalu tekan tombol BACK pada HP Anda '
-                  'jika sudah selesai.',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                ),
-              ),
-            ],
-          ),
-          backgroundColor: Theme.of(context).colorScheme.primary,
-          duration: const Duration(seconds: 10),
-          behavior: SnackBarBehavior.floating,
-          margin: const EdgeInsets.all(16),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        ),
-      );
-    }
-
-    // Tunggu SnackBar muncul sebentar sebelum mengalihkan layar.
-    await Future.delayed(const Duration(seconds: 2));
-
-    // Minta izin sistem (P2P + Bluetooth) dulu, baru hidupkan layanan yang mati.
-    await _p2pClient.askPermissionsIfNeeded();
-    await _p2pClient.enableWifiIfNeeded();
-    await _p2pClient.enableBluetoothIfNeeded();
-    await _p2pClient.enableLocationIfNeeded();
-
-    final reqs = await _p2pClient.checkPrerequisites();
-    if (!mounted) return;
-    final locationRequired = Platform.isAndroid && _androidSdkVersion() < 31;
-    if (reqs.isReady(locationRequired: locationRequired)) {
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      _runScan();
-    } else {
-      _showP2pPrereqDialog(reqs);
-    }
   }
 
   void _showScheduleSimulation(MosqueConfig formConfig) {
@@ -1506,7 +1592,6 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
     _subTabController.dispose();
     WidgetsBinding.instance.removeObserver(this);
     _btClient.disconnect();
-    _p2pClient.disconnect();
     _btStateSub?.cancel();
     _btStateSub = null;
     _btClient.dispose();
@@ -1519,15 +1604,26 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Remote Masjid DKM'),
-        centerTitle: true,
-        backgroundColor: colorScheme.surfaceContainer,
-        elevation: 0,
-      ),
-      body: Column(
-        children: [
+    // Gatekeeper: pengguna hanya bisa masuk ke menu utama setelah koneksi
+    // sukses & terverifikasi (WS terhubung / BT ter-autentikasi). Body diganti
+    // per status, tetapi Scaffold/AppBar/bottomNavigation tetap satu pohon
+    // yang sama agar context & navigator tidak hancur di tengah transisi.
+    final body = !_isConnected
+        ? ConnectionGatewayScreen(
+            ipController: _ipController,
+            isConnecting: _isConnecting,
+            onConnectIp: _connectToTv,
+            btIsScanning: _btIsScanning,
+            btDevices: _btDevices,
+            btStatus: _btStatus,
+            onBtStartScan: _startBtScan,
+            onBtStopScan: _stopBtScan,
+            onBtConnect: _connectBt,
+          )
+        : Column(
+            children: [
+          if (_showDisconnectedNotice)
+            _buildDisconnectedBanner(theme, colorScheme),
           if (_hasUnsyncedChanges) _buildUnsyncedBanner(theme, colorScheme),
           AnimatedBuilder(
             animation: _mainTabController.animation!,
@@ -1623,25 +1719,6 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
                   onAddTransaction: _addKasTransaction,
                   onRemoveTransaction: _removeKasTransaction,
                 ),
-                ConnectivityTab(
-                  ipController: _ipController,
-                  isConnecting: _isConnecting,
-                  isConnected: _isConnected || _btConnected,
-                  isScanning: _isScanning,
-                  p2pDevices: _p2pDevices,
-                  p2pStatus: _p2pStatus,
-                  onConnectWifi: _connectToTv,
-                  onStartScan: _startScan,
-                  onStopScan: _stopScan,
-                  onConnectP2p: _connectP2p,
-                  btIsScanning: _btIsScanning,
-                  btConnected: _btConnected,
-                  btDevices: _btDevices,
-                  btStatus: _btStatus,
-                  onBtStartScan: _startBtScan,
-                  onBtStopScan: _stopBtScan,
-                  onBtConnect: _connectBt,
-                ),
                 SimulationTab(
                   isConnected: _isConnected,
                   tvPhase: _tvPhase,
@@ -1651,8 +1728,26 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
             ),
           ),
         ],
-      ),
-      bottomNavigationBar: NavigationBar(
+      );
+    final connected = _isConnected;
+    return Scaffold(
+      appBar: connected
+          ? AppBar(
+              title: const Text('Remote Masjid DKM'),
+              centerTitle: true,
+              backgroundColor: colorScheme.surfaceContainer,
+              elevation: 0,
+              actions: [
+                Padding(
+                  padding: const EdgeInsets.only(right: 12),
+                  child: _buildConnectionBadge(colorScheme),
+                ),
+              ],
+            )
+          : null,
+      body: body,
+      bottomNavigationBar: connected
+          ? NavigationBar(
         selectedIndex: _tabIndex,
         onDestinationSelected: (index) {
           _mainTabController.animateTo(
@@ -1680,21 +1775,93 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
           ),
           NavigationDestination(
             icon: PlayfulNavIcon(
-              unselectedIcon: Icons.wifi_outlined,
-              selectedIcon: Icons.wifi,
+              unselectedIcon: Icons.science_outlined,
+              selectedIcon: Icons.science,
               isSelected: _tabIndex == 2,
               shouldRotate: true,
             ),
-            label: 'Konektivitas',
-          ),
-          NavigationDestination(
-            icon: PlayfulNavIcon(
-              unselectedIcon: Icons.science_outlined,
-              selectedIcon: Icons.science,
-              isSelected: _tabIndex == 3,
-              shouldRotate: true,
-            ),
             label: 'Tes',
+          ),
+        ],
+      )
+          : null,
+    );
+  }
+
+  /// Badge status koneksi di AppBar. Diketuk untuk membuka menu
+  /// "Putuskan Koneksi" (kembali ke layar sambungan).
+  Widget _buildConnectionBadge(ColorScheme colorScheme) {
+    final viaBt = _lastConnectionKind == 'bluetooth';
+    final label = viaBt ? 'Terhubung via Bluetooth' : 'Terhubung via IP';
+    final icon = viaBt ? Icons.bluetooth_connected : Icons.wifi_rounded;
+    return PopupMenuButton<String>(
+      tooltip: 'Status koneksi',
+      onSelected: (value) {
+        if (value == 'disconnect') {
+          _disconnectFromTv();
+        }
+      },
+      itemBuilder: (context) => const [
+        PopupMenuItem<String>(
+          value: 'disconnect',
+          child: Row(
+            children: [
+              Icon(Icons.link_off),
+              SizedBox(width: 8),
+              Text('Putuskan Koneksi'),
+            ],
+          ),
+        ),
+      ],
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: const Color(0xFF1B5E20),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 16, color: Colors.white),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Banner peringatan koneksi terputus dengan aksi sambungkan ulang.
+  Widget _buildDisconnectedBanner(ThemeData theme, ColorScheme colorScheme) {
+    return Container(
+      color: colorScheme.errorContainer,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Row(
+        children: [
+          Icon(Icons.wifi_off, color: colorScheme.onErrorContainer),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              'Koneksi ke TV terputus.',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onErrorContainer,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          M3Pressable(
+            child: TextButton.icon(
+              onPressed: _reconnectLast,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Sambungkan Ulang'),
+            ),
           ),
         ],
       ),
@@ -1763,6 +1930,8 @@ class MasjidYouRemoteApp extends StatelessWidget {
 
     return MaterialApp(
       title: 'Masjid Remote DKM',
+      navigatorKey: appNavigatorKey,
+      scaffoldMessengerKey: appMessengerKey,
       debugShowCheckedModeBanner: false,
       theme: buildRemoteTheme(Brightness.light, seedColor),
       darkTheme: buildRemoteTheme(Brightness.dark, seedColor),
