@@ -38,13 +38,11 @@ class PrayerSchedule {
     final params = CalculationMethod.singapore.getParameters();
     params.madhab = Madhab.shafi;
 
+    // DateComponents.from(now) with local DateTime creates local date components.
+    // PrayerTimes returns prayer times in LOCAL time when given local date components.
+    // The utcOffset parameter only affects timezone annotation (Z suffix), NOT the actual time values.
     final dateComponents = DateComponents.from(now);
-    // Pass utcOffset so PrayerTimes are returned in local timezone
-    // instead of UTC, preventing timezone-mismatch bugs when comparing
-    // with |now| (a local DateTime).
-    final utcOffset = Duration(hours: config.utcOffsetHours);
-    final prayerTimes =
-        PrayerTimes(coordinates, dateComponents, params, utcOffset: utcOffset);
+    final prayerTimes = PrayerTimes(coordinates, dateComponents, params);
 
     int offsetFor(PrayerType type) => config.offsetFor(type);
 
@@ -91,10 +89,9 @@ class PrayerSchedule {
       nextPrayer = PrayerType.fajr;
       final tomorrow = now.add(const Duration(days: 1));
       final tomorrowComponents = DateComponents.from(tomorrow);
-      final tomorrowPrayerTimes =
-          PrayerTimes(coordinates, tomorrowComponents, params, utcOffset: utcOffset);
-      final tomorrowFajr =
-          tomorrowPrayerTimes.fajr.add(Duration(minutes: offsetFor(PrayerType.fajr)));
+      final tomorrowPrayerTimes = PrayerTimes(coordinates, tomorrowComponents, params);
+      final tomorrowFajr = tomorrowPrayerTimes.fajr
+          .add(Duration(minutes: offsetFor(PrayerType.fajr)));
       timeUntilNext = tomorrowFajr.difference(now);
     }
 
