@@ -6,12 +6,14 @@ import 'package:geolocator/geolocator.dart';
 import 'package:shared_models/shared_models.dart';
 import 'package:bluetooth_sync/bluetooth_sync.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:dynamic_color/dynamic_color.dart';
 
 import '../services/ws_client.dart';
 import '../services/bluetooth_client_service.dart';
 import '../services/remote_cache_store.dart';
 import '../services/backup_service.dart';
 import '../theme/remote_theme.dart';
+import '../theme/theme_preferences.dart';
 
 import 'screens/settings/settings_tab.dart';
 import 'screens/content/running_text_subtab.dart';
@@ -34,7 +36,19 @@ const List<String> _runningCategories = [
 ];
 
 class RemoteHomeScreen extends StatefulWidget {
-  const RemoteHomeScreen({super.key});
+  const RemoteHomeScreen({
+    super.key,
+    this.themeMode = ThemeMode.system,
+    this.colorSource = AppColorSource.dynamic,
+    this.onThemeModeChanged,
+    this.onColorSourceChanged,
+  });
+
+  /// Preferensi tampilan aplikasi, diteruskan ke tab Pengaturan.
+  final ThemeMode themeMode;
+  final AppColorSource colorSource;
+  final ValueChanged<ThemeMode>? onThemeModeChanged;
+  final ValueChanged<AppColorSource>? onColorSourceChanged;
 
   @override
   State<RemoteHomeScreen> createState() => _RemoteHomeScreenState();
@@ -1784,6 +1798,10 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
                   onShowSimulation: _showScheduleSimulation,
                   onExportBackup: _exportBackup,
                   onImportBackup: _importBackup,
+                  themeMode: widget.themeMode,
+                  colorSource: widget.colorSource,
+                  onThemeModeChanged: widget.onThemeModeChanged,
+                  onColorSourceChanged: widget.onColorSourceChanged,
                 ),
                 RunningTextSubtab(
                   runningTexts: _runningTexts,
@@ -2036,21 +2054,76 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
   }
 }
 
-class MasjidYouRemoteApp extends StatelessWidget {
+class MasjidYouRemoteApp extends StatefulWidget {
   const MasjidYouRemoteApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    const seedColor = Color(0xFF006A60); // Emerald/Teal Material You
+  State<MasjidYouRemoteApp> createState() => _MasjidYouRemoteAppState();
+}
 
-    return MaterialApp(
-      title: 'Masjid Remote DKM',
-      navigatorKey: appNavigatorKey,
-      scaffoldMessengerKey: appMessengerKey,
-      debugShowCheckedModeBanner: false,
-      theme: buildRemoteTheme(Brightness.light, seedColor),
-      darkTheme: buildRemoteTheme(Brightness.dark, seedColor),
-      home: const RemoteHomeScreen(),
+class _MasjidYouRemoteAppState extends State<MasjidYouRemoteApp> {
+  ThemeMode _themeMode = ThemeMode.system;
+  AppColorSource _colorSource = AppColorSource.dynamic;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadThemePreferences();
+  }
+
+  Future<void> _loadThemePreferences() async {
+    final mode = await ThemePreferences.loadMode();
+    final source = await ThemePreferences.loadColorSource();
+    if (!mounted) return;
+    setState(() {
+      _themeMode = mode;
+      _colorSource = source;
+    });
+  }
+
+  Future<void> _setThemeMode(ThemeMode mode) async {
+    setState(() => _themeMode = mode);
+    await ThemePreferences.saveMode(mode);
+  }
+
+  Future<void> _setColorSource(AppColorSource source) async {
+    setState(() => _colorSource = source);
+    await ThemePreferences.saveColorSource(source);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return DynamicColorBuilder(
+      builder: (lightDynamic, darkDynamic) {
+        final lightScheme = resolveRemoteColorScheme(
+          brightness: Brightness.light,
+          source: _colorSource,
+          dynamicLight: lightDynamic,
+          dynamicDark: darkDynamic,
+        );
+        final darkScheme = resolveRemoteColorScheme(
+          brightness: Brightness.dark,
+          source: _colorSource,
+          dynamicLight: lightDynamic,
+          dynamicDark: darkDynamic,
+        );
+
+        return MaterialApp(
+          title: 'Masjid Remote DKM',
+          navigatorKey: appNavigatorKey,
+          scaffoldMessengerKey: appMessengerKey,
+          debugShowCheckedModeBanner: false,
+          theme: buildRemoteTheme(lightScheme),
+          darkTheme: buildRemoteTheme(darkScheme),
+          themeMode: _themeMode,
+          home: RemoteHomeScreen(
+            themeMode: _themeMode,
+            colorSource: _colorSource,
+            onThemeModeChanged: _setThemeMode,
+            onColorSourceChanged: _setColorSource,
+          ),
+        );
+      },
     );
   }
 }

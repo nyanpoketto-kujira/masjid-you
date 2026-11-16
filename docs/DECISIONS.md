@@ -616,3 +616,34 @@ Slot kanan TV sebelumnya hard-coded: hari biasa kartu Kas tampil statis, hari Ju
 ---
 
 > Kembali ke [MAP.md](MAP.md) | Lanjut ke [tv_display/widget_mapping.md](tv_display/widget_mapping.md) | [mobile_remote/tab_mapping.md](mobile_remote/tab_mapping.md) | [mobile_remote/theme_shapes.md](mobile_remote/theme_shapes.md)
+---
+
+## ADR-022 — Refaktor UI Remote Material You (Bertahap) + Fondasi Tema
+
+### Konteks
+UI `mobile_remote` dinilai buruk: warna statis terasa generik, navigasi berupa satu rangkaian 6 halaman yang bisa di-swipe menembus destinasi menu bawah, dan tab Pengaturan adalah satu form panjang. Plan refaktor disusun dari audit kode + riset panduan resmi Material 3/Material You (16 Nov 2026) dan disetujui user beserta lima keputusan turunannya:
+
+- **D1** Dynamic color jadi default di Android 12+, wajib fallback seed "Teal/Hijau Masjid" + pilihan manual di Pengaturan (Ikuti Wallpaper / Hijau Masjid).
+- **D2** Urutan destinasi menjadi Beranda -> Konten -> Pengaturan -> Tes.
+- **D3** Konektivitas turun dari destinasi menu bawah menjadi strip status tonal di bawah AppBar + bottom sheet detail/putus koneksi.
+- **D4** `M3Pressable` dibuang, diganti InkWell standar M3.
+- **D5** Beranda berisi kartu status TV & jam aktif, tombol Aksi Cepat 56dp (Mute, Standby, Sinkron), ringkasan saldo kas, dan hitung mundur waktu sholat.
+
+Dua batasan mengikat seluruh refaktor: (1) shape tetap standar M3 — shape Expressive "clover/puffy" sudah ditolak user (ADR-012); (2) Material 3 Expressive belum tersedia di Flutter stable, jadi tidak ada dependensi ke package Expressive tidak resmi untuk alur inti.
+
+### Keputusan
+1. **Refaktor bertahap, satu fase satu PR**: Fase 0 fondasi tema, Fase 1 navigasi & status koneksi, Fase 2 Pengaturan, Fase 3 editor konten, Fase 4 motion & aksesibilitas, Fase 5 polish. Tidak ada penulisan ulang besar sekaligus.
+2. **Fase 0 — fondasi tema** (PR ini):
+   - Package `dynamic_color`: `MasjidYouRemoteApp` menjadi stateful dan membungkus `MaterialApp` dengan `DynamicColorBuilder`. Skema efektif dipilih `resolveRemoteColorScheme`: sumber dinamis memakai skema wallpaper sesuai brightness bila perangkat menyediakan; selain itu jatuh ke `ColorScheme.fromSeed` dari `kMasjidSeedColor` (`0xFF006A60`, "Hijau Masjid").
+   - `buildRemoteTheme` kini menerima `ColorScheme` utuh (bukan brightness + seed) dan melengkapi tema komponen: `AppBarTheme` (scrolledUnderElevation 3), `ListTileThemeData` (ikon onSurfaceVariant, r12), `SegmentedButtonThemeData` (pill), `FloatingActionButtonThemeData` (r16), `SnackBarThemeData` (floating, r12). Tema Switch/Slider/ProgressIndicator dibiarkan default karena sudah sesuai spesifikasi M3.
+   - Preferensi tampilan (`ThemePreferences`, SharedPreferences): mode tema (sistem/terang/gelap) + sumber warna (`AppColorSource.dynamic`/`seed`), default sistem + dinamis; nilai simpanan tidak valid jatuh ke default.
+   - Seksi **Tampilan Aplikasi** di tab Pengaturan: `SegmentedButton` Tema (Sistem/Terang/Gelap) dan Warna (Ikuti Wallpaper/Hijau Masjid) + catatan ketersediaan Android 12+. Parameter bersifat opsional di `SettingsTab`/`RemoteHomeScreen` agar pemanggil lama tidak berubah.
+3. Fase-fase berikutnya mengikuti plan yang disetujui (D2–D5 dieksekusi di Fase 1–3); ADR ini diperbarui/diikuti ADR baru bila ada penyimpangan.
+
+### Konsekuensi
+- Di Android 12+ warna aplikasi mengikuti wallpaper pengguna (ciri Material You paling terlihat); perangkat lama dan emulator tanpa dynamic color tampil persis seperti sebelumnya (seed Hijau Masjid).
+- Pilihan tema/warna langsung berlaku dan tersimpan; tidak ikut tombol "Simpan & Update Ke TV" karena murni preferensi HP.
+- Struktur layar belum berubah di Fase 0 — perubahan visual murni dari tema (SnackBar floating, FAB r16, tile r12).
+- Regresi dikunci 14 test baru: resolusi skema (dinamis/seed/fallback), kelengkapan tema komponen, round-trip preferensi, seksi Tampilan Aplikasi, dan penerapan preferensi tersimpan di level aplikasi. Total test mobile_remote 47 -> 61.
+
+---

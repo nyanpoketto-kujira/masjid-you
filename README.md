@@ -25,10 +25,10 @@ Sistem Tampilan Masjid (TV Kiosk) + Remote HP pendamping — monorepo Flutter, b
 
 | Workspace | Analyze | Test | APK Universal |
 |---|---|---|---|
-| `packages/shared_models` | ✅ bersih | ✅ 41 pass | — |
+| `packages/shared_models` | ✅ bersih | ✅ 70 pass | — |
 | `packages/bluetooth_sync` | ✅ bersih | ✅ 30 pass | — |
-| `apps/tv_display` | ✅ bersih | ✅ 43 pass | ✅ debug APK sukses |
-| `apps/mobile_remote` | ✅ bersih | ✅ 25 pass | ✅ debug APK sukses |
+| `apps/tv_display` | ✅ bersih | ✅ 66 pass | ✅ debug APK sukses |
+| `apps/mobile_remote` | ✅ bersih | ✅ 61 pass | ✅ debug APK sukses |
 
 ## Fitur Utama
 
