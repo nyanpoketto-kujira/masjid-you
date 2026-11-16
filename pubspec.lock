@@ -310,13 +310,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.0.0"
-  flutter_p2p_connection:
-    dependency: "direct overridden"
-    description:
-      path: "packages/flutter_p2p_connection"
-      relative: true
-    source: path
-    version: "3.0.3"
   flutter_plugin_android_lifecycle:
     dependency: transitive
     description:
