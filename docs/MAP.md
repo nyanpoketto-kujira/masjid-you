@@ -108,7 +108,7 @@ flowchart LR
 | `lib/theme/m3_shape_border.dart` | Wrapper polygon M3 + arch manual | `M3ShapeBorder` (`MaterialShapes.*` → `ShapeBorder`), `ArchBorder` (dome di dalam bounds) |
 | `lib/state/prayer_state_machine.dart` | Manager siklus waktu shalat otomatis `NORMAL→PRE_ADHAN→ADHAN→(KHUTBAH Jumat)→PRE_IQOMAH→SHALAT`; fase khutbah hanya bila `hasFridayPrayer` aktif (musholla: Dzuhur seperti hari biasa) | `PrayerStateMachine` (`tick`, `skipAdhan(now)`, `startIqomah`, `startShalat`, `finishShalat`, `updateConfig`, `progress`) |
 | `lib/state/side_card_playlist.dart` | Susunan murni rotasi slot samping TV: `[Kas (bila showKas)] -> [Petugas Jumat (bila Jumat & hasFridayPrayer)] -> [gambar khusus aktif]` (ADR-021) | `SideCardKind`, `SideCardItem`, `buildSideCardPlaylist` |
-| `lib/state/tv_store.dart` | Persist lokal data resmi TV (trust source) per blok JSON `tv_*`, termasuk `tv_sideImages` | `TvStore` (`load`, `saveConfig`, `saveRunningTexts`, `saveBanners`, `saveKas`, `saveSideImages`) |
+| `lib/state/tv_store.dart` | Persist lokal data resmi TV (trust source) per blok JSON `tv_*`, termasuk `tv_sideImages`; status kontrol tampilan `tv_muted`/`tv_standby` terpisah (bukan data resmi, ADR-023) | `TvStore` (`load`, `saveConfig`, `saveRunningTexts`, `saveBanners`, `saveKas`, `saveSideImages`, `loadDisplayState`, `saveMuted`, `saveStandby`) |
 | `lib/widgets/prayer_state_overlay.dart` | Overlay layar penuh + CustomPainter animasi (circular ring, wavy progress, khutbah Jumat, layar redup shalat) | `PrayerStateOverlay`, `_KhutbahOverlay`, `_StaffChip`, `_WavyProgressPainter`, `_CircularRingPainter` |
 | `lib/widgets/header_clock.dart` | Header: nama masjid 30px + alamat (chip "Remote Sync IP" & "Mode Bluetooth" dihapus, ADR-018), chip WiFi Direct, jam besar + tanggal | `HeaderClock` (stateless, format `id_ID`) |
 | `lib/widgets/banner_carousel.dart` | Carousel Info Masjid + fallback kosong + auto-scroll vertikal | `BannerCarousel` / `_BannerCarouselState`, `_BannerPage` / `_BannerPageState` (`_startTimer`, `_startAutoScroll`, `didUpdateWidget`) |
@@ -140,8 +140,7 @@ flowchart LR
 | `lib/main.dart` | Entrypoint Remote: gatekeeper koneksi (hanya menu utama setelah terhubung & terverifikasi), orkestrasi state/data utama, badge status koneksi di AppBar (klik → Putuskan Koneksi), banner disconnect + aksi Sambungkan Ulang, dialog resolusi konflik sinkronisasi saat reconnect (Gunakan Data TV / Gunakan Data HP), dialog PIN BT (`_PinDialog` stateful, controller dimilikinya sendiri), lifecycle koneksi. Dialog & snackbar selalu memakai `appNavigatorKey`/`appMessengerKey` global; state BT ditahan (`_pendingBtState`) selama dialog pairing terbuka lalu diterapkan setelah route dialog lepas — mencegah assertion `_dependents.isEmpty` saat transisi gatekeeper ↔ menu utama | `MasjidYouRemoteApp`, `RemoteHomeScreen` / `_RemoteHomeScreenState` (`_handleConnectionEstablished`, `_handleTransportDisconnected`, `_reconnectLast`, `_showSyncConflictDialog`, `_disconnectFromTv`, `_buildConnectionBadge`, `_buildDisconnectedBanner`, `_showPinDialog`, `_closePinDialog`, `_drainPendingBtState`, `_connectBt`, `_connectToTv`), `_PinDialog` |
 | `lib/theme/remote_theme.dart` | Konfigurasi tersentralisasi tema Material 3 standar Remote: skema dari dynamic color (wallpaper) atau seed "Hijau Masjid", tema komponen lengkap (AppBar, ListTile, SegmentedButton, FAB, SnackBar) (ADR-022) | `buildRemoteTheme`, `resolveRemoteColorScheme`, `masjidSeedScheme`, `kMasjidSeedColor` |
 | `lib/theme/theme_preferences.dart` | Preferensi tampilan aplikasi (mode tema + sumber warna) tersimpan via SharedPreferences (ADR-022) | `ThemePreferences`, `AppColorSource` |
-| `lib/widgets/m3_pressable.dart` | Widget interaktif dengan umpan balik gerakan spring M3 Expressive | `M3Pressable` |
-| `lib/widgets/playful_nav_icon.dart` | Ikon navigasi dinamis dengan mikro-animasi lompatan elastis dan putaran | `PlayfulNavIcon` |
+| `lib/screens/home/home_tab.dart` | Beranda Remote (ADR-023): kartu status TV, jam aktif + hitung mundur sholat berikutnya, Aksi Cepat 56dp (Senyap/Standby/Sinkron), ringkasan kas | `HomeTab`, `nextPrayerInfo`, `tvPhaseLabel`, `formatTanggalId` |
 | `lib/widgets/kas_stat_card.dart` | Kartu visual untuk ringkasan nominal kas masuk, keluar, dan saldo | `KasStatCard` |
 | `lib/screens/settings/settings_tab.dart` | Layar pengaturan identitas masjid, GPS, durasi siklus shalat, aksi cepat, tombol simulasi, **toggle kartu samping** (`showKas`, `hasFridayPrayer` — field Jumat non-aktif saat Jumatan mati), dan seksi **Tampilan Aplikasi** (SegmentedButton tema & warna, ADR-022) | `SettingsTab` |
 | `lib/screens/content/running_text_subtab.dart` | Editor pesan running text berjalan berdasarkan kategori | `RunningTextSubtab` |
@@ -167,7 +166,7 @@ flowchart LR
 
 | File | Fungsi Utama | Class / enum |
 |---|---|---|
-| `lib/src/sync_packet.dart` | Protokol sinkronisasi + auth Bluetooth Challenge-Response | `SyncAction` (enum: `...`, `updateSideImages`, `skipAdhan`, `startIqomah`, `startShalat`, `finishShalat`, `forcePhase`, `authChallenge`, `authResponse`, `authSuccess`, `authFailure`), `SyncPacket` |
+| `lib/src/sync_packet.dart` | Protokol sinkronisasi + auth Bluetooth Challenge-Response | `SyncAction` (enum: `...`, `updateSideImages`, `skipAdhan`, `startIqomah`, `startShalat`, `finishShalat`, `forcePhase`, `setMuted`, `setStandby`, `authChallenge`, `authResponse`, `authSuccess`, `authFailure`), `SyncPacket` |
 | `lib/src/prayer_phase.dart` | Fase siklus waktu shalat (protokol `stateUpdate`) | `PrayerPhase` (enum: normal/preAdhan/adhan/**khutbah**/preIqomah/shalat), `PrayerPhaseX` (`label`, `durationFor`) |
 | `lib/src/mosque_config.dart` | Konfigurasi masjid + offset per sholat + durasi siklus + **petugas Jumat** (`khutbahMinutes`, `fridayKhatib`, `fridayMuadzin`) + **toggle tampilan** `showKas` & `hasFridayPrayer` (default `true`, payload lama tanpa kunci terbaca `true`) | `MosqueConfig`, `IqamahDuration` |
 | `lib/src/prayer_type.dart` | Enum sholat + label Indonesia + `displayNameForDate` (Dzuhur→"Jumat" di hari Jumat; parameter `hasFridayPrayer` menonaktifkannya untuk musholla) | `PrayerType`, `PrayerTypeX`, `kAllPrayerTypes` |
@@ -224,6 +223,8 @@ Detail payload per aksi:
 | `startShalat` | `{}` — Remote meminta TV loncat `PRE_IQOMAH → SHALAT` |
 | `finishShalat` | `{}` — Remote meminta TV loncat `SHALAT → NORMAL` |
 | `forcePhase` | `{'phase': 'normal\|preAdhan\|adhan\|preIqomah\|shalat'}` — Menu Tes memaksa TV masuk fase tersebut (durasi penuh dari config) |
+| `setMuted` | `{'muted': bool}` — Remote (Beranda) menyalakan/mematikan mode senyap TV; TV membalas status lewat `stateUpdate` (`muted`, `standby`) |
+| `setStandby` | `{'standby': bool}` — Remote (Beranda) menyalakan/mematikan standby TV (layar hitam penuh) |
 | `stateUpdate` (TV → Remote) | `{'phase': 'normal\|preAdhan\|adhan\|preIqomah\|shalat', 'prayer': 'maghrib', 'remainingSeconds': int, 'totalSeconds': int}` |
 | `getInitialState` | `{}` — Remote meminta TV mengirim ulang status (`stateUpdate`) |
 | `authChallenge` (TV → Remote) | `{'nonce': '<hex-128-bit>'}` — dikirim segera setelah koneksi RFCOMM terbentuk; Remote harus merespons dengan PIN |

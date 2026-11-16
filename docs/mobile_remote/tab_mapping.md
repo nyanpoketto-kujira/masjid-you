@@ -1,7 +1,7 @@
 # mobile_remote — Tab & File Mapping
 
 > Bedah lengkap **`apps/mobile_remote/lib/`** — aplikasi kontroler Remote Masjid DKM di HP Android.
-> Navigasi 4 menu bawah (salah satunya **Konten** dengan 4 sub-tab atas) dalam **satu rangkaian 6 halaman yang bisa di-swipe**, mekanisme GPS/geolocator, offset jadwal sholat, indikator "Unsaved Changes", dan tema Material 3 standar.
+> Navigasi 4 menu bawah (**Beranda, Konten, Pengaturan, Tes**) via `IndexedStack` tanpa swipe antar destinasi (ADR-023); **Konten** berisi 4 sub-tab atas yang bisa di-swipe di dalamnya. Plus mekanisme GPS/geolocator, offset jadwal sholat, indikator "Unsaved Changes", dan tema Material 3 standar.
 
 **Navigasi:** [MAP.md](../MAP.md) · [DECISIONS.md](../DECISIONS.md) · [theme_shapes.md](theme_shapes.md) · [tv_display/widget_mapping.md](../tv_display/widget_mapping.md)
 
@@ -11,7 +11,7 @@
 
 ```
 apps/mobile_remote/lib/
-├── main.dart                  # Entry, navigasi 6 halaman swipe (4 menu bawah + 4 sub-tab Konten) + mikro-animasi PlayfulNavIcon, state global, semua handler, koneksi, durasi + aksi cepat shalat, theme M3
+├── main.dart                  # Entry, navigasi 4 destinasi IndexedStack (Beranda/Konten/Pengaturan/Tes) + sub-tab Konten, strip status koneksi + bottom sheet, state global, semua handler, koneksi, durasi + aksi cepat shalat, theme M3
 ├── services/
 │   ├── ws_client.dart         # Client WebSocket + helper kirim per tipe data + listen paket masuk
 │   ├── p2p_client_service.dart# Scan & konek WiFi Direct / BLE
@@ -37,10 +37,9 @@ void main() => runApp(const MasjidYouRemoteApp());
 
 | State | Tipe | Peran |
 |---|---|---|
-| `_tabIndex` | `int` | Menu bawah aktif (0–3: Pengaturan, Konten, Konektivitas, Tes) — di-sinkronkan otomatis dari `_mainTabController` |
-| `_mainTabController` | `TabController` (6) | Menggerakkan seluruh halaman (`TabBarView` 6 halaman) |
-| `_subTabController` | `TabController` (3) | Menggerakkan indikator Top Tab Bar (Running Text/Info Masjid/Kas) |
-| `_syncingControllers` | `bool` | Guard loop saat dua controller saling menyinkronkan |
+| `_tabIndex` | `int` | Destinasi menu bawah aktif (0 Beranda, 1 Konten, 2 Pengaturan, 3 Tes) — indeks `IndexedStack` |
+| `_subTabController` | `TabController` (4) | Menggerakkan sub-tab di dalam Konten saja (Running Text/Info Masjid/Kas/Gambar Khusus) |
+| `_tvMuted` / `_tvStandby` | `bool` | Status kontrol tampilan TV dari `stateUpdate` (Beranda, ADR-023) |
 | `_ipController` | `TextEditingController` | IP TV (default `192.168.1.`) |
 | `_client` | `RemoteWsClient` | Koneksi WS |
 | `_p2pClient` | `P2pClientService` | Koneksi WiFi Direct/BLE |
@@ -86,39 +85,32 @@ setState { data berubah; _hasUnsyncedChanges = true }
 Scaffold
 ├── AppBar "Remote Masjid DKM"
 ├── body: Column
+│   ├── [jika terputus] _buildDisconnectedBanner (errorContainer + Sambungkan Ulang)
 │   ├── [jika unsynced] _buildUnsyncedBanner
-│   ├── AnimatedBuilder(_mainTabController.animation) > Top TabBar (_subTabController)
-│   │       Running Text | Info Masjid | Kas
-│   │       → tinggi + opacity disinkronkan dengan swipe (fade+slide, tanpa layout jump)
-│   └── Expanded > TabBarView(controller: _mainTabController) — 6 halaman:
-│       ├── 0 _buildConfigTab       (Pengaturan)
-│       ├── 1 _buildRunningTextTab  (sub-tab Konten 1)
-│       ├── 2 _buildInfoMasjidTab   (sub-tab Konten 2)
-│       ├── 3 _buildKasTab          (sub-tab Konten 3)
-│       ├── 4 _buildConnectivityTab (Konektivitas)
-│       └── 5 _buildTestTab         (Tes — simulasi waktu shalat)
-└── bottomNavigationBar: NavigationBar (4 destinations)
+│   ├── _buildConnectionStatusStrip — strip tonal status koneksi (tap → bottom sheet, ADR-023)
+│   └── Expanded > IndexedStack(index: _tabIndex) — 4 destinasi:
+│       ├── 0 HomeTab          (Beranda: status TV, jam, hitung mundur, Aksi Cepat, kas)
+│       ├── 1 Konten           (Column: Top TabBar + TabBarView `_subTabController`, 4 sub-tab)
+│       ├── 2 SettingsTab      (Pengaturan)
+│       └── 3 SimulationTab    (Tes — simulasi waktu shalat)
+└── bottomNavigationBar: NavigationBar (4 destinations: Beranda, Konten, Pengaturan, Tes)
 ```
 
-Seluruh navigasi adalah **satu rangkaian 6 halaman** yang digerakkan `_mainTabController` (`TabBarView`): pengguna bisa menggeser (swipe) kiri/kanan dari Pengaturan → Running Text → Info Masjid → Kas → Konektivitas → Tes secara mulus, dan sebaliknya. `_subTabController` (3) hanya menggerakkan indikator **Top Tab Bar**.
+Navigasi destinasi memakai **`IndexedStack`** (ADR-023): berpindah menu bawah hanya lewat tap `NavigationBar` — **tidak ada swipe antar destinasi** (mengikuti panduan M3) dan state setiap destinasi tetap hidup selama terhubung. Satu-satunya `TabController` yang tersisa adalah `_subTabController` (4) untuk sub-tab **di dalam Konten**; swipe kiri/kanan hanya berlaku di dalam Konten.
 
-**Top Tab Bar tampil natural, bukan melompat.** Dulu dipakai `if (_tabIndex == 1)` yang membuat TabBar muncul/menghilang mendadak dan konten di bawahnya lompat (layout jump). Sekarang TabBar dibungkus `AnimatedBuilder` yang mendengarkan `_mainTabController.animation!` (0.0–5.0) dan memetakannya ke faktor tinggi+opacity: mendekati halaman 1 → TabBar **meluncur turun + fade-in** mengikuti gerak jari; di dalam Konten (1–3) tetap penuh; mendekati halaman 4 → **meluncur naik + fade-out**. Hasilnya mulus tanpa lompatan.
+**Riwayat (sebelum ADR-023):** navigasi pernah berupa satu `TabBarView` 6 halaman yang bisa di-swipe menembus semua destinasi, disinkronkan dua `TabController` + guard `_syncingControllers`, dengan Top Tab Bar yang fade/slide mengikuti geseran dan mikro-animasi ikon `PlayfulNavIcon` (lompat + `bounceOut` + putar). Seluruh mekanisme itu dihapus: kompleks, rapuh, dan bertentangan dengan panduan navigasi M3.
 
-**Mikro-animasi ikon `PlayfulNavIcon`** (widget lokal di `main.dart`): setiap ikon menu bawah & sub-tab atas yang terpilih menjalankan lompatan vertikal (`SlideTransition`), membal elastis (`ScaleTransition` 1.0→1.2→1.0 dengan `Curves.bounceOut`), dan untuk ikon **Pengaturan** putaran gigi 45° (`RotationTransition`, `Curves.easeOutBack`) — 300ms, murni Flutter tanpa package. Terpicu saat di-tap maupun di-swipe (`didUpdateWidget` pada perubahan `isSelected`).
-
-**Sinkronisasi ganda** (`_handleMainTabChange` / `_handleSubTabChange`, guard `_syncingControllers` untuk mencegah loop):
-- Geser `TabBarView` ke halaman 1–3 → `_subTabController.index` disamakan (`halaman - 1`) + `setState` (selalu) agar ikon sub-tab ikut beranimasi real-time + `_tabIndex` jadi 1 (Konten).
-- Geser ke halaman 0/4/5 → `_tabIndex` otomatis jadi 0/2/3; Top Tab Bar menyusut/fade-out.
-- Tap Top Tab Bar → `_mainTabController.animateTo(sub + 1)` (melompat ke halaman sub-tab terkait).
-- Tap menu bawah → `_mainTabController.animateTo(_mainPageForBottomNav(...))` — Konten membawa ke sub-tab terakhir dilihat.
-
-`PageStorageKey` di setiap `ListView` menjaga posisi scroll; state & teks form hidup karena controller-nya milik `_RemoteHomeScreenState` (tidak pernah di-reset saat halaman di-rebuild).
+State & teks form hidup karena controller-nya milik `_RemoteHomeScreenState` (tidak pernah di-reset saat destinasi berganti).
 
 ---
 
 ## 3. Tab Demi Tab
 
-### 3.1 Tab 0 — Pengaturan
+### 3.0 Destinasi Beranda (indeks 0)
+
+`HomeTab` (`lib/screens/home/home_tab.dart`, ADR-023): kartu status TV (jalur koneksi + fase + penanda Senyap), jam aktif per detik + tanggal Indonesia, hitung mundur sholat berikutnya (`nextPrayerInfo` dari `PrayerSchedule.calculate`), **Aksi Cepat 56dp** — Senyap (`_toggleTvMuted` → `SyncAction.setMuted`), Standby (`_toggleTvStandby` → `SyncAction.setStandby`), Sinkron (`_pushAllToTv`) — dan ringkasan kas (`_totalKas` per tipe → `KasStatCard`).
+
+### 3.1 Destinasi Pengaturan (indeks 2)
 
 **Fungsi**: identitas masjid + koordinat + durasi siklus shalat + offset jadwal + aksi cepat + simulasi.
 
@@ -136,18 +128,19 @@ Seluruh navigasi adalah **satu rangkaian 6 halaman** yang digerakkan `_mainTabCo
 
 **Persist lokal:** `_loadSavedDurations()` (init) & `_persistDurations(config)` (saat kirim) memakai `shared_preferences` — kunci `preAdhanMinutes`, `adhanMinutes`, `preIqomahMinutes`, `shalatMinutes`.
 
-### 3.2 Menu Konten & Sub-tab-nya (halaman 1–3)
+### 3.2 Destinasi Konten & Sub-tab-nya (indeks 1)
 
-Menu bawah **Konten** menyatukan **Running Text**, **Info Masjid**, dan **Kas** (sebelumnya 3 tab terpisah) agar bottom navigation lebih ringkas — dari 6 jadi 4 tombol. Ketiga halaman ini hanyalah **bagian tengah dari rangkaian 6 halaman** yang bisa di-swipe; halaman 1, 2, dan 3 masing-masing menampilkan sub-tab Konten. Saat berada di halaman 1–3, **Top Tab Bar** muncul di bawah AppBar (controller `_subTabController`) dan indikatornya mengikuti halaman aktif:
+Menu bawah **Konten** menyatukan 4 editor dalam satu destinasi: **Running Text**, **Info Masjid**, **Kas**, dan **Gambar Khusus**. Di dalamnya ada **Top Tab Bar** (controller `_subTabController`) + `TabBarView` sendiri:
 
 ```dart
-Top Tab Bar (muncul mulus saat masuk Konten, controller _subTabController)
-├── Running Text   (campaign)          → halaman 1
-├── Info Masjid    (newspaper)         → halaman 2
-└── Kas            (account_balance_wallet) → halaman 3
+Top Tab Bar (selalu tampil di dalam Konten, controller _subTabController)
+├── Running Text   (campaign)
+├── Info Masjid    (newspaper)
+├── Kas            (account_balance_wallet)
+└── Gambar Khusus  (photo_library)
 ```
 
-Pindah antar sub-tab: **tap Top Tab Bar**, **tap menu bawah Konten**, atau cukup **swipe** kiri/kanan — menyatu dengan swipe ke Konektivitas/Tes/Pengaturan di ujung-ujungnya. Setiap `ListView` sub-tab diberi `PageStorageKey` agar posisi scroll tetap saat gonta-ganti halaman.
+Pindah antar sub-tab: **tap Top Tab Bar** atau **swipe** kiri/kanan di dalam Konten (tidak tembus ke destinasi lain).
 
 #### 3.2.1 Sub-tab Running Text
 

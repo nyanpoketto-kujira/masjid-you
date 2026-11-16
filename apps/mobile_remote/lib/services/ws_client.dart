@@ -153,6 +153,22 @@ class RemoteWsClient {
     sendPacket(const SyncPacket(action: SyncAction.finishShalat, payload: {}));
   }
 
+  /// Nyalakan/matikan mode senyap TV (dari Beranda).
+  void sendSetMuted(bool muted) {
+    sendPacket(SyncPacket(
+      action: SyncAction.setMuted,
+      payload: {'muted': muted},
+    ));
+  }
+
+  /// Nyalakan/matikan standby TV (layar hitam, dari Beranda).
+  void sendSetStandby(bool standby) {
+    sendPacket(SyncPacket(
+      action: SyncAction.setStandby,
+      payload: {'standby': standby},
+    ));
+  }
+
   /// Paksa TV masuk fase tertentu (dari Menu Tes).
   void sendForcePhase(PrayerPhase phase) {
     sendPacket(SyncPacket(

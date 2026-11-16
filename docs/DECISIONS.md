@@ -647,3 +647,25 @@ Dua batasan mengikat seluruh refaktor: (1) shape tetap standar M3 — shape Expr
 - Regresi dikunci 14 test baru: resolusi skema (dinamis/seed/fallback), kelengkapan tema komponen, round-trip preferensi, seksi Tampilan Aplikasi, dan penerapan preferensi tersimpan di level aplikasi. Total test mobile_remote 47 -> 61.
 
 ---
+
+---
+
+## ADR-023 — Fase 1 Refaktor UI: Navigasi Destinasi, Beranda & Kontrol Tampilan TV
+
+### Konteks
+Melanjutkan ADR-022 (keputusan D2–D5). Kondisi sebelum fase ini: seluruh menu Remote adalah satu `TabBarView` 6 halaman yang bisa di-swipe menembus destinasi menu bawah (disinkronkan dua `TabController` + guard), hanya ada 3 destinasi (Pengaturan, Konten, Tes), status koneksi berupa badge popup hijau hard-code di AppBar, ikon navigasi beranimasi custom (`PlayfulNavIcon`), dan feedback tekan spring custom (`M3Pressable`) tersebar di 33 titik.
+
+### Keputusan
+1. **Navigasi destinasi tanpa swipe** (D2): menu bawah menjadi 4 destinasi — Beranda, Konten, Pengaturan, Tes — ditampilkan dengan `IndexedStack` (state tiap destinasi awet, tidak ada gestur tembus antar destinasi, sesuai panduan M3). `TabController` tunggal yang tersisa hanya menggerakkan 4 sub-tab **di dalam** Konten (swipe di dalam Konten tetap boleh). Seluruh mekanisme sinkronisasi dua controller dihapus.
+2. **Strip status koneksi + bottom sheet** (D3): badge AppBar diganti strip tonal `secondaryContainer` di bawah AppBar ("Terhubung ke TV via …" + ikon status senyap/standby) yang membuka bottom sheet berisi jalur koneksi, fase TV, status suara/layar, dan tombol "Putuskan Koneksi". Warna hijau hard-code `0xFF1B5E20` hilang.
+3. **Beranda baru** (D5) di `lib/screens/home/home_tab.dart`: kartu status TV (jalur + fase), jam aktif per detik + tanggal Indonesia, hitung mundur sholat berikutnya (dari `PrayerSchedule.calculate`, termasuk Subuh besok), Aksi Cepat setinggi 56dp (Senyap, Standby, Sinkron), dan ringkasan kas (saldo/pemasukan/pengeluaran memakai `KasStatCard`).
+4. **Kontrol tampilan TV end-to-end**: aksi protokol baru `SyncAction.setMuted` (`{'muted': bool}`) dan `SyncAction.setStandby` (`{'standby': bool}`). TV menyimpan statusnya di `TvStore` (`tv_muted`/`tv_standby`, terpisah dari data resmi — tidak menandai `tv_hasData`), menampilkannya (standby = overlay hitam penuh di bawah menu admin; senyap = ikon `volume_off` kecil di pojok layar), dan melaporkannya kembali lewat `stateUpdate` (`muted`, `standby`) agar Remote selalu sinkron. Remote menerapkan status dari `stateUpdate` hanya bila kunci tersedia (TV lama tetap kompatibel). Catatan: TV saat ini tidak memiliki output audio — mode senyap mengatur status & indikator kanal beep protokol (`triggerBeep`), bukan pemutar suara.
+5. **Buang widget custom** (D4): `M3Pressable` (33 pemakaian) dan `PlayfulNavIcon` dihapus dari `mobile_remote`; tombol memakai feedback InkWell standar M3 dan `NavigationDestination` memakai pasangan `icon`/`selectedIcon` bawaan.
+
+### Konsekuensi
+- Beranda menjadi layar pertama setelah terhubung; Pengaturan tidak lagi menjadi halaman pembuka.
+- Protokol sync bertambah dua aksi aditif — Remote lama mengabaikan `stateUpdate.muted/standby`, TV lama tidak mengirimnya; tidak ada perubahan breaking.
+- State destinasi tidak lagi hilang saat berpindah menu (IndexedStack), dengan biaya semua destinasi ter-mount selama terhubung.
+- Regresi dikunci test baru: Beranda (render status/jam/kas, tombol 56dp, callback, helper jadwal & format), `TvStore` status tampilan (default, round-trip, tidak menandai data resmi), dan round-trip aksi protokol baru lewat loop `SyncAction.values` yang sudah ada. Total: mobile_remote 68, tv_display 67, shared_models 70.
+
+---

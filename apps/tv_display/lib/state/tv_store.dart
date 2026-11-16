@@ -17,6 +17,8 @@ class TvStore {
   static const String kasKey = 'tv_kas';
   static const String sideImagesKey = 'tv_sideImages';
   static const String hasDataKey = 'tv_hasData';
+  static const String mutedKey = 'tv_muted';
+  static const String standbyKey = 'tv_standby';
 
   /// Muat data tersimpan. `null` = TV belum pernah diisi.
   Future<StateSnapshot?> load() async {
@@ -65,6 +67,34 @@ class TvStore {
 
   Future<void> saveSideImages(List<SpecialImage> images) =>
       _save(sideImagesKey, [for (final i in images) i.toMap()]);
+
+  /// Status kontrol tampilan dari Remote (senyap & standby). Disimpan
+  /// sebagai bool terpisah dan TIDAK menandai `tv_hasData` — ini preferensi
+  /// perangkat, bukan data resmi DKM.
+  Future<({bool muted, bool standby})> loadDisplayState() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return (
+        muted: prefs.getBool(mutedKey) ?? false,
+        standby: prefs.getBool(standbyKey) ?? false,
+      );
+    } catch (_) {
+      return (muted: false, standby: false);
+    }
+  }
+
+  Future<void> saveMuted(bool muted) => _saveBool(mutedKey, muted);
+
+  Future<void> saveStandby(bool standby) => _saveBool(standbyKey, standby);
+
+  Future<void> _saveBool(String key, bool value) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(key, value);
+    } catch (_) {
+      // Plugin tidak tersedia (mis. test) -> perubahan hanya di memori.
+    }
+  }
 
   Future<void> _save(String key, Object value) async {
     try {

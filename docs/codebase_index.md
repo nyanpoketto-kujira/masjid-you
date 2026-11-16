@@ -2,284 +2,312 @@
 
 > Dibuat otomatis oleh `dart run tools/codebase_index.dart`. Jangan edit manual — regenerate setelah perubahan kode.
 
-Total simbol: **923**
+Total simbol: **932**
 
 | Kategori | Jumlah |
 |---|---:|
-| `class` | 96 |
-| `field` | 437 |
+| `class` | 94 |
+| `field` | 442 |
 | `method` | 319 |
-| `function` | 10 |
+| `getter` | 39 |
+| `function` | 15 |
 | `typedef` | 1 |
 | `enum` | 9 |
-| `getter` | 38 |
 | `operator` | 11 |
 | `extension` | 2 |
 
 
 ### `apps/mobile_remote/lib/main.dart`
-- `class` **RemoteHomeScreen** — baris 38 — `class RemoteHomeScreen extends StatefulWidget {`
-- `field` **themeMode (RemoteHomeScreen)** — baris 48 — `  final ThemeMode themeMode;`
-- `field` **colorSource (RemoteHomeScreen)** — baris 49 — `  final AppColorSource colorSource;`
-- `field` **onThemeModeChanged (RemoteHomeScreen)** — baris 50 — `  final ValueChanged<ThemeMode>? onThemeModeChanged;`
-- `field` **onColorSourceChanged (RemoteHomeScreen)** — baris 51 — `  final ValueChanged<AppColorSource>? onColorSourceChanged;`
-- `method` **createState (RemoteHomeScreen)** — baris 54 — `  State<RemoteHomeScreen> createState() => _RemoteHomeScreenState();`
-- `class` **_PinDialog** — baris 76 — `class _PinDialog extends StatefulWidget {`
-- `field` **onSubmit (_PinDialog)** — baris 77 — `  final ValueChanged<String> onSubmit;`
-- `field` **onCancel (_PinDialog)** — baris 78 — `  final VoidCallback onCancel;`
-- `method` **createState (_PinDialog)** — baris 83 — `  State<_PinDialog> createState() => _PinDialogState();`
-- `class` **_PinDialogState** — baris 86 — `class _PinDialogState extends State<_PinDialog> {`
-- `field` **_pinController (_PinDialogState)** — baris 87 — `  final _pinController = TextEditingController();`
-- `method` **dispose (_PinDialogState)** — baris 90 — `  void dispose() {`
-- `method` **_submit (_PinDialogState)** — baris 95 — `  void _submit() {`
-- `method` **build (_PinDialogState)** — baris 102 — `  Widget build(BuildContext context) {`
-- `class` **_RemoteHomeScreenState** — baris 152 — `class _RemoteHomeScreenState extends State<RemoteHomeScreen>`
+- `class` **RemoteHomeScreen** — baris 37 — `class RemoteHomeScreen extends StatefulWidget {`
+- `field` **themeMode (RemoteHomeScreen)** — baris 47 — `  final ThemeMode themeMode;`
+- `field` **colorSource (RemoteHomeScreen)** — baris 48 — `  final AppColorSource colorSource;`
+- `field` **onThemeModeChanged (RemoteHomeScreen)** — baris 49 — `  final ValueChanged<ThemeMode>? onThemeModeChanged;`
+- `field` **onColorSourceChanged (RemoteHomeScreen)** — baris 50 — `  final ValueChanged<AppColorSource>? onColorSourceChanged;`
+- `method` **createState (RemoteHomeScreen)** — baris 53 — `  State<RemoteHomeScreen> createState() => _RemoteHomeScreenState();`
+- `class` **_PinDialog** — baris 75 — `class _PinDialog extends StatefulWidget {`
+- `field` **onSubmit (_PinDialog)** — baris 76 — `  final ValueChanged<String> onSubmit;`
+- `field` **onCancel (_PinDialog)** — baris 77 — `  final VoidCallback onCancel;`
+- `method` **createState (_PinDialog)** — baris 82 — `  State<_PinDialog> createState() => _PinDialogState();`
+- `class` **_PinDialogState** — baris 85 — `class _PinDialogState extends State<_PinDialog> {`
+- `field` **_pinController (_PinDialogState)** — baris 86 — `  final _pinController = TextEditingController();`
+- `method` **dispose (_PinDialogState)** — baris 89 — `  void dispose() {`
+- `method` **_submit (_PinDialogState)** — baris 94 — `  void _submit() {`
+- `method` **build (_PinDialogState)** — baris 101 — `  Widget build(BuildContext context) {`
+- `class` **_RemoteHomeScreenState** — baris 151 — `class _RemoteHomeScreenState extends State<RemoteHomeScreen>`
 - `field` **_tabIndex (_RemoteHomeScreenState)** — baris 154 — `  int _tabIndex = 0;`
-- `field` **_mainTabController (_RemoteHomeScreenState)** — baris 156 — `  late final TabController _mainTabController;`
 - `field` **_subTabController (_RemoteHomeScreenState)** — baris 157 — `  late final TabController _subTabController;`
-- `field` **_syncingControllers (_RemoteHomeScreenState)** — baris 158 — `  bool _syncingControllers = false;`
-- `field` **_ipController (_RemoteHomeScreenState)** — baris 160 — `  final _ipController = TextEditingController(text: '192.168.1.');`
-- `field` **_client (_RemoteHomeScreenState)** — baris 161 — `  final _client = RemoteWsClient();`
-- `field` **_btClient (_RemoteHomeScreenState)** — baris 162 — `  final _btClient = BluetoothClientService();`
-- `field` **_isConnecting (_RemoteHomeScreenState)** — baris 163 — `  bool _isConnecting = false;`
-- `field` **_isConnected (_RemoteHomeScreenState)** — baris 164 — `  bool _isConnected = false;`
-- `field` **_wasConnected (_RemoteHomeScreenState)** — baris 165 — `  bool _wasConnected = false;`
-- `field` **_showDisconnectedNotice (_RemoteHomeScreenState)** — baris 166 — `  bool _showDisconnectedNotice = false;`
-- `field` **_syncDialogOpen (_RemoteHomeScreenState)** — baris 167 — `  bool _syncDialogOpen = false;`
-- `field` **_lastConnectionKind (_RemoteHomeScreenState)** — baris 168 — `  String? _lastConnectionKind;`
-- `field` **_lastBtDevice (_RemoteHomeScreenState)** — baris 169 — `  BluetoothDeviceInfo? _lastBtDevice;`
-- `field` **_btIsScanning (_RemoteHomeScreenState)** — baris 172 — `  bool _btIsScanning = false;`
-- `field` **_btConnected (_RemoteHomeScreenState)** — baris 173 — `  bool _btConnected = false;`
-- `field` **_btDevices (_RemoteHomeScreenState)** — baris 174 — `  List<BluetoothDeviceInfo> _btDevices = [];`
-- `field` **_btStatus (_RemoteHomeScreenState)** — baris 175 — `  String _btStatus = 'Bluetooth: Stanby';`
-- `field` **_btStateSub (_RemoteHomeScreenState)** — baris 176 — `  StreamSubscription<BluetoothClientState>? _btStateSub;`
-- `field` **_hasUnsyncedChanges (_RemoteHomeScreenState)** — baris 178 — `  bool _hasUnsyncedChanges = false;`
-- `field` **_pinDialogOpen (_RemoteHomeScreenState)** — baris 181 — `  bool _pinDialogOpen = false;`
-- `field` **_pendingBtState (_RemoteHomeScreenState)** — baris 185 — `  BluetoothClientState? _pendingBtState;`
-- `field` **_cacheStore (_RemoteHomeScreenState)** — baris 188 — `  final RemoteCacheStore _cacheStore = RemoteCacheStore();`
-- `field` **_backupService (_RemoteHomeScreenState)** — baris 191 — `  final BackupService _backupService = BackupService();`
-- `field` **_didBootstrapPush (_RemoteHomeScreenState)** — baris 195 — `  bool _didBootstrapPush = false;`
-- `field` **_config (_RemoteHomeScreenState)** — baris 197 — `  MosqueConfig _config = const MosqueConfig(`
-- `field` **_nameController (_RemoteHomeScreenState)** — baris 204 — `  final _nameController = TextEditingController();`
-- `field` **_addressController (_RemoteHomeScreenState)** — baris 205 — `  final _addressController = TextEditingController();`
-- `field` **_latitudeController (_RemoteHomeScreenState)** — baris 206 — `  final _latitudeController = TextEditingController();`
-- `field` **_longitudeController (_RemoteHomeScreenState)** — baris 207 — `  final _longitudeController = TextEditingController();`
-- `field` **_prayerOffsetControllers (_RemoteHomeScreenState)** — baris 208 — `  final Map<PrayerType, TextEditingController> _prayerOffsetControllers = {`
-- `field` **_preAdhanController (_RemoteHomeScreenState)** — baris 211 — `  final _preAdhanController = TextEditingController();`
-- `field` **_adhanController (_RemoteHomeScreenState)** — baris 212 — `  final _adhanController = TextEditingController();`
-- `field` **_preIqomahController (_RemoteHomeScreenState)** — baris 213 — `  final _preIqomahController = TextEditingController();`
-- `field` **_shalatController (_RemoteHomeScreenState)** — baris 214 — `  final _shalatController = TextEditingController();`
-- `field` **_khutbahController (_RemoteHomeScreenState)** — baris 215 — `  final _khutbahController = TextEditingController();`
-- `field` **_fridayKhatibController (_RemoteHomeScreenState)** — baris 216 — `  final _fridayKhatibController = TextEditingController();`
-- `field` **_fridayMuadzinController (_RemoteHomeScreenState)** — baris 217 — `  final _fridayMuadzinController = TextEditingController();`
-- `field` **_showKas (_RemoteHomeScreenState)** — baris 221 — `  bool _showKas = true;`
-- `field` **_hasFridayPrayer (_RemoteHomeScreenState)** — baris 222 — `  bool _hasFridayPrayer = true;`
-- `field` **_isFetchingLocation (_RemoteHomeScreenState)** — baris 223 — `  bool _isFetchingLocation = false;`
-- `field` **_runningTextController (_RemoteHomeScreenState)** — baris 224 — `  final _runningTextController = TextEditingController();`
-- `field` **_runningCategory (_RemoteHomeScreenState)** — baris 225 — `  String _runningCategory = _runningCategories.first;`
-- `field` **_bannerHeaderController (_RemoteHomeScreenState)** — baris 227 — `  final _bannerHeaderController = TextEditingController();`
-- `field` **_bannerTitleController (_RemoteHomeScreenState)** — baris 228 — `  final _bannerTitleController = TextEditingController();`
-- `field` **_bannerContentController (_RemoteHomeScreenState)** — baris 229 — `  final _bannerContentController = TextEditingController();`
-- `field` **_bannerFooterController (_RemoteHomeScreenState)** — baris 230 — `  final _bannerFooterController = TextEditingController();`
-- `field` **_kasAmountController (_RemoteHomeScreenState)** — baris 232 — `  final _kasAmountController = TextEditingController();`
-- `field` **_kasDescriptionController (_RemoteHomeScreenState)** — baris 233 — `  final _kasDescriptionController = TextEditingController();`
-- `field` **_kasType (_RemoteHomeScreenState)** — baris 234 — `  KasType _kasType = KasType.masuk;`
-- `field` **_tvPhase (_RemoteHomeScreenState)** — baris 237 — `  PrayerPhase _tvPhase = PrayerPhase.normal;`
-- `field` **_kasTransactions (_RemoteHomeScreenState)** — baris 239 — `  final List<KasTransaction> _kasTransactions = [`
-- `field` **_runningTexts (_RemoteHomeScreenState)** — baris 256 — `  final List<RunningTextMessage> _runningTexts = [`
-- `field` **_banners (_RemoteHomeScreenState)** — baris 271 — `  final List<MediaBanner> _banners = [`
-- `field` **_sideImages (_RemoteHomeScreenState)** — baris 289 — `  final List<SpecialImage> _sideImages = [];`
-- `method` **initState (_RemoteHomeScreenState)** — baris 292 — `  void initState() {`
-- `method` **didChangeAppLifecycleState (_RemoteHomeScreenState)** — baris 378 — `  void didChangeAppLifecycleState(AppLifecycleState state) {`
-- `method` **_bottomNavIndexForPage (_RemoteHomeScreenState)** — baris 401 — `  int _bottomNavIndexForPage(int page) {`
-- `method` **_mainPageForBottomNav (_RemoteHomeScreenState)** — baris 407 — `  int _mainPageForBottomNav(int bottom, int currentSub) {`
-- `method` **_handleMainTabChange (_RemoteHomeScreenState)** — baris 418 — `  void _handleMainTabChange() {`
-- `method` **_handleSubTabChange (_RemoteHomeScreenState)** — baris 433 — `  void _handleSubTabChange() {`
-- `method` **_syncConfigControllers (_RemoteHomeScreenState)** — baris 443 — `  void _syncConfigControllers() {`
-- `method` **_loadStartupData (_RemoteHomeScreenState)** — baris 466 — `  Future<void> _loadStartupData() async {`
-- `method` **_applySnapshot (_RemoteHomeScreenState)** — baris 478 — `  void _applySnapshot(StateSnapshot snapshot) {`
-- `method` **_requestTvState (_RemoteHomeScreenState)** — baris 496 — `  void _requestTvState() {`
-- `method` **_showPinDialog (_RemoteHomeScreenState)** — baris 525 — `  void _showPinDialog() {`
-- `method` **_closePinDialog (_RemoteHomeScreenState)** — baris 561 — `  void _closePinDialog() {`
-- `method` **_drainPendingBtState (_RemoteHomeScreenState)** — baris 569 — `  void _drainPendingBtState() {`
-- `method` **_loadSavedDurations (_RemoteHomeScreenState)** — baris 610 — `  Future<void> _loadSavedDurations() async {`
-- `method` **_persistDurations (_RemoteHomeScreenState)** — baris 654 — `  Future<void> _persistDurations(MosqueConfig config) async {`
-- `method` **_handleTvPacket (_RemoteHomeScreenState)** — baris 673 — `  void _handleTvPacket(SyncPacket packet) {`
-- `method` **_applyTvPhase (_RemoteHomeScreenState)** — baris 687 — `  void _applyTvPhase(SyncPacket packet) {`
-- `method` **_applyTvSnapshot (_RemoteHomeScreenState)** — baris 705 — `  void _applyTvSnapshot(StateSnapshot snapshot) {`
-- `method` **_pushLocalDataToTv (_RemoteHomeScreenState)** — baris 724 — `  void _pushLocalDataToTv() {`
-- `method` **_exportBackup (_RemoteHomeScreenState)** — baris 733 — `  Future<void> _exportBackup() async {`
-- `method` **_importBackup (_RemoteHomeScreenState)** — baris 755 — `  Future<void> _importBackup() async {`
-- `method` **_applyImportedBackup (_RemoteHomeScreenState)** — baris 810 — `  Future<void> _applyImportedBackup(BackupBundle bundle) async {`
-- `method` **_connectToTv (_RemoteHomeScreenState)** — baris 834 — `  Future<void> _connectToTv() async {`
-- `method` **_handleConnectionEstablished (_RemoteHomeScreenState)** — baris 865 — `  void _handleConnectionEstablished(String kind) {`
-- `method` **_handleTransportDisconnected (_RemoteHomeScreenState)** — baris 884 — `  void _handleTransportDisconnected() {`
-- `method` **_reconnectLast (_RemoteHomeScreenState)** — baris 893 — `  Future<void> _reconnectLast() async {`
-- `method` **_showSyncConflictDialog (_RemoteHomeScreenState)** — baris 907 — `  void _showSyncConflictDialog() {`
-- `method` **_disconnectFromTv (_RemoteHomeScreenState)** — baris 947 — `  Future<void> _disconnectFromTv() async {`
-- `method` **_buildConfigFromForm (_RemoteHomeScreenState)** — baris 959 — `  MosqueConfig _buildConfigFromForm() {`
-- `method` **_minutesFrom (_RemoteHomeScreenState)** — baris 994 — `  int _minutesFrom(TextEditingController controller, int fallback) {`
-- `method` **_syncAllToTv (_RemoteHomeScreenState)** — baris 1000 — `  void _syncAllToTv() {`
-- `method` **_pushAllToTv (_RemoteHomeScreenState)** — baris 1011 — `  void _pushAllToTv() {`
-- `method` **_sendConfigUpdate (_RemoteHomeScreenState)** — baris 1024 — `  void _sendConfigUpdate() {`
-- `method` **_sendQuickAction (_RemoteHomeScreenState)** — baris 1044 — `  void _sendQuickAction(SyncAction action) {`
-- `method` **_sendForcePhase (_RemoteHomeScreenState)** — baris 1064 — `  void _sendForcePhase(PrayerPhase phase) {`
-- `method` **_getLocationFromGps (_RemoteHomeScreenState)** — baris 1072 — `  Future<void> _getLocationFromGps() async {`
-- `method` **_addRunningText (_RemoteHomeScreenState)** — baris 1131 — `  void _addRunningText() {`
-- `method` **_removeRunningText (_RemoteHomeScreenState)** — baris 1153 — `  void _removeRunningText(String id) {`
-- `method` **_editRunningText (_RemoteHomeScreenState)** — baris 1166 — `  void _editRunningText(RunningTextMessage item) {`
-- `method` **_addBanner (_RemoteHomeScreenState)** — baris 1249 — `  void _addBanner(String? base64Image) {`
-- `method` **_removeBanner (_RemoteHomeScreenState)** — baris 1280 — `  void _removeBanner(String id) {`
-- `method` **_toggleBanner (_RemoteHomeScreenState)** — baris 1293 — `  void _toggleBanner(String id, bool val) {`
-- `method` **_sendSideImagesIfConnected (_RemoteHomeScreenState)** — baris 1312 — `  void _sendSideImagesIfConnected() {`
-- `method` **_addSideImage (_RemoteHomeScreenState)** — baris 1321 — `  void _addSideImage(String caption, String base64Image) {`
-- `method` **_removeSideImage (_RemoteHomeScreenState)** — baris 1334 — `  void _removeSideImage(String id) {`
-- `method` **_toggleSideImage (_RemoteHomeScreenState)** — baris 1342 — `  void _toggleSideImage(String id, bool val) {`
-- `method` **_moveSideImage (_RemoteHomeScreenState)** — baris 1353 — `  void _moveSideImage(String id, int delta) {`
-- `method` **_editBanner (_RemoteHomeScreenState)** — baris 1366 — `  void _editBanner(MediaBanner banner) {`
-- `method` **_addKasTransaction (_RemoteHomeScreenState)** — baris 1444 — `  void _addKasTransaction() {`
-- `method` **_removeKasTransaction (_RemoteHomeScreenState)** — baris 1471 — `  void _removeKasTransaction(String id) {`
-- `method` **_startBtScan (_RemoteHomeScreenState)** — baris 1484 — `  void _startBtScan() {`
-- `method` **_stopBtScan (_RemoteHomeScreenState)** — baris 1492 — `  void _stopBtScan() {`
-- `method` **_connectBt (_RemoteHomeScreenState)** — baris 1500 — `  void _connectBt(BluetoothDeviceInfo device) {`
-- `method` **_showScheduleSimulation (_RemoteHomeScreenState)** — baris 1510 — `  void _showScheduleSimulation(MosqueConfig formConfig) {`
-- `method` **_formatDurationShort (_RemoteHomeScreenState)** — baris 1666 — `  String _formatDurationShort(Duration? duration) {`
-- `method` **dispose (_RemoteHomeScreenState)** — baris 1674 — `  void dispose() {`
-- `method` **build (_RemoteHomeScreenState)** — baris 1709 — `  Widget build(BuildContext context) {`
-- `method` **_buildConnectionBadge (_RemoteHomeScreenState)** — baris 1922 — `  Widget _buildConnectionBadge(ColorScheme colorScheme) {`
-- `method` **_buildDisconnectedBanner (_RemoteHomeScreenState)** — baris 1971 — `  Widget _buildDisconnectedBanner(ThemeData theme, ColorScheme colorScheme) {`
-- `method` **_buildContentTabBar (_RemoteHomeScreenState)** — baris 2000 — `  Widget _buildContentTabBar(ThemeData theme, ColorScheme colorScheme) {`
-- `method` **_buildUnsyncedBanner (_RemoteHomeScreenState)** — baris 2027 — `  Widget _buildUnsyncedBanner(ThemeData theme, ColorScheme colorScheme) {`
-- `class` **MasjidYouRemoteApp** — baris 2057 — `class MasjidYouRemoteApp extends StatefulWidget {`
-- `method` **createState (MasjidYouRemoteApp)** — baris 2061 — `  State<MasjidYouRemoteApp> createState() => _MasjidYouRemoteAppState();`
-- `class` **_MasjidYouRemoteAppState** — baris 2064 — `class _MasjidYouRemoteAppState extends State<MasjidYouRemoteApp> {`
-- `field` **_themeMode (_MasjidYouRemoteAppState)** — baris 2065 — `  ThemeMode _themeMode = ThemeMode.system;`
-- `field` **_colorSource (_MasjidYouRemoteAppState)** — baris 2066 — `  AppColorSource _colorSource = AppColorSource.dynamic;`
-- `method` **initState (_MasjidYouRemoteAppState)** — baris 2069 — `  void initState() {`
-- `method` **_loadThemePreferences (_MasjidYouRemoteAppState)** — baris 2074 — `  Future<void> _loadThemePreferences() async {`
-- `method` **_setThemeMode (_MasjidYouRemoteAppState)** — baris 2084 — `  Future<void> _setThemeMode(ThemeMode mode) async {`
-- `method` **_setColorSource (_MasjidYouRemoteAppState)** — baris 2089 — `  Future<void> _setColorSource(AppColorSource source) async {`
-- `method` **build (_MasjidYouRemoteAppState)** — baris 2095 — `  Widget build(BuildContext context) {`
-- `function` **main** — baris 2131 — `void main() {`
+- `field` **_tvMuted (_RemoteHomeScreenState)** — baris 161 — `  bool _tvMuted = false;`
+- `field` **_tvStandby (_RemoteHomeScreenState)** — baris 162 — `  bool _tvStandby = false;`
+- `field` **_ipController (_RemoteHomeScreenState)** — baris 164 — `  final _ipController = TextEditingController(text: '192.168.1.');`
+- `field` **_client (_RemoteHomeScreenState)** — baris 165 — `  final _client = RemoteWsClient();`
+- `field` **_btClient (_RemoteHomeScreenState)** — baris 166 — `  final _btClient = BluetoothClientService();`
+- `field` **_isConnecting (_RemoteHomeScreenState)** — baris 167 — `  bool _isConnecting = false;`
+- `field` **_isConnected (_RemoteHomeScreenState)** — baris 168 — `  bool _isConnected = false;`
+- `field` **_wasConnected (_RemoteHomeScreenState)** — baris 169 — `  bool _wasConnected = false;`
+- `field` **_showDisconnectedNotice (_RemoteHomeScreenState)** — baris 170 — `  bool _showDisconnectedNotice = false;`
+- `field` **_syncDialogOpen (_RemoteHomeScreenState)** — baris 171 — `  bool _syncDialogOpen = false;`
+- `field` **_lastConnectionKind (_RemoteHomeScreenState)** — baris 172 — `  String? _lastConnectionKind;`
+- `field` **_lastBtDevice (_RemoteHomeScreenState)** — baris 173 — `  BluetoothDeviceInfo? _lastBtDevice;`
+- `field` **_btIsScanning (_RemoteHomeScreenState)** — baris 176 — `  bool _btIsScanning = false;`
+- `field` **_btConnected (_RemoteHomeScreenState)** — baris 177 — `  bool _btConnected = false;`
+- `field` **_btDevices (_RemoteHomeScreenState)** — baris 178 — `  List<BluetoothDeviceInfo> _btDevices = [];`
+- `field` **_btStatus (_RemoteHomeScreenState)** — baris 179 — `  String _btStatus = 'Bluetooth: Stanby';`
+- `field` **_btStateSub (_RemoteHomeScreenState)** — baris 180 — `  StreamSubscription<BluetoothClientState>? _btStateSub;`
+- `field` **_hasUnsyncedChanges (_RemoteHomeScreenState)** — baris 182 — `  bool _hasUnsyncedChanges = false;`
+- `field` **_pinDialogOpen (_RemoteHomeScreenState)** — baris 185 — `  bool _pinDialogOpen = false;`
+- `field` **_pendingBtState (_RemoteHomeScreenState)** — baris 189 — `  BluetoothClientState? _pendingBtState;`
+- `field` **_cacheStore (_RemoteHomeScreenState)** — baris 192 — `  final RemoteCacheStore _cacheStore = RemoteCacheStore();`
+- `field` **_backupService (_RemoteHomeScreenState)** — baris 195 — `  final BackupService _backupService = BackupService();`
+- `field` **_didBootstrapPush (_RemoteHomeScreenState)** — baris 199 — `  bool _didBootstrapPush = false;`
+- `field` **_config (_RemoteHomeScreenState)** — baris 201 — `  MosqueConfig _config = const MosqueConfig(`
+- `field` **_nameController (_RemoteHomeScreenState)** — baris 208 — `  final _nameController = TextEditingController();`
+- `field` **_addressController (_RemoteHomeScreenState)** — baris 209 — `  final _addressController = TextEditingController();`
+- `field` **_latitudeController (_RemoteHomeScreenState)** — baris 210 — `  final _latitudeController = TextEditingController();`
+- `field` **_longitudeController (_RemoteHomeScreenState)** — baris 211 — `  final _longitudeController = TextEditingController();`
+- `field` **_prayerOffsetControllers (_RemoteHomeScreenState)** — baris 212 — `  final Map<PrayerType, TextEditingController> _prayerOffsetControllers = {`
+- `field` **_preAdhanController (_RemoteHomeScreenState)** — baris 215 — `  final _preAdhanController = TextEditingController();`
+- `field` **_adhanController (_RemoteHomeScreenState)** — baris 216 — `  final _adhanController = TextEditingController();`
+- `field` **_preIqomahController (_RemoteHomeScreenState)** — baris 217 — `  final _preIqomahController = TextEditingController();`
+- `field` **_shalatController (_RemoteHomeScreenState)** — baris 218 — `  final _shalatController = TextEditingController();`
+- `field` **_khutbahController (_RemoteHomeScreenState)** — baris 219 — `  final _khutbahController = TextEditingController();`
+- `field` **_fridayKhatibController (_RemoteHomeScreenState)** — baris 220 — `  final _fridayKhatibController = TextEditingController();`
+- `field` **_fridayMuadzinController (_RemoteHomeScreenState)** — baris 221 — `  final _fridayMuadzinController = TextEditingController();`
+- `field` **_showKas (_RemoteHomeScreenState)** — baris 225 — `  bool _showKas = true;`
+- `field` **_hasFridayPrayer (_RemoteHomeScreenState)** — baris 226 — `  bool _hasFridayPrayer = true;`
+- `field` **_isFetchingLocation (_RemoteHomeScreenState)** — baris 227 — `  bool _isFetchingLocation = false;`
+- `field` **_runningTextController (_RemoteHomeScreenState)** — baris 228 — `  final _runningTextController = TextEditingController();`
+- `field` **_runningCategory (_RemoteHomeScreenState)** — baris 229 — `  String _runningCategory = _runningCategories.first;`
+- `field` **_bannerHeaderController (_RemoteHomeScreenState)** — baris 231 — `  final _bannerHeaderController = TextEditingController();`
+- `field` **_bannerTitleController (_RemoteHomeScreenState)** — baris 232 — `  final _bannerTitleController = TextEditingController();`
+- `field` **_bannerContentController (_RemoteHomeScreenState)** — baris 233 — `  final _bannerContentController = TextEditingController();`
+- `field` **_bannerFooterController (_RemoteHomeScreenState)** — baris 234 — `  final _bannerFooterController = TextEditingController();`
+- `field` **_kasAmountController (_RemoteHomeScreenState)** — baris 236 — `  final _kasAmountController = TextEditingController();`
+- `field` **_kasDescriptionController (_RemoteHomeScreenState)** — baris 237 — `  final _kasDescriptionController = TextEditingController();`
+- `field` **_kasType (_RemoteHomeScreenState)** — baris 238 — `  KasType _kasType = KasType.masuk;`
+- `field` **_tvPhase (_RemoteHomeScreenState)** — baris 241 — `  PrayerPhase _tvPhase = PrayerPhase.normal;`
+- `field` **_kasTransactions (_RemoteHomeScreenState)** — baris 243 — `  final List<KasTransaction> _kasTransactions = [`
+- `field` **_runningTexts (_RemoteHomeScreenState)** — baris 260 — `  final List<RunningTextMessage> _runningTexts = [`
+- `field` **_banners (_RemoteHomeScreenState)** — baris 275 — `  final List<MediaBanner> _banners = [`
+- `field` **_sideImages (_RemoteHomeScreenState)** — baris 293 — `  final List<SpecialImage> _sideImages = [];`
+- `method` **initState (_RemoteHomeScreenState)** — baris 296 — `  void initState() {`
+- `method` **didChangeAppLifecycleState (_RemoteHomeScreenState)** — baris 381 — `  void didChangeAppLifecycleState(AppLifecycleState state) {`
+- `method` **_syncConfigControllers (_RemoteHomeScreenState)** — baris 401 — `  void _syncConfigControllers() {`
+- `method` **_loadStartupData (_RemoteHomeScreenState)** — baris 424 — `  Future<void> _loadStartupData() async {`
+- `method` **_applySnapshot (_RemoteHomeScreenState)** — baris 436 — `  void _applySnapshot(StateSnapshot snapshot) {`
+- `method` **_requestTvState (_RemoteHomeScreenState)** — baris 454 — `  void _requestTvState() {`
+- `method` **_showPinDialog (_RemoteHomeScreenState)** — baris 483 — `  void _showPinDialog() {`
+- `method` **_closePinDialog (_RemoteHomeScreenState)** — baris 519 — `  void _closePinDialog() {`
+- `method` **_drainPendingBtState (_RemoteHomeScreenState)** — baris 527 — `  void _drainPendingBtState() {`
+- `method` **_loadSavedDurations (_RemoteHomeScreenState)** — baris 568 — `  Future<void> _loadSavedDurations() async {`
+- `method` **_persistDurations (_RemoteHomeScreenState)** — baris 610 — `  Future<void> _persistDurations(MosqueConfig config) async {`
+- `method` **_handleTvPacket (_RemoteHomeScreenState)** — baris 629 — `  void _handleTvPacket(SyncPacket packet) {`
+- `method` **_applyTvPhase (_RemoteHomeScreenState)** — baris 645 — `  void _applyTvPhase(SyncPacket packet) {`
+- `method` **_applyTvSnapshot (_RemoteHomeScreenState)** — baris 664 — `  void _applyTvSnapshot(StateSnapshot snapshot) {`
+- `method` **_pushLocalDataToTv (_RemoteHomeScreenState)** — baris 683 — `  void _pushLocalDataToTv() {`
+- `method` **_exportBackup (_RemoteHomeScreenState)** — baris 692 — `  Future<void> _exportBackup() async {`
+- `method` **_importBackup (_RemoteHomeScreenState)** — baris 714 — `  Future<void> _importBackup() async {`
+- `method` **_applyImportedBackup (_RemoteHomeScreenState)** — baris 765 — `  Future<void> _applyImportedBackup(BackupBundle bundle) async {`
+- `method` **_connectToTv (_RemoteHomeScreenState)** — baris 789 — `  Future<void> _connectToTv() async {`
+- `method` **_handleConnectionEstablished (_RemoteHomeScreenState)** — baris 821 — `  void _handleConnectionEstablished(String kind) {`
+- `method` **_handleTransportDisconnected (_RemoteHomeScreenState)** — baris 840 — `  void _handleTransportDisconnected() {`
+- `method` **_reconnectLast (_RemoteHomeScreenState)** — baris 849 — `  Future<void> _reconnectLast() async {`
+- `method` **_showSyncConflictDialog (_RemoteHomeScreenState)** — baris 863 — `  void _showSyncConflictDialog() {`
+- `method` **_disconnectFromTv (_RemoteHomeScreenState)** — baris 903 — `  Future<void> _disconnectFromTv() async {`
+- `method` **_buildConfigFromForm (_RemoteHomeScreenState)** — baris 915 — `  MosqueConfig _buildConfigFromForm() {`
+- `method` **_minutesFrom (_RemoteHomeScreenState)** — baris 950 — `  int _minutesFrom(TextEditingController controller, int fallback) {`
+- `method` **_syncAllToTv (_RemoteHomeScreenState)** — baris 956 — `  void _syncAllToTv() {`
+- `method` **_pushAllToTv (_RemoteHomeScreenState)** — baris 967 — `  void _pushAllToTv() {`
+- `method` **_sendConfigUpdate (_RemoteHomeScreenState)** — baris 980 — `  void _sendConfigUpdate() {`
+- `method` **_totalKas (_RemoteHomeScreenState)** — baris 1000 — `  int _totalKas(KasType type) => _kasTransactions`
+- `method` **_toggleTvMuted (_RemoteHomeScreenState)** — baris 1006 — `  void _toggleTvMuted() {`
+- `method` **_toggleTvStandby (_RemoteHomeScreenState)** — baris 1018 — `  void _toggleTvStandby() {`
+- `method` **_sendQuickAction (_RemoteHomeScreenState)** — baris 1029 — `  void _sendQuickAction(SyncAction action) {`
+- `method` **_sendForcePhase (_RemoteHomeScreenState)** — baris 1049 — `  void _sendForcePhase(PrayerPhase phase) {`
+- `method` **_getLocationFromGps (_RemoteHomeScreenState)** — baris 1057 — `  Future<void> _getLocationFromGps() async {`
+- `method` **_addRunningText (_RemoteHomeScreenState)** — baris 1116 — `  void _addRunningText() {`
+- `method` **_removeRunningText (_RemoteHomeScreenState)** — baris 1138 — `  void _removeRunningText(String id) {`
+- `method` **_editRunningText (_RemoteHomeScreenState)** — baris 1151 — `  void _editRunningText(RunningTextMessage item) {`
+- `method` **_addBanner (_RemoteHomeScreenState)** — baris 1230 — `  void _addBanner(String? base64Image) {`
+- `method` **_removeBanner (_RemoteHomeScreenState)** — baris 1265 — `  void _removeBanner(String id) {`
+- `method` **_toggleBanner (_RemoteHomeScreenState)** — baris 1278 — `  void _toggleBanner(String id, bool val) {`
+- `method` **_sendSideImagesIfConnected (_RemoteHomeScreenState)** — baris 1297 — `  void _sendSideImagesIfConnected() {`
+- `method` **_addSideImage (_RemoteHomeScreenState)** — baris 1306 — `  void _addSideImage(String caption, String base64Image) {`
+- `method` **_removeSideImage (_RemoteHomeScreenState)** — baris 1319 — `  void _removeSideImage(String id) {`
+- `method` **_toggleSideImage (_RemoteHomeScreenState)** — baris 1327 — `  void _toggleSideImage(String id, bool val) {`
+- `method` **_moveSideImage (_RemoteHomeScreenState)** — baris 1338 — `  void _moveSideImage(String id, int delta) {`
+- `method` **_editBanner (_RemoteHomeScreenState)** — baris 1351 — `  void _editBanner(MediaBanner banner) {`
+- `method` **_addKasTransaction (_RemoteHomeScreenState)** — baris 1426 — `  void _addKasTransaction() {`
+- `method` **_removeKasTransaction (_RemoteHomeScreenState)** — baris 1453 — `  void _removeKasTransaction(String id) {`
+- `method` **_startBtScan (_RemoteHomeScreenState)** — baris 1466 — `  void _startBtScan() {`
+- `method` **_stopBtScan (_RemoteHomeScreenState)** — baris 1474 — `  void _stopBtScan() {`
+- `method` **_connectBt (_RemoteHomeScreenState)** — baris 1482 — `  void _connectBt(BluetoothDeviceInfo device) {`
+- `method` **_showScheduleSimulation (_RemoteHomeScreenState)** — baris 1492 — `  void _showScheduleSimulation(MosqueConfig formConfig) {`
+- `method` **_formatDurationShort (_RemoteHomeScreenState)** — baris 1637 — `  String _formatDurationShort(Duration? duration) {`
+- `method` **dispose (_RemoteHomeScreenState)** — baris 1645 — `  void dispose() {`
+- `method` **build (_RemoteHomeScreenState)** — baris 1679 — `  Widget build(BuildContext context) {`
+- `getter` **_transportLabel (_RemoteHomeScreenState)** — baris 1877 — `  String get _transportLabel =>`
+- `method` **_buildConnectionStatusStrip (_RemoteHomeScreenState)** — baris 1882 — `  Widget _buildConnectionStatusStrip(ThemeData theme, ColorScheme colorScheme) {`
+- `method` **_showConnectionSheet (_RemoteHomeScreenState)** — baris 1925 — `  void _showConnectionSheet() {`
+- `method` **_buildDisconnectedBanner (_RemoteHomeScreenState)** — baris 1999 — `  Widget _buildDisconnectedBanner(ThemeData theme, ColorScheme colorScheme) {`
+- `method` **_buildContentTabBar (_RemoteHomeScreenState)** — baris 2026 — `  Widget _buildContentTabBar(ThemeData theme, ColorScheme colorScheme) {`
+- `method` **_buildUnsyncedBanner (_RemoteHomeScreenState)** — baris 2053 — `  Widget _buildUnsyncedBanner(ThemeData theme, ColorScheme colorScheme) {`
+- `class` **MasjidYouRemoteApp** — baris 2081 — `class MasjidYouRemoteApp extends StatefulWidget {`
+- `method` **createState (MasjidYouRemoteApp)** — baris 2085 — `  State<MasjidYouRemoteApp> createState() => _MasjidYouRemoteAppState();`
+- `class` **_MasjidYouRemoteAppState** — baris 2088 — `class _MasjidYouRemoteAppState extends State<MasjidYouRemoteApp> {`
+- `field` **_themeMode (_MasjidYouRemoteAppState)** — baris 2089 — `  ThemeMode _themeMode = ThemeMode.system;`
+- `field` **_colorSource (_MasjidYouRemoteAppState)** — baris 2090 — `  AppColorSource _colorSource = AppColorSource.dynamic;`
+- `method` **initState (_MasjidYouRemoteAppState)** — baris 2093 — `  void initState() {`
+- `method` **_loadThemePreferences (_MasjidYouRemoteAppState)** — baris 2098 — `  Future<void> _loadThemePreferences() async {`
+- `method` **_setThemeMode (_MasjidYouRemoteAppState)** — baris 2108 — `  Future<void> _setThemeMode(ThemeMode mode) async {`
+- `method` **_setColorSource (_MasjidYouRemoteAppState)** — baris 2113 — `  Future<void> _setColorSource(AppColorSource source) async {`
+- `method` **build (_MasjidYouRemoteAppState)** — baris 2119 — `  Widget build(BuildContext context) {`
+- `function` **main** — baris 2155 — `void main() {`
 
 ### `apps/mobile_remote/lib/screens/connection/connection_gateway_screen.dart`
-- `class` **ConnectionGatewayScreen** — baris 6 — `class ConnectionGatewayScreen extends StatelessWidget {`
-- `field` **ipController (ConnectionGatewayScreen)** — baris 7 — `  final TextEditingController ipController;`
-- `field` **isConnecting (ConnectionGatewayScreen)** — baris 8 — `  final bool isConnecting;`
-- `field` **onConnectIp (ConnectionGatewayScreen)** — baris 9 — `  final VoidCallback onConnectIp;`
-- `field` **btIsScanning (ConnectionGatewayScreen)** — baris 11 — `  final bool btIsScanning;`
-- `field` **btDevices (ConnectionGatewayScreen)** — baris 12 — `  final List<BluetoothDeviceInfo> btDevices;`
-- `field` **btStatus (ConnectionGatewayScreen)** — baris 13 — `  final String btStatus;`
-- `field` **onBtStartScan (ConnectionGatewayScreen)** — baris 14 — `  final VoidCallback onBtStartScan;`
-- `field` **onBtStopScan (ConnectionGatewayScreen)** — baris 15 — `  final VoidCallback onBtStopScan;`
-- `field` **onBtConnect (ConnectionGatewayScreen)** — baris 16 — `  final ValueChanged<BluetoothDeviceInfo> onBtConnect;`
-- `method` **build (ConnectionGatewayScreen)** — baris 32 — `  Widget build(BuildContext context) {`
+- `class` **ConnectionGatewayScreen** — baris 4 — `class ConnectionGatewayScreen extends StatelessWidget {`
+- `field` **ipController (ConnectionGatewayScreen)** — baris 5 — `  final TextEditingController ipController;`
+- `field` **isConnecting (ConnectionGatewayScreen)** — baris 6 — `  final bool isConnecting;`
+- `field` **onConnectIp (ConnectionGatewayScreen)** — baris 7 — `  final VoidCallback onConnectIp;`
+- `field` **btIsScanning (ConnectionGatewayScreen)** — baris 9 — `  final bool btIsScanning;`
+- `field` **btDevices (ConnectionGatewayScreen)** — baris 10 — `  final List<BluetoothDeviceInfo> btDevices;`
+- `field` **btStatus (ConnectionGatewayScreen)** — baris 11 — `  final String btStatus;`
+- `field` **onBtStartScan (ConnectionGatewayScreen)** — baris 12 — `  final VoidCallback onBtStartScan;`
+- `field` **onBtStopScan (ConnectionGatewayScreen)** — baris 13 — `  final VoidCallback onBtStopScan;`
+- `field` **onBtConnect (ConnectionGatewayScreen)** — baris 14 — `  final ValueChanged<BluetoothDeviceInfo> onBtConnect;`
+- `method` **build (ConnectionGatewayScreen)** — baris 30 — `  Widget build(BuildContext context) {`
 
 ### `apps/mobile_remote/lib/screens/content/banners_subtab.dart`
-- `class` **BannersSubtab** — baris 9 — `class BannersSubtab extends StatefulWidget {`
-- `field` **banners (BannersSubtab)** — baris 10 — `  final List<MediaBanner> banners;`
-- `field` **headerController (BannersSubtab)** — baris 11 — `  final TextEditingController headerController;`
-- `field` **titleController (BannersSubtab)** — baris 12 — `  final TextEditingController titleController;`
-- `field` **contentController (BannersSubtab)** — baris 13 — `  final TextEditingController contentController;`
-- `field` **footerController (BannersSubtab)** — baris 14 — `  final TextEditingController footerController;`
-- `method` **createState (BannersSubtab)** — baris 34 — `  State<BannersSubtab> createState() => _BannersSubtabState();`
-- `class` **_BannersSubtabState** — baris 37 — `class _BannersSubtabState extends State<BannersSubtab> {`
-- `field` **_selectedBase64Image (_BannersSubtabState)** — baris 38 — `  String? _selectedBase64Image;`
-- `field` **_imagePreviewFile (_BannersSubtabState)** — baris 39 — `  File? _imagePreviewFile;`
-- `field` **_picker (_BannersSubtabState)** — baris 40 — `  final ImagePicker _picker = ImagePicker();`
-- `method` **_pickImage (_BannersSubtabState)** — baris 42 — `  Future<void> _pickImage() async {`
-- `method` **_clearImage (_BannersSubtabState)** — baris 62 — `  void _clearImage() {`
-- `method` **build (_BannersSubtabState)** — baris 70 — `  Widget build(BuildContext context) {`
-- `class` **_BannerThumbnail** — baris 262 — `class _BannerThumbnail extends StatefulWidget {`
-- `field` **base64Image (_BannerThumbnail)** — baris 263 — `  final String base64Image;`
-- `method` **createState (_BannerThumbnail)** — baris 268 — `  State<_BannerThumbnail> createState() => _BannerThumbnailState();`
-- `class` **_BannerThumbnailState** — baris 271 — `class _BannerThumbnailState extends State<_BannerThumbnail> {`
-- `field` **_cachedImageBytes (_BannerThumbnailState)** — baris 272 — `  late Uint8List _cachedImageBytes;`
-- `method` **initState (_BannerThumbnailState)** — baris 275 — `  void initState() {`
-- `method` **didUpdateWidget (_BannerThumbnailState)** — baris 281 — `  void didUpdateWidget(covariant _BannerThumbnail oldWidget) {`
-- `method` **build (_BannerThumbnailState)** — baris 289 — `  Widget build(BuildContext context) {`
+- `class` **BannersSubtab** — baris 8 — `class BannersSubtab extends StatefulWidget {`
+- `field` **banners (BannersSubtab)** — baris 9 — `  final List<MediaBanner> banners;`
+- `field` **headerController (BannersSubtab)** — baris 10 — `  final TextEditingController headerController;`
+- `field` **titleController (BannersSubtab)** — baris 11 — `  final TextEditingController titleController;`
+- `field` **contentController (BannersSubtab)** — baris 12 — `  final TextEditingController contentController;`
+- `field` **footerController (BannersSubtab)** — baris 13 — `  final TextEditingController footerController;`
+- `method` **createState (BannersSubtab)** — baris 33 — `  State<BannersSubtab> createState() => _BannersSubtabState();`
+- `class` **_BannersSubtabState** — baris 36 — `class _BannersSubtabState extends State<BannersSubtab> {`
+- `field` **_selectedBase64Image (_BannersSubtabState)** — baris 37 — `  String? _selectedBase64Image;`
+- `field` **_imagePreviewFile (_BannersSubtabState)** — baris 38 — `  File? _imagePreviewFile;`
+- `field` **_picker (_BannersSubtabState)** — baris 39 — `  final ImagePicker _picker = ImagePicker();`
+- `method` **_pickImage (_BannersSubtabState)** — baris 41 — `  Future<void> _pickImage() async {`
+- `method` **_clearImage (_BannersSubtabState)** — baris 61 — `  void _clearImage() {`
+- `method` **build (_BannersSubtabState)** — baris 69 — `  Widget build(BuildContext context) {`
+- `class` **_BannerThumbnail** — baris 266 — `class _BannerThumbnail extends StatefulWidget {`
+- `field` **base64Image (_BannerThumbnail)** — baris 267 — `  final String base64Image;`
+- `method` **createState (_BannerThumbnail)** — baris 272 — `  State<_BannerThumbnail> createState() => _BannerThumbnailState();`
+- `class` **_BannerThumbnailState** — baris 275 — `class _BannerThumbnailState extends State<_BannerThumbnail> {`
+- `field` **_cachedImageBytes (_BannerThumbnailState)** — baris 276 — `  late Uint8List _cachedImageBytes;`
+- `method` **initState (_BannerThumbnailState)** — baris 279 — `  void initState() {`
+- `method` **didUpdateWidget (_BannerThumbnailState)** — baris 285 — `  void didUpdateWidget(covariant _BannerThumbnail oldWidget) {`
+- `method` **build (_BannerThumbnailState)** — baris 293 — `  Widget build(BuildContext context) {`
 
 ### `apps/mobile_remote/lib/screens/content/kas_subtab.dart`
-- `class` **KasSubtab** — baris 8 — `class KasSubtab extends StatelessWidget {`
-- `field` **transactions (KasSubtab)** — baris 9 — `  final List<KasTransaction> transactions;`
-- `field` **amountController (KasSubtab)** — baris 10 — `  final TextEditingController amountController;`
-- `field` **descriptionController (KasSubtab)** — baris 11 — `  final TextEditingController descriptionController;`
-- `field` **kasType (KasSubtab)** — baris 12 — `  final KasType kasType;`
-- `field` **onAddTransaction (KasSubtab)** — baris 14 — `  final VoidCallback onAddTransaction;`
-- `method` **build (KasSubtab)** — baris 29 — `  Widget build(BuildContext context) {`
+- `class` **KasSubtab** — baris 7 — `class KasSubtab extends StatelessWidget {`
+- `field` **transactions (KasSubtab)** — baris 8 — `  final List<KasTransaction> transactions;`
+- `field` **amountController (KasSubtab)** — baris 9 — `  final TextEditingController amountController;`
+- `field` **descriptionController (KasSubtab)** — baris 10 — `  final TextEditingController descriptionController;`
+- `field` **kasType (KasSubtab)** — baris 11 — `  final KasType kasType;`
+- `field` **onAddTransaction (KasSubtab)** — baris 13 — `  final VoidCallback onAddTransaction;`
+- `method` **build (KasSubtab)** — baris 28 — `  Widget build(BuildContext context) {`
 
 ### `apps/mobile_remote/lib/screens/content/running_text_subtab.dart`
-- `class` **RunningTextSubtab** — baris 5 — `class RunningTextSubtab extends StatelessWidget {`
-- `field` **runningTexts (RunningTextSubtab)** — baris 6 — `  final List<RunningTextMessage> runningTexts;`
-- `field` **runningTextController (RunningTextSubtab)** — baris 7 — `  final TextEditingController runningTextController;`
-- `field` **selectedCategory (RunningTextSubtab)** — baris 8 — `  final String selectedCategory;`
-- `field` **categories (RunningTextSubtab)** — baris 9 — `  final List<String> categories;`
-- `field` **onAddMessage (RunningTextSubtab)** — baris 11 — `  final VoidCallback onAddMessage;`
-- `method` **build (RunningTextSubtab)** — baris 28 — `  Widget build(BuildContext context) {`
+- `class` **RunningTextSubtab** — baris 4 — `class RunningTextSubtab extends StatelessWidget {`
+- `field` **runningTexts (RunningTextSubtab)** — baris 5 — `  final List<RunningTextMessage> runningTexts;`
+- `field` **runningTextController (RunningTextSubtab)** — baris 6 — `  final TextEditingController runningTextController;`
+- `field` **selectedCategory (RunningTextSubtab)** — baris 7 — `  final String selectedCategory;`
+- `field` **categories (RunningTextSubtab)** — baris 8 — `  final List<String> categories;`
+- `field` **onAddMessage (RunningTextSubtab)** — baris 10 — `  final VoidCallback onAddMessage;`
+- `method` **build (RunningTextSubtab)** — baris 27 — `  Widget build(BuildContext context) {`
 
 ### `apps/mobile_remote/lib/screens/content/special_images_subtab.dart`
-- `class` **SpecialImagesSubtab** — baris 16 — `class SpecialImagesSubtab extends StatefulWidget {`
-- `field` **images (SpecialImagesSubtab)** — baris 17 — `  final List<SpecialImage> images;`
-- `method` **createState (SpecialImagesSubtab)** — baris 35 — `  State<SpecialImagesSubtab> createState() => _SpecialImagesSubtabState();`
-- `class` **_SpecialImagesSubtabState** — baris 38 — `class _SpecialImagesSubtabState extends State<SpecialImagesSubtab> {`
-- `field` **_captionController (_SpecialImagesSubtabState)** — baris 39 — `  final _captionController = TextEditingController();`
-- `field` **_selectedBase64Image (_SpecialImagesSubtabState)** — baris 40 — `  String? _selectedBase64Image;`
-- `field` **_imagePreviewFile (_SpecialImagesSubtabState)** — baris 41 — `  File? _imagePreviewFile;`
-- `field` **_picker (_SpecialImagesSubtabState)** — baris 42 — `  final ImagePicker _picker = ImagePicker();`
-- `method` **dispose (_SpecialImagesSubtabState)** — baris 45 — `  void dispose() {`
-- `method` **_pickImage (_SpecialImagesSubtabState)** — baris 50 — `  Future<void> _pickImage() async {`
-- `method` **_clearImage (_SpecialImagesSubtabState)** — baris 70 — `  void _clearImage() {`
-- `method` **_submit (_SpecialImagesSubtabState)** — baris 77 — `  void _submit() {`
-- `method` **build (_SpecialImagesSubtabState)** — baris 86 — `  Widget build(BuildContext context) {`
-- `class` **_SpecialImageThumbnail** — baris 278 — `class _SpecialImageThumbnail extends StatefulWidget {`
-- `field` **base64Image (_SpecialImageThumbnail)** — baris 279 — `  final String base64Image;`
-- `method` **createState (_SpecialImageThumbnail)** — baris 284 — `  State<_SpecialImageThumbnail> createState() => _SpecialImageThumbnailState();`
-- `class` **_SpecialImageThumbnailState** — baris 287 — `class _SpecialImageThumbnailState extends State<_SpecialImageThumbnail> {`
-- `field` **_cachedImageBytes (_SpecialImageThumbnailState)** — baris 288 — `  Uint8List? _cachedImageBytes;`
-- `method` **initState (_SpecialImageThumbnailState)** — baris 291 — `  void initState() {`
-- `method` **didUpdateWidget (_SpecialImageThumbnailState)** — baris 297 — `  void didUpdateWidget(covariant _SpecialImageThumbnail oldWidget) {`
-- `method` **_decode (_SpecialImageThumbnailState)** — baris 304 — `  void _decode() {`
-- `method` **build (_SpecialImageThumbnailState)** — baris 313 — `  Widget build(BuildContext context) {`
+- `class` **SpecialImagesSubtab** — baris 15 — `class SpecialImagesSubtab extends StatefulWidget {`
+- `field` **images (SpecialImagesSubtab)** — baris 16 — `  final List<SpecialImage> images;`
+- `method` **createState (SpecialImagesSubtab)** — baris 34 — `  State<SpecialImagesSubtab> createState() => _SpecialImagesSubtabState();`
+- `class` **_SpecialImagesSubtabState** — baris 37 — `class _SpecialImagesSubtabState extends State<SpecialImagesSubtab> {`
+- `field` **_captionController (_SpecialImagesSubtabState)** — baris 38 — `  final _captionController = TextEditingController();`
+- `field` **_selectedBase64Image (_SpecialImagesSubtabState)** — baris 39 — `  String? _selectedBase64Image;`
+- `field` **_imagePreviewFile (_SpecialImagesSubtabState)** — baris 40 — `  File? _imagePreviewFile;`
+- `field` **_picker (_SpecialImagesSubtabState)** — baris 41 — `  final ImagePicker _picker = ImagePicker();`
+- `method` **dispose (_SpecialImagesSubtabState)** — baris 44 — `  void dispose() {`
+- `method` **_pickImage (_SpecialImagesSubtabState)** — baris 49 — `  Future<void> _pickImage() async {`
+- `method` **_clearImage (_SpecialImagesSubtabState)** — baris 69 — `  void _clearImage() {`
+- `method` **_submit (_SpecialImagesSubtabState)** — baris 76 — `  void _submit() {`
+- `method` **build (_SpecialImagesSubtabState)** — baris 85 — `  Widget build(BuildContext context) {`
+- `class` **_SpecialImageThumbnail** — baris 269 — `class _SpecialImageThumbnail extends StatefulWidget {`
+- `field` **base64Image (_SpecialImageThumbnail)** — baris 270 — `  final String base64Image;`
+- `method` **createState (_SpecialImageThumbnail)** — baris 275 — `  State<_SpecialImageThumbnail> createState() => _SpecialImageThumbnailState();`
+- `class` **_SpecialImageThumbnailState** — baris 278 — `class _SpecialImageThumbnailState extends State<_SpecialImageThumbnail> {`
+- `field` **_cachedImageBytes (_SpecialImageThumbnailState)** — baris 279 — `  Uint8List? _cachedImageBytes;`
+- `method` **initState (_SpecialImageThumbnailState)** — baris 282 — `  void initState() {`
+- `method` **didUpdateWidget (_SpecialImageThumbnailState)** — baris 288 — `  void didUpdateWidget(covariant _SpecialImageThumbnail oldWidget) {`
+- `method` **_decode (_SpecialImageThumbnailState)** — baris 295 — `  void _decode() {`
+- `method` **build (_SpecialImageThumbnailState)** — baris 304 — `  Widget build(BuildContext context) {`
+
+### `apps/mobile_remote/lib/screens/home/home_tab.dart`
+- `function` **tvPhaseLabel** — baris 10 — `String tvPhaseLabel(PrayerPhase phase) => switch (phase) {`
+- `function` **formatTanggalId** — baris 46 — `String formatTanggalId(DateTime date) =>`
+- `function` **_dua** — baris 49 — `String _dua(int n) => n.toString().padLeft(2, '0');`
+- `function` **formatJam** — baris 52 — `String formatJam(DateTime time) =>`
+- `function` **formatHitungMundur** — baris 56 — `String formatHitungMundur(Duration duration) {`
+- `class` **HomeTab** — baris 77 — `class HomeTab extends StatefulWidget {`
+- `field` **mosqueName (HomeTab)** — baris 93 — `  final String mosqueName;`
+- `field` **transportLabel (HomeTab)** — baris 94 — `  final String transportLabel;`
+- `field` **tvPhase (HomeTab)** — baris 95 — `  final PrayerPhase tvPhase;`
+- `field` **tvMuted (HomeTab)** — baris 96 — `  final bool tvMuted;`
+- `field` **tvStandby (HomeTab)** — baris 97 — `  final bool tvStandby;`
+- `field` **config (HomeTab)** — baris 98 — `  final MosqueConfig config;`
+- `field` **totalKasMasuk (HomeTab)** — baris 99 — `  final int totalKasMasuk;`
+- `field` **totalKasKeluar (HomeTab)** — baris 100 — `  final int totalKasKeluar;`
+- `field` **onToggleMuted (HomeTab)** — baris 101 — `  final VoidCallback onToggleMuted;`
+- `field` **onToggleStandby (HomeTab)** — baris 102 — `  final VoidCallback onToggleStandby;`
+- `field` **onSyncNow (HomeTab)** — baris 103 — `  final VoidCallback onSyncNow;`
+- `method` **createState (HomeTab)** — baris 106 — `  State<HomeTab> createState() => _HomeTabState();`
+- `class` **_HomeTabState** — baris 109 — `class _HomeTabState extends State<HomeTab> {`
+- `field` **_now (_HomeTabState)** — baris 110 — `  late DateTime _now;`
+- `field` **_ticker (_HomeTabState)** — baris 111 — `  Timer? _ticker;`
+- `method` **initState (_HomeTabState)** — baris 115 — `  void initState() {`
+- `method` **didUpdateWidget (_HomeTabState)** — baris 131 — `  void didUpdateWidget(HomeTab oldWidget) {`
+- `method` **dispose (_HomeTabState)** — baris 139 — `  void dispose() {`
+- `method` **build (_HomeTabState)** — baris 145 — `  Widget build(BuildContext context) {`
 
 ### `apps/mobile_remote/lib/screens/settings/settings_tab.dart`
-- `class` **SettingsTab** — baris 7 — `class SettingsTab extends StatelessWidget {`
-- `field` **config (SettingsTab)** — baris 8 — `  final MosqueConfig config;`
-- `field` **nameController (SettingsTab)** — baris 9 — `  final TextEditingController nameController;`
-- `field` **addressController (SettingsTab)** — baris 10 — `  final TextEditingController addressController;`
-- `field` **latitudeController (SettingsTab)** — baris 11 — `  final TextEditingController latitudeController;`
-- `field` **longitudeController (SettingsTab)** — baris 12 — `  final TextEditingController longitudeController;`
-- `field` **prayerOffsetControllers (SettingsTab)** — baris 13 — `  final Map<PrayerType, TextEditingController> prayerOffsetControllers;`
-- `field` **preAdhanController (SettingsTab)** — baris 14 — `  final TextEditingController preAdhanController;`
-- `field` **adhanController (SettingsTab)** — baris 15 — `  final TextEditingController adhanController;`
-- `field` **preIqomahController (SettingsTab)** — baris 16 — `  final TextEditingController preIqomahController;`
-- `field` **shalatController (SettingsTab)** — baris 17 — `  final TextEditingController shalatController;`
-- `field` **khutbahController (SettingsTab)** — baris 18 — `  final TextEditingController khutbahController;`
-- `field` **fridayKhatibController (SettingsTab)** — baris 19 — `  final TextEditingController fridayKhatibController;`
-- `field` **fridayMuadzinController (SettingsTab)** — baris 20 — `  final TextEditingController fridayMuadzinController;`
-- `field` **showKas (SettingsTab)** — baris 23 — `  final bool showKas;`
-- `field` **hasFridayPrayer (SettingsTab)** — baris 26 — `  final bool hasFridayPrayer;`
-- `field` **onShowKasChanged (SettingsTab)** — baris 27 — `  final ValueChanged<bool> onShowKasChanged;`
-- `field` **onHasFridayPrayerChanged (SettingsTab)** — baris 28 — `  final ValueChanged<bool> onHasFridayPrayerChanged;`
-- `field` **isFetchingLocation (SettingsTab)** — baris 29 — `  final bool isFetchingLocation;`
-- `field` **isConnected (SettingsTab)** — baris 30 — `  final bool isConnected;`
-- `field` **tvPhase (SettingsTab)** — baris 31 — `  final PrayerPhase tvPhase;`
-- `field` **onFetchLocation (SettingsTab)** — baris 32 — `  final VoidRefCallback onFetchLocation;`
-- `field` **onSaveConfig (SettingsTab)** — baris 33 — `  final VoidRefCallback onSaveConfig;`
-- `field` **onExportBackup (SettingsTab)** — baris 36 — `  final VoidRefCallback onExportBackup;`
-- `field` **onImportBackup (SettingsTab)** — baris 37 — `  final VoidRefCallback onImportBackup;`
-- `field` **themeMode (SettingsTab)** — baris 40 — `  final ThemeMode themeMode;`
-- `field` **colorSource (SettingsTab)** — baris 41 — `  final AppColorSource colorSource;`
-- `field` **onThemeModeChanged (SettingsTab)** — baris 42 — `  final ValueChanged<ThemeMode>? onThemeModeChanged;`
-- `field` **onColorSourceChanged (SettingsTab)** — baris 43 — `  final ValueChanged<AppColorSource>? onColorSourceChanged;`
-- `method` **build (SettingsTab)** — baris 80 — `  Widget build(BuildContext context) {`
-- `method` **_buildQuickActionsCard (SettingsTab)** — baris 457 — `  Widget _buildQuickActionsCard(ThemeData theme, ColorScheme colorScheme) {`
-- `typedef` **VoidRefCallback** — baris 528 — `typedef VoidRefCallback = void Function();`
+- `class` **SettingsTab** — baris 6 — `class SettingsTab extends StatelessWidget {`
+- `field` **config (SettingsTab)** — baris 7 — `  final MosqueConfig config;`
+- `field` **nameController (SettingsTab)** — baris 8 — `  final TextEditingController nameController;`
+- `field` **addressController (SettingsTab)** — baris 9 — `  final TextEditingController addressController;`
+- `field` **latitudeController (SettingsTab)** — baris 10 — `  final TextEditingController latitudeController;`
+- `field` **longitudeController (SettingsTab)** — baris 11 — `  final TextEditingController longitudeController;`
+- `field` **prayerOffsetControllers (SettingsTab)** — baris 12 — `  final Map<PrayerType, TextEditingController> prayerOffsetControllers;`
+- `field` **preAdhanController (SettingsTab)** — baris 13 — `  final TextEditingController preAdhanController;`
+- `field` **adhanController (SettingsTab)** — baris 14 — `  final TextEditingController adhanController;`
+- `field` **preIqomahController (SettingsTab)** — baris 15 — `  final TextEditingController preIqomahController;`
+- `field` **shalatController (SettingsTab)** — baris 16 — `  final TextEditingController shalatController;`
+- `field` **khutbahController (SettingsTab)** — baris 17 — `  final TextEditingController khutbahController;`
+- `field` **fridayKhatibController (SettingsTab)** — baris 18 — `  final TextEditingController fridayKhatibController;`
+- `field` **fridayMuadzinController (SettingsTab)** — baris 19 — `  final TextEditingController fridayMuadzinController;`
+- `field` **showKas (SettingsTab)** — baris 22 — `  final bool showKas;`
+- `field` **hasFridayPrayer (SettingsTab)** — baris 25 — `  final bool hasFridayPrayer;`
+- `field` **onShowKasChanged (SettingsTab)** — baris 26 — `  final ValueChanged<bool> onShowKasChanged;`
+- `field` **onHasFridayPrayerChanged (SettingsTab)** — baris 27 — `  final ValueChanged<bool> onHasFridayPrayerChanged;`
+- `field` **isFetchingLocation (SettingsTab)** — baris 28 — `  final bool isFetchingLocation;`
+- `field` **isConnected (SettingsTab)** — baris 29 — `  final bool isConnected;`
+- `field` **tvPhase (SettingsTab)** — baris 30 — `  final PrayerPhase tvPhase;`
+- `field` **onFetchLocation (SettingsTab)** — baris 31 — `  final VoidRefCallback onFetchLocation;`
+- `field` **onSaveConfig (SettingsTab)** — baris 32 — `  final VoidRefCallback onSaveConfig;`
+- `field` **onExportBackup (SettingsTab)** — baris 35 — `  final VoidRefCallback onExportBackup;`
+- `field` **onImportBackup (SettingsTab)** — baris 36 — `  final VoidRefCallback onImportBackup;`
+- `field` **themeMode (SettingsTab)** — baris 39 — `  final ThemeMode themeMode;`
+- `field` **colorSource (SettingsTab)** — baris 40 — `  final AppColorSource colorSource;`
+- `field` **onThemeModeChanged (SettingsTab)** — baris 41 — `  final ValueChanged<ThemeMode>? onThemeModeChanged;`
+- `field` **onColorSourceChanged (SettingsTab)** — baris 42 — `  final ValueChanged<AppColorSource>? onColorSourceChanged;`
+- `method` **build (SettingsTab)** — baris 79 — `  Widget build(BuildContext context) {`
+- `method` **_buildQuickActionsCard (SettingsTab)** — baris 461 — `  Widget _buildQuickActionsCard(ThemeData theme, ColorScheme colorScheme) {`
+- `typedef` **VoidRefCallback** — baris 529 — `typedef VoidRefCallback = void Function();`
 
 ### `apps/mobile_remote/lib/screens/simulation/simulation_tab.dart`
-- `class` **SimulationTab** — baris 5 — `class SimulationTab extends StatelessWidget {`
-- `field` **isConnected (SimulationTab)** — baris 6 — `  final bool isConnected;`
-- `field` **tvPhase (SimulationTab)** — baris 7 — `  final PrayerPhase tvPhase;`
-- `method` **build (SimulationTab)** — baris 18 — `  Widget build(BuildContext context) {`
+- `class` **SimulationTab** — baris 4 — `class SimulationTab extends StatelessWidget {`
+- `field` **isConnected (SimulationTab)** — baris 5 — `  final bool isConnected;`
+- `field` **tvPhase (SimulationTab)** — baris 6 — `  final PrayerPhase tvPhase;`
+- `method` **build (SimulationTab)** — baris 17 — `  Widget build(BuildContext context) {`
 
 ### `apps/mobile_remote/lib/services/backup_service.dart`
 - `class` **BackupImportResult** — baris 12 — `class BackupImportResult {`
@@ -367,8 +395,10 @@ Total simbol: **923**
 - `method` **sendStartShalat (RemoteWsClient)** — baris 142 — `  void sendStartShalat() {`
 - `method` **sendStartIqomah (RemoteWsClient)** — baris 147 — `  void sendStartIqomah() {`
 - `method` **sendFinishShalat (RemoteWsClient)** — baris 152 — `  void sendFinishShalat() {`
-- `method` **sendForcePhase (RemoteWsClient)** — baris 157 — `  void sendForcePhase(PrayerPhase phase) {`
-- `method` **disconnect (RemoteWsClient)** — baris 164 — `  void disconnect() {`
+- `method` **sendSetMuted (RemoteWsClient)** — baris 157 — `  void sendSetMuted(bool muted) {`
+- `method` **sendSetStandby (RemoteWsClient)** — baris 165 — `  void sendSetStandby(bool standby) {`
+- `method` **sendForcePhase (RemoteWsClient)** — baris 173 — `  void sendForcePhase(PrayerPhase phase) {`
+- `method` **disconnect (RemoteWsClient)** — baris 180 — `  void disconnect() {`
 
 ### `apps/mobile_remote/lib/theme/remote_theme.dart`
 - `function` **masjidSeedScheme** — baris 9 — `ColorScheme masjidSeedScheme(Brightness brightness) {`
@@ -392,36 +422,6 @@ Total simbol: **923**
 - `field` **color (KasStatCard)** — baris 7 — `  final Color color;`
 - `method` **build (KasStatCard)** — baris 18 — `  Widget build(BuildContext context) {`
 
-### `apps/mobile_remote/lib/widgets/m3_pressable.dart`
-- `class` **M3Pressable** — baris 9 — `class M3Pressable extends StatefulWidget {`
-- `field` **child (M3Pressable)** — baris 16 — `  final Widget child;`
-- `field` **pressedScale (M3Pressable)** — baris 17 — `  final double pressedScale;`
-- `method` **createState (M3Pressable)** — baris 20 — `  State<M3Pressable> createState() => _M3PressableState();`
-- `class` **_M3PressableState** — baris 23 — `class _M3PressableState extends State<M3Pressable>`
-- `field` **_spring (_M3PressableState)** — baris 25 — `  static const SpringDescription _spring = SpringDescription(`
-- `field` **_controller (_M3PressableState)** — baris 31 — `  late final AnimationController _controller = AnimationController(`
-- `method` **dispose (_M3PressableState)** — baris 37 — `  void dispose() {`
-- `method` **_pressDown (_M3PressableState)** — baris 42 — `  void _pressDown() {`
-- `method` **_springBack (_M3PressableState)** — baris 50 — `  void _springBack() {`
-- `method` **build (_M3PressableState)** — baris 57 — `  Widget build(BuildContext context) {`
-
-### `apps/mobile_remote/lib/widgets/playful_nav_icon.dart`
-- `class` **PlayfulNavIcon** — baris 5 — `class PlayfulNavIcon extends StatefulWidget {`
-- `field` **unselectedIcon (PlayfulNavIcon)** — baris 6 — `  final IconData unselectedIcon;`
-- `field` **selectedIcon (PlayfulNavIcon)** — baris 7 — `  final IconData selectedIcon;`
-- `field` **isSelected (PlayfulNavIcon)** — baris 8 — `  final bool isSelected;`
-- `field` **shouldRotate (PlayfulNavIcon)** — baris 9 — `  final bool shouldRotate;`
-- `method` **createState (PlayfulNavIcon)** — baris 20 — `  State<PlayfulNavIcon> createState() => _PlayfulNavIconState();`
-- `class` **_PlayfulNavIconState** — baris 23 — `class _PlayfulNavIconState extends State<PlayfulNavIcon>`
-- `field` **_controller (_PlayfulNavIconState)** — baris 25 — `  late final AnimationController _controller;`
-- `field` **_scale (_PlayfulNavIconState)** — baris 26 — `  late final Animation<double> _scale;`
-- `field` **_jump (_PlayfulNavIconState)** — baris 27 — `  late final Animation<Offset> _jump;`
-- `field` **_rotate (_PlayfulNavIconState)** — baris 28 — `  late final Animation<double> _rotate;`
-- `method` **initState (_PlayfulNavIconState)** — baris 31 — `  void initState() {`
-- `method` **didUpdateWidget (_PlayfulNavIconState)** — baris 86 — `  void didUpdateWidget(PlayfulNavIcon oldWidget) {`
-- `method` **dispose (_PlayfulNavIconState)** — baris 97 — `  void dispose() {`
-- `method` **build (_PlayfulNavIconState)** — baris 103 — `  Widget build(BuildContext context) {`
-
 ### `apps/tv_display/lib/main.dart`
 - `function` **main** — baris 23 — `void main() async {`
 - `class` **MasjidYouTVApp** — baris 39 — `class MasjidYouTVApp extends StatelessWidget {`
@@ -434,32 +434,34 @@ Total simbol: **923**
 - `field` **_now (_MasjidDisplayScreenState)** — baris 71 — `  DateTime _now = DateTime.now();`
 - `field` **_clockTimer (_MasjidDisplayScreenState)** — baris 72 — `  Timer? _clockTimer;`
 - `field` **_localServer (_MasjidDisplayScreenState)** — baris 73 — `  LocalServer? _localServer;`
-- `field` **_btHost (_MasjidDisplayScreenState)** — baris 75 — `  BluetoothHostService? _btHost;`
-- `field` **_btState (_MasjidDisplayScreenState)** — baris 76 — `  BluetoothHostState? _btState;`
-- `field` **_btEnabled (_MasjidDisplayScreenState)** — baris 80 — `  bool _btEnabled = false;`
-- `field` **_showAdminMenu (_MasjidDisplayScreenState)** — baris 83 — `  bool _showAdminMenu = false;`
-- `field` **_config (_MasjidDisplayScreenState)** — baris 85 — `  MosqueConfig _config = const MosqueConfig(`
-- `field` **_prayerStateMachine (_MasjidDisplayScreenState)** — baris 92 — `  final PrayerStateMachine _prayerStateMachine = PrayerStateMachine();`
-- `field` **_sideImages (_MasjidDisplayScreenState)** — baris 95 — `  List<SpecialImage> _sideImages = const [];`
-- `field` **_runningTexts (_MasjidDisplayScreenState)** — baris 97 — `  List<RunningTextMessage> _runningTexts = const [`
-- `field` **_banners (_MasjidDisplayScreenState)** — baris 112 — `  List<MediaBanner> _banners = const [`
-- `field` **_kasTransactions (_MasjidDisplayScreenState)** — baris 129 — `  List<KasTransaction> _kasTransactions = [`
-- `field` **_prayerSchedule (_MasjidDisplayScreenState)** — baris 153 — `  late PrayerSchedule _prayerSchedule;`
-- `field` **_store (_MasjidDisplayScreenState)** — baris 156 — `  final TvStore _store = TvStore();`
-- `field` **_hasStoredData (_MasjidDisplayScreenState)** — baris 160 — `  bool _hasStoredData = false;`
-- `method` **initState (_MasjidDisplayScreenState)** — baris 163 — `  void initState() {`
-- `method` **_initFromStore (_MasjidDisplayScreenState)** — baris 189 — `  Future<void> _initFromStore() async {`
-- `method` **_recalculateSchedule (_MasjidDisplayScreenState)** — baris 217 — `  void _recalculateSchedule() {`
-- `method` **_initLocalServer (_MasjidDisplayScreenState)** — baris 221 — `  Future<void> _initLocalServer() async {`
-- `method` **_handleSyncPacket (_MasjidDisplayScreenState)** — baris 234 — `  void _handleSyncPacket(SyncPacket packet) {`
-- `field` **_btStateSub (_MasjidDisplayScreenState)** — baris 338 — `  StreamSubscription<BluetoothHostState>? _btStateSub;`
-- `method` **_initBluetoothHost (_MasjidDisplayScreenState)** — baris 340 — `  Future<void> _initBluetoothHost() async {`
-- `method` **_toggleBluetooth (_MasjidDisplayScreenState)** — baris 371 — `  Future<void> _toggleBluetooth(bool enable) async {`
-- `method` **_broadcastSnapshot (_MasjidDisplayScreenState)** — baris 400 — `  void _broadcastSnapshot() {`
-- `method` **_broadcastState (_MasjidDisplayScreenState)** — baris 417 — `  void _broadcastState() {`
-- `method` **_onStateMachineChanged (_MasjidDisplayScreenState)** — baris 431 — `  void _onStateMachineChanged() {`
-- `method` **dispose (_MasjidDisplayScreenState)** — baris 437 — `  void dispose() {`
-- `method` **build (_MasjidDisplayScreenState)** — baris 449 — `  Widget build(BuildContext context) {`
+- `field` **_btHost (_MasjidDisplayScreenState)** — baris 76 — `  BluetoothHostService? _btHost;`
+- `field` **_btState (_MasjidDisplayScreenState)** — baris 77 — `  BluetoothHostState? _btState;`
+- `field` **_btEnabled (_MasjidDisplayScreenState)** — baris 81 — `  bool _btEnabled = false;`
+- `field` **_showAdminMenu (_MasjidDisplayScreenState)** — baris 84 — `  bool _showAdminMenu = false;`
+- `field` **_config (_MasjidDisplayScreenState)** — baris 86 — `  MosqueConfig _config = const MosqueConfig(`
+- `field` **_prayerStateMachine (_MasjidDisplayScreenState)** — baris 93 — `  final PrayerStateMachine _prayerStateMachine = PrayerStateMachine();`
+- `field` **_sideImages (_MasjidDisplayScreenState)** — baris 96 — `  List<SpecialImage> _sideImages = const [];`
+- `field` **_runningTexts (_MasjidDisplayScreenState)** — baris 98 — `  List<RunningTextMessage> _runningTexts = const [`
+- `field` **_banners (_MasjidDisplayScreenState)** — baris 113 — `  List<MediaBanner> _banners = const [`
+- `field` **_kasTransactions (_MasjidDisplayScreenState)** — baris 130 — `  List<KasTransaction> _kasTransactions = [`
+- `field` **_prayerSchedule (_MasjidDisplayScreenState)** — baris 154 — `  late PrayerSchedule _prayerSchedule;`
+- `field` **_store (_MasjidDisplayScreenState)** — baris 157 — `  final TvStore _store = TvStore();`
+- `field` **_hasStoredData (_MasjidDisplayScreenState)** — baris 161 — `  bool _hasStoredData = false;`
+- `field` **_muted (_MasjidDisplayScreenState)** — baris 165 — `  bool _muted = false;`
+- `field` **_standby (_MasjidDisplayScreenState)** — baris 166 — `  bool _standby = false;`
+- `method` **initState (_MasjidDisplayScreenState)** — baris 169 — `  void initState() {`
+- `method` **_initFromStore (_MasjidDisplayScreenState)** — baris 195 — `  Future<void> _initFromStore() async {`
+- `method` **_recalculateSchedule (_MasjidDisplayScreenState)** — baris 231 — `  void _recalculateSchedule() {`
+- `method` **_initLocalServer (_MasjidDisplayScreenState)** — baris 235 — `  Future<void> _initLocalServer() async {`
+- `method` **_handleSyncPacket (_MasjidDisplayScreenState)** — baris 248 — `  void _handleSyncPacket(SyncPacket packet) {`
+- `field` **_btStateSub (_MasjidDisplayScreenState)** — baris 359 — `  StreamSubscription<BluetoothHostState>? _btStateSub;`
+- `method` **_initBluetoothHost (_MasjidDisplayScreenState)** — baris 361 — `  Future<void> _initBluetoothHost() async {`
+- `method` **_toggleBluetooth (_MasjidDisplayScreenState)** — baris 392 — `  Future<void> _toggleBluetooth(bool enable) async {`
+- `method` **_broadcastSnapshot (_MasjidDisplayScreenState)** — baris 421 — `  void _broadcastSnapshot() {`
+- `method` **_broadcastState (_MasjidDisplayScreenState)** — baris 438 — `  void _broadcastState() {`
+- `method` **_onStateMachineChanged (_MasjidDisplayScreenState)** — baris 454 — `  void _onStateMachineChanged() {`
+- `method` **dispose (_MasjidDisplayScreenState)** — baris 460 — `  void dispose() {`
+- `method` **build (_MasjidDisplayScreenState)** — baris 472 — `  Widget build(BuildContext context) {`
 
 ### `apps/tv_display/lib/server/bluetooth_host_service.dart`
 - `enum` **BluetoothHostStatus** — baris 10 — `enum BluetoothHostStatus {`
@@ -500,23 +502,23 @@ Total simbol: **923**
 - `method` **_requestPermission (BluetoothHostService)** — baris 164 — `  Future<bool> _requestPermission() async {`
 - `method` **_makeDiscoverable (BluetoothHostService)** — baris 181 — `  Future<bool> _makeDiscoverable() async {`
 - `method` **_fail (BluetoothHostService)** — baris 217 — `  void _fail(String message) {`
-- `method` **_onEvent (BluetoothHostService)** — baris 230 — `  void _onEvent(BluetoothSyncEvent event) {`
-- `method` **_handlePacket (BluetoothHostService)** — baris 296 — `  void _handlePacket(SyncPacket packet) {`
-- `method` **_handleAuthResponse (BluetoothHostService)** — baris 318 — `  void _handleAuthResponse(SyncPacket packet) {`
-- `method` **_registerAuthFailure (BluetoothHostService)** — baris 347 — `  void _registerAuthFailure(String reason) {`
-- `method` **_sendAuthChallenge (BluetoothHostService)** — baris 374 — `  Future<void> _sendAuthChallenge() async {`
-- `method` **_sendPacket (BluetoothHostService)** — baris 383 — `  Future<void> _sendPacket(SyncPacket packet) async {`
-- `method` **_generatePin (BluetoothHostService)** — baris 394 — `  String _generatePin() {`
-- `method` **_generateNonce (BluetoothHostService)** — baris 400 — `  String _generateNonce() {`
-- `method` **broadcast (BluetoothHostService)** — baris 406 — `  Future<void> broadcast(SyncPacket packet) async {`
-- `method` **stop (BluetoothHostService)** — baris 411 — `  Future<void> stop() async {`
+- `method` **_onEvent (BluetoothHostService)** — baris 231 — `  void _onEvent(BluetoothSyncEvent event) {`
+- `method` **_handlePacket (BluetoothHostService)** — baris 297 — `  void _handlePacket(SyncPacket packet) {`
+- `method` **_handleAuthResponse (BluetoothHostService)** — baris 319 — `  void _handleAuthResponse(SyncPacket packet) {`
+- `method` **_registerAuthFailure (BluetoothHostService)** — baris 348 — `  void _registerAuthFailure(String reason) {`
+- `method` **_sendAuthChallenge (BluetoothHostService)** — baris 375 — `  Future<void> _sendAuthChallenge() async {`
+- `method` **_sendPacket (BluetoothHostService)** — baris 384 — `  Future<void> _sendPacket(SyncPacket packet) async {`
+- `method` **_generatePin (BluetoothHostService)** — baris 395 — `  String _generatePin() {`
+- `method` **_generateNonce (BluetoothHostService)** — baris 401 — `  String _generateNonce() {`
+- `method` **broadcast (BluetoothHostService)** — baris 407 — `  Future<void> broadcast(SyncPacket packet) async {`
+- `method` **stop (BluetoothHostService)** — baris 412 — `  Future<void> stop() async {`
 
 ### `apps/tv_display/lib/server/local_ws_server.dart`
 - `class` **LocalServer** — baris 10 — `class LocalServer {`
 - `field` **_server (LocalServer)** — baris 11 — `  HttpServer? _server;`
 - `field` **_clients (LocalServer)** — baris 12 — `  final List<WebSocketChannel> _clients = [];`
-- `method` **broadcast (LocalServer)** — baris 46 — `  void broadcast(SyncPacket packet) {`
-- `method` **stop (LocalServer)** — baris 53 — `  Future<void> stop() async {`
+- `method` **broadcast (LocalServer)** — baris 48 — `  void broadcast(SyncPacket packet) {`
+- `method` **stop (LocalServer)** — baris 55 — `  Future<void> stop() async {`
 
 ### `apps/tv_display/lib/state/prayer_state_machine.dart`
 - `class` **PrayerStateMachine** — baris 17 — `class PrayerStateMachine extends ChangeNotifier {`
@@ -536,12 +538,12 @@ Total simbol: **923**
 - `getter` **progress (PrayerStateMachine)** — baris 38 — `  double get progress {`
 - `method` **updateConfig (PrayerStateMachine)** — baris 51 — `  void updateConfig(MosqueConfig config, DateTime now) {`
 - `method` **tick (PrayerStateMachine)** — baris 65 — `  void tick(DateTime now, PrayerSchedule schedule) {`
-- `method` **startIqomah (PrayerStateMachine)** — baris 107 — `  void startIqomah() {`
-- `method` **startShalat (PrayerStateMachine)** — baris 114 — `  void startShalat() {`
-- `method` **finishShalat (PrayerStateMachine)** — baris 121 — `  void finishShalat() {`
-- `method` **_advance (PrayerStateMachine)** — baris 157 — `  void _advance(DateTime now) {`
-- `method` **_isFridayPrayerDay (PrayerStateMachine)** — baris 182 — `  bool _isFridayPrayerDay(DateTime date) =>`
-- `method` **_enter (PrayerStateMachine)** — baris 185 — `  void _enter(PrayerPhase phase, PrayerType? prayer, DateTime now) {`
+- `method` **startIqomah (PrayerStateMachine)** — baris 106 — `  void startIqomah() {`
+- `method` **startShalat (PrayerStateMachine)** — baris 113 — `  void startShalat() {`
+- `method` **finishShalat (PrayerStateMachine)** — baris 120 — `  void finishShalat() {`
+- `method` **_advance (PrayerStateMachine)** — baris 156 — `  void _advance(DateTime now) {`
+- `method` **_isFridayPrayerDay (PrayerStateMachine)** — baris 181 — `  bool _isFridayPrayerDay(DateTime date) =>`
+- `method` **_enter (PrayerStateMachine)** — baris 184 — `  void _enter(PrayerPhase phase, PrayerType? prayer, DateTime now) {`
 
 ### `apps/tv_display/lib/state/side_card_playlist.dart`
 - `enum` **SideCardKind** — baris 4 — `enum SideCardKind {`
@@ -561,14 +563,19 @@ Total simbol: **923**
 - `field` **kasKey (TvStore)** — baris 17 — `  static const String kasKey = 'tv_kas';`
 - `field` **sideImagesKey (TvStore)** — baris 18 — `  static const String sideImagesKey = 'tv_sideImages';`
 - `field` **hasDataKey (TvStore)** — baris 19 — `  static const String hasDataKey = 'tv_hasData';`
-- `method` **load (TvStore)** — baris 22 — `  Future<StateSnapshot?> load() async {`
-- `method` **saveConfig (TvStore)** — baris 54 — `  Future<void> saveConfig(MosqueConfig config) =>`
-- `method` **saveRunningTexts (TvStore)** — baris 57 — `  Future<void> saveRunningTexts(List<RunningTextMessage> messages) =>`
-- `method` **saveBanners (TvStore)** — baris 60 — `  Future<void> saveBanners(List<MediaBanner> banners) =>`
-- `method` **saveKas (TvStore)** — baris 63 — `  Future<void> saveKas(List<KasTransaction> transactions) =>`
-- `method` **saveSideImages (TvStore)** — baris 66 — `  Future<void> saveSideImages(List<SpecialImage> images) =>`
-- `method` **_save (TvStore)** — baris 69 — `  Future<void> _save(String key, Object value) async {`
-- `method` **_decodeMap (TvStore)** — baris 81 — `  static Map<String, dynamic>? _decodeMap(String source) {`
+- `field` **mutedKey (TvStore)** — baris 20 — `  static const String mutedKey = 'tv_muted';`
+- `field` **standbyKey (TvStore)** — baris 21 — `  static const String standbyKey = 'tv_standby';`
+- `method` **load (TvStore)** — baris 24 — `  Future<StateSnapshot?> load() async {`
+- `method` **saveConfig (TvStore)** — baris 56 — `  Future<void> saveConfig(MosqueConfig config) =>`
+- `method` **saveRunningTexts (TvStore)** — baris 59 — `  Future<void> saveRunningTexts(List<RunningTextMessage> messages) =>`
+- `method` **saveBanners (TvStore)** — baris 62 — `  Future<void> saveBanners(List<MediaBanner> banners) =>`
+- `method` **saveKas (TvStore)** — baris 65 — `  Future<void> saveKas(List<KasTransaction> transactions) =>`
+- `method` **saveSideImages (TvStore)** — baris 68 — `  Future<void> saveSideImages(List<SpecialImage> images) =>`
+- `method` **saveMuted (TvStore)** — baris 86 — `  Future<void> saveMuted(bool muted) => _saveBool(mutedKey, muted);`
+- `method` **saveStandby (TvStore)** — baris 88 — `  Future<void> saveStandby(bool standby) => _saveBool(standbyKey, standby);`
+- `method` **_saveBool (TvStore)** — baris 90 — `  Future<void> _saveBool(String key, bool value) async {`
+- `method` **_save (TvStore)** — baris 99 — `  Future<void> _save(String key, Object value) async {`
+- `method` **_decodeMap (TvStore)** — baris 111 — `  static Map<String, dynamic>? _decodeMap(String source) {`
 
 ### `apps/tv_display/lib/theme/app_theme.dart`
 - `class` **AppTheme** — baris 6 — `class AppTheme {`
@@ -579,11 +586,11 @@ Total simbol: **923**
 - `field` **polygon (M3ShapeBorder)** — baris 17 — `  final RoundedPolygon polygon;`
 - `method` **_scaledPath (M3ShapeBorder)** — baris 34 — `  Path _scaledPath(Rect rect) {`
 - `method` **scale (M3ShapeBorder)** — baris 58 — `  ShapeBorder scale(double t) {`
-- `class` **ArchBorder** — baris 68 — `class ArchBorder extends OutlinedBorder {`
-- `field` **bottomRadius (ArchBorder)** — baris 76 — `  final double bottomRadius;`
-- `field` **domeFactor (ArchBorder)** — baris 80 — `  final double domeFactor;`
-- `getter` **dimensions (ArchBorder)** — baris 83 — `  EdgeInsetsGeometry get dimensions => EdgeInsets.all(side.width);`
-- `method` **scale (ArchBorder)** — baris 124 — `  ShapeBorder scale(double t) {`
+- `class` **ArchBorder** — baris 69 — `class ArchBorder extends OutlinedBorder {`
+- `field` **bottomRadius (ArchBorder)** — baris 77 — `  final double bottomRadius;`
+- `field` **domeFactor (ArchBorder)** — baris 81 — `  final double domeFactor;`
+- `getter` **dimensions (ArchBorder)** — baris 84 — `  EdgeInsetsGeometry get dimensions => EdgeInsets.all(side.width);`
+- `method` **scale (ArchBorder)** — baris 126 — `  ShapeBorder scale(double t) {`
 
 ### `apps/tv_display/lib/widgets/admin_menu_overlay.dart`
 - `class` **AdminMenuOverlay** — baris 23 — `class AdminMenuOverlay extends StatefulWidget {`
@@ -593,30 +600,30 @@ Total simbol: **923**
 - `field` **isError (AdminMenuOverlay)** — baris 34 — `  final bool isError;`
 - `field` **onToggleBluetooth (AdminMenuOverlay)** — baris 37 — `  final ValueChanged<bool> onToggleBluetooth;`
 - `field` **onClose (AdminMenuOverlay)** — baris 40 — `  final VoidCallback onClose;`
-- `method` **createState (AdminMenuOverlay)** — baris 53 — `  State<AdminMenuOverlay> createState() => _AdminMenuOverlayState();`
-- `class` **_AdminMenuOverlayState** — baris 56 — `class _AdminMenuOverlayState extends State<AdminMenuOverlay>`
-- `field` **_controller (_AdminMenuOverlayState)** — baris 58 — `  late final AnimationController _controller;`
-- `field` **_slideIn (_AdminMenuOverlayState)** — baris 59 — `  late final Animation<Offset> _slideIn;`
-- `field` **_slideOut (_AdminMenuOverlayState)** — baris 60 — `  late final Animation<Offset> _slideOut;`
-- `field` **_panelScope (_AdminMenuOverlayState)** — baris 64 — `  late final FocusScopeNode _panelScope;`
-- `field` **_closing (_AdminMenuOverlayState)** — baris 67 — `  bool _closing = false;`
-- `method` **initState (_AdminMenuOverlayState)** — baris 70 — `  void initState() {`
-- `method` **dispose (_AdminMenuOverlayState)** — baris 92 — `  void dispose() {`
-- `method` **_close (_AdminMenuOverlayState)** — baris 99 — `  void _close() {`
-- `method` **build (_AdminMenuOverlayState)** — baris 108 — `  Widget build(BuildContext context) {`
-- `class` **_AdminAction** — baris 304 — `class _AdminAction {`
-- `field` **icon (_AdminAction)** — baris 305 — `  final IconData icon;`
-- `field` **label (_AdminAction)** — baris 306 — `  final String label;`
-- `field` **subtitle (_AdminAction)** — baris 307 — `  final String subtitle;`
-- `field` **selected (_AdminAction)** — baris 310 — `  final bool selected;`
-- `field` **onActivate (_AdminAction)** — baris 311 — `  final VoidCallback onActivate;`
-- `class` **_FocusableAction** — baris 324 — `class _FocusableAction extends StatefulWidget {`
-- `field` **action (_FocusableAction)** — baris 325 — `  final _AdminAction action;`
-- `field` **autofocus (_FocusableAction)** — baris 328 — `  final bool autofocus;`
-- `method` **createState (_FocusableAction)** — baris 333 — `  State<_FocusableAction> createState() => _FocusableActionState();`
-- `class` **_FocusableActionState** — baris 336 — `class _FocusableActionState extends State<_FocusableAction> {`
-- `field` **_focused (_FocusableActionState)** — baris 337 — `  bool _focused = false;`
-- `method` **build (_FocusableActionState)** — baris 340 — `  Widget build(BuildContext context) {`
+- `method` **createState (AdminMenuOverlay)** — baris 52 — `  State<AdminMenuOverlay> createState() => _AdminMenuOverlayState();`
+- `class` **_AdminMenuOverlayState** — baris 55 — `class _AdminMenuOverlayState extends State<AdminMenuOverlay>`
+- `field` **_controller (_AdminMenuOverlayState)** — baris 57 — `  late final AnimationController _controller;`
+- `field` **_slideIn (_AdminMenuOverlayState)** — baris 58 — `  late final Animation<Offset> _slideIn;`
+- `field` **_slideOut (_AdminMenuOverlayState)** — baris 59 — `  late final Animation<Offset> _slideOut;`
+- `field` **_panelScope (_AdminMenuOverlayState)** — baris 63 — `  late final FocusScopeNode _panelScope;`
+- `field` **_closing (_AdminMenuOverlayState)** — baris 66 — `  bool _closing = false;`
+- `method` **initState (_AdminMenuOverlayState)** — baris 69 — `  void initState() {`
+- `method` **dispose (_AdminMenuOverlayState)** — baris 91 — `  void dispose() {`
+- `method` **_close (_AdminMenuOverlayState)** — baris 98 — `  void _close() {`
+- `method` **build (_AdminMenuOverlayState)** — baris 107 — `  Widget build(BuildContext context) {`
+- `class` **_AdminAction** — baris 303 — `class _AdminAction {`
+- `field` **icon (_AdminAction)** — baris 304 — `  final IconData icon;`
+- `field` **label (_AdminAction)** — baris 305 — `  final String label;`
+- `field` **subtitle (_AdminAction)** — baris 306 — `  final String subtitle;`
+- `field` **selected (_AdminAction)** — baris 309 — `  final bool selected;`
+- `field` **onActivate (_AdminAction)** — baris 310 — `  final VoidCallback onActivate;`
+- `class` **_FocusableAction** — baris 323 — `class _FocusableAction extends StatefulWidget {`
+- `field` **action (_FocusableAction)** — baris 324 — `  final _AdminAction action;`
+- `field` **autofocus (_FocusableAction)** — baris 327 — `  final bool autofocus;`
+- `method` **createState (_FocusableAction)** — baris 332 — `  State<_FocusableAction> createState() => _FocusableActionState();`
+- `class` **_FocusableActionState** — baris 335 — `class _FocusableActionState extends State<_FocusableAction> {`
+- `field` **_focused (_FocusableActionState)** — baris 336 — `  bool _focused = false;`
+- `method` **build (_FocusableActionState)** — baris 339 — `  Widget build(BuildContext context) {`
 
 ### `apps/tv_display/lib/widgets/banner_carousel.dart`
 - `class` **BannerCarousel** — baris 10 — `class BannerCarousel extends StatefulWidget {`
@@ -631,33 +638,33 @@ Total simbol: **923**
 - `method` **_startTimer (_BannerCarouselState)** — baris 37 — `  void _startTimer() {`
 - `method` **dispose (_BannerCarouselState)** — baris 52 — `  void dispose() {`
 - `method` **didUpdateWidget (_BannerCarouselState)** — baris 59 — `  void didUpdateWidget(BannerCarousel oldWidget) {`
-- `method` **build (_BannerCarouselState)** — baris 71 — `  Widget build(BuildContext context) {`
-- `class` **_BannerPage** — baris 142 — `class _BannerPage extends StatefulWidget {`
-- `field` **banner (_BannerPage)** — baris 143 — `  final MediaBanner banner;`
-- `field` **active (_BannerPage)** — baris 144 — `  final bool active;`
-- `method` **createState (_BannerPage)** — baris 152 — `  State<_BannerPage> createState() => _BannerPageState();`
-- `class` **_BannerPageState** — baris 155 — `class _BannerPageState extends State<_BannerPage> {`
-- `field` **_scrollController (_BannerPageState)** — baris 156 — `  final _scrollController = ScrollController();`
-- `field` **_scrollTimer (_BannerPageState)** — baris 157 — `  Timer? _scrollTimer;`
-- `field` **_cachedImageBytes (_BannerPageState)** — baris 158 — `  Uint8List? _cachedImageBytes;`
-- `field` **_cachedBase64 (_BannerPageState)** — baris 159 — `  String? _cachedBase64;`
-- `method` **initState (_BannerPageState)** — baris 162 — `  void initState() {`
-- `method` **_decodeImageIfNeeded (_BannerPageState)** — baris 168 — `  void _decodeImageIfNeeded() {`
-- `method` **didUpdateWidget (_BannerPageState)** — baris 178 — `  void didUpdateWidget(covariant _BannerPage oldWidget) {`
-- `method` **_startAutoScroll (_BannerPageState)** — baris 203 — `  void _startAutoScroll() {`
-- `method` **dispose (_BannerPageState)** — baris 228 — `  void dispose() {`
-- `method` **build (_BannerPageState)** — baris 235 — `  Widget build(BuildContext context) {`
+- `method` **build (_BannerCarouselState)** — baris 72 — `  Widget build(BuildContext context) {`
+- `class` **_BannerPage** — baris 145 — `class _BannerPage extends StatefulWidget {`
+- `field` **banner (_BannerPage)** — baris 146 — `  final MediaBanner banner;`
+- `field` **active (_BannerPage)** — baris 147 — `  final bool active;`
+- `method` **createState (_BannerPage)** — baris 155 — `  State<_BannerPage> createState() => _BannerPageState();`
+- `class` **_BannerPageState** — baris 158 — `class _BannerPageState extends State<_BannerPage> {`
+- `field` **_scrollController (_BannerPageState)** — baris 159 — `  final _scrollController = ScrollController();`
+- `field` **_scrollTimer (_BannerPageState)** — baris 160 — `  Timer? _scrollTimer;`
+- `field` **_cachedImageBytes (_BannerPageState)** — baris 161 — `  Uint8List? _cachedImageBytes;`
+- `field` **_cachedBase64 (_BannerPageState)** — baris 162 — `  String? _cachedBase64;`
+- `method` **initState (_BannerPageState)** — baris 165 — `  void initState() {`
+- `method` **_decodeImageIfNeeded (_BannerPageState)** — baris 171 — `  void _decodeImageIfNeeded() {`
+- `method` **didUpdateWidget (_BannerPageState)** — baris 181 — `  void didUpdateWidget(covariant _BannerPage oldWidget) {`
+- `method` **_startAutoScroll (_BannerPageState)** — baris 206 — `  void _startAutoScroll() {`
+- `method` **dispose (_BannerPageState)** — baris 232 — `  void dispose() {`
+- `method` **build (_BannerPageState)** — baris 239 — `  Widget build(BuildContext context) {`
 
 ### `apps/tv_display/lib/widgets/friday_staff_card.dart`
 - `class` **FridayStaffCard** — baris 7 — `class FridayStaffCard extends StatelessWidget {`
 - `field` **khatib (FridayStaffCard)** — baris 8 — `  final String khatib;`
 - `field` **muadzin (FridayStaffCard)** — baris 9 — `  final String muadzin;`
 - `method` **build (FridayStaffCard)** — baris 18 — `  Widget build(BuildContext context) {`
-- `class` **_StaffRow** — baris 73 — `class _StaffRow extends StatelessWidget {`
-- `field` **icon (_StaffRow)** — baris 74 — `  final IconData icon;`
-- `field` **label (_StaffRow)** — baris 75 — `  final String label;`
-- `field` **name (_StaffRow)** — baris 76 — `  final String name;`
-- `method` **build (_StaffRow)** — baris 85 — `  Widget build(BuildContext context) {`
+- `class` **_StaffRow** — baris 74 — `class _StaffRow extends StatelessWidget {`
+- `field` **icon (_StaffRow)** — baris 75 — `  final IconData icon;`
+- `field` **label (_StaffRow)** — baris 76 — `  final String label;`
+- `field` **name (_StaffRow)** — baris 77 — `  final String name;`
+- `method` **build (_StaffRow)** — baris 86 — `  Widget build(BuildContext context) {`
 
 ### `apps/tv_display/lib/widgets/header_clock.dart`
 - `class` **HeaderClock** — baris 7 — `class HeaderClock extends StatelessWidget {`
@@ -669,12 +676,12 @@ Total simbol: **923**
 - `class` **KasSummaryCard** — baris 5 — `class KasSummaryCard extends StatelessWidget {`
 - `field` **transactions (KasSummaryCard)** — baris 6 — `  final List<KasTransaction> transactions;`
 - `method` **build (KasSummaryCard)** — baris 14 — `  Widget build(BuildContext context) {`
-- `class` **_KasAmountRow** — baris 92 — `class _KasAmountRow extends StatelessWidget {`
-- `field` **icon (_KasAmountRow)** — baris 93 — `  final IconData icon;`
-- `field` **label (_KasAmountRow)** — baris 94 — `  final String label;`
-- `field` **amount (_KasAmountRow)** — baris 95 — `  final String amount;`
-- `field` **color (_KasAmountRow)** — baris 96 — `  final Color color;`
-- `method` **build (_KasAmountRow)** — baris 106 — `  Widget build(BuildContext context) {`
+- `class` **_KasAmountRow** — baris 93 — `class _KasAmountRow extends StatelessWidget {`
+- `field` **icon (_KasAmountRow)** — baris 94 — `  final IconData icon;`
+- `field` **label (_KasAmountRow)** — baris 95 — `  final String label;`
+- `field` **amount (_KasAmountRow)** — baris 96 — `  final String amount;`
+- `field` **color (_KasAmountRow)** — baris 97 — `  final Color color;`
+- `method` **build (_KasAmountRow)** — baris 107 — `  Widget build(BuildContext context) {`
 
 ### `apps/tv_display/lib/widgets/material_blob_background.dart`
 - `class` **MaterialBlobBackground** — baris 14 — `class MaterialBlobBackground extends StatefulWidget {`
@@ -719,7 +726,7 @@ Total simbol: **923**
 - `method` **initState (_NextPrayerTimerState)** — baris 145 — `  void initState() {`
 - `method` **dispose (_NextPrayerTimerState)** — baris 157 — `  void dispose() {`
 - `method` **build (_NextPrayerTimerState)** — baris 163 — `  Widget build(BuildContext context) {`
-- `method` **_formatDuration (_NextPrayerTimerState)** — baris 223 — `  String _formatDuration(Duration duration) {`
+- `method` **_formatDuration (_NextPrayerTimerState)** — baris 225 — `  String _formatDuration(Duration duration) {`
 
 ### `apps/tv_display/lib/widgets/prayer_state_overlay.dart`
 - `class` **PrayerStateOverlay** — baris 12 — `class PrayerStateOverlay extends StatelessWidget {`
@@ -739,62 +746,62 @@ Total simbol: **923**
 - `field` **remaining (_CountdownOverlay)** — baris 82 — `  final Duration remaining;`
 - `field` **total (_CountdownOverlay)** — baris 83 — `  final Duration total;`
 - `method` **build (_CountdownOverlay)** — baris 95 — `  Widget build(BuildContext context) {`
-- `class` **_AdhanOverlay** — baris 159 — `class _AdhanOverlay extends StatelessWidget {`
-- `field` **prayerName (_AdhanOverlay)** — baris 160 — `  final String prayerName;`
-- `field` **remaining (_AdhanOverlay)** — baris 161 — `  final Duration remaining;`
-- `field` **total (_AdhanOverlay)** — baris 162 — `  final Duration total;`
-- `field` **deadline (_AdhanOverlay)** — baris 163 — `  final DateTime? deadline;`
-- `method` **build (_AdhanOverlay)** — baris 173 — `  Widget build(BuildContext context) {`
-- `class` **_KhutbahOverlay** — baris 244 — `class _KhutbahOverlay extends StatelessWidget {`
-- `field` **khatib (_KhutbahOverlay)** — baris 245 — `  final String? khatib;`
-- `field` **muadzin (_KhutbahOverlay)** — baris 246 — `  final String? muadzin;`
-- `field` **remaining (_KhutbahOverlay)** — baris 247 — `  final Duration remaining;`
-- `field` **total (_KhutbahOverlay)** — baris 248 — `  final Duration total;`
-- `method` **build (_KhutbahOverlay)** — baris 258 — `  Widget build(BuildContext context) {`
-- `class` **_StaffChip** — baris 348 — `class _StaffChip extends StatelessWidget {`
-- `field` **icon (_StaffChip)** — baris 349 — `  final IconData icon;`
-- `field` **label (_StaffChip)** — baris 350 — `  final String label;`
-- `field` **name (_StaffChip)** — baris 351 — `  final String? name;`
-- `method` **build (_StaffChip)** — baris 360 — `  Widget build(BuildContext context) {`
-- `class` **_ShalatOverlay** — baris 401 — `class _ShalatOverlay extends StatelessWidget {`
-- `field` **prayerName (_ShalatOverlay)** — baris 402 — `  final String prayerName;`
-- `method` **build (_ShalatOverlay)** — baris 407 — `  Widget build(BuildContext context) {`
-- `class` **_AnimatedProgressRing** — baris 425 — `class _AnimatedProgressRing extends StatelessWidget {`
-- `field` **progress (_AnimatedProgressRing)** — baris 426 — `  final double progress;`
-- `field` **size (_AnimatedProgressRing)** — baris 427 — `  final double size;`
-- `field` **strokeWidth (_AnimatedProgressRing)** — baris 428 — `  final double strokeWidth;`
-- `field` **color (_AnimatedProgressRing)** — baris 429 — `  final Color color;`
-- `field` **trackColor (_AnimatedProgressRing)** — baris 430 — `  final Color trackColor;`
-- `field` **child (_AnimatedProgressRing)** — baris 431 — `  final Widget child;`
-- `method` **build (_AnimatedProgressRing)** — baris 443 — `  Widget build(BuildContext context) {`
-- `class` **_WavyProgressBar** — baris 478 — `class _WavyProgressBar extends StatefulWidget {`
-- `field` **remaining (_WavyProgressBar)** — baris 479 — `  final Duration remaining;`
-- `field` **total (_WavyProgressBar)** — baris 480 — `  final Duration total;`
-- `field` **deadline (_WavyProgressBar)** — baris 481 — `  final DateTime? deadline;`
-- `field` **activeColor (_WavyProgressBar)** — baris 482 — `  final Color activeColor;`
-- `field` **trackColor (_WavyProgressBar)** — baris 483 — `  final Color trackColor;`
-- `method` **createState (_WavyProgressBar)** — baris 494 — `  State<_WavyProgressBar> createState() => _WavyProgressBarState();`
-- `class` **_WavyProgressBarState** — baris 497 — `class _WavyProgressBarState extends State<_WavyProgressBar>`
-- `field` **_controller (_WavyProgressBarState)** — baris 499 — `  late final AnimationController _controller = AnimationController(`
-- `method` **dispose (_WavyProgressBarState)** — baris 505 — `  void dispose() {`
-- `method` **build (_WavyProgressBarState)** — baris 511 — `  Widget build(BuildContext context) {`
-- `function` **_formatCountdown** — baris 526 — `String _formatCountdown(Duration duration) {`
-- `class` **_CircularRingPainter** — baris 545 — `class _CircularRingPainter extends CustomPainter {`
-- `field` **progress (_CircularRingPainter)** — baris 546 — `  final double progress;`
-- `field` **trackColor (_CircularRingPainter)** — baris 547 — `  final Color trackColor;`
-- `field` **progressColor (_CircularRingPainter)** — baris 548 — `  final Color progressColor;`
-- `field` **strokeWidth (_CircularRingPainter)** — baris 549 — `  final double strokeWidth;`
-- `method` **paint (_CircularRingPainter)** — baris 559 — `  void paint(Canvas canvas, Size size) {`
-- `method` **shouldRepaint (_CircularRingPainter)** — baris 586 — `  bool shouldRepaint(covariant _CircularRingPainter oldDelegate) {`
-- `class` **_WavyProgressPainter** — baris 601 — `class _WavyProgressPainter extends CustomPainter {`
-- `field` **animation (_WavyProgressPainter)** — baris 602 — `  final Animation<double> animation;`
-- `field` **remaining (_WavyProgressPainter)** — baris 603 — `  final Duration remaining;`
-- `field` **total (_WavyProgressPainter)** — baris 604 — `  final Duration total;`
-- `field` **deadline (_WavyProgressPainter)** — baris 605 — `  final DateTime? deadline;`
-- `field` **activeColor (_WavyProgressPainter)** — baris 606 — `  final Color activeColor;`
-- `field` **trackColor (_WavyProgressPainter)** — baris 607 — `  final Color trackColor;`
-- `method` **paint (_WavyProgressPainter)** — baris 619 — `  void paint(Canvas canvas, Size size) {`
-- `method` **shouldRepaint (_WavyProgressPainter)** — baris 695 — `  bool shouldRepaint(covariant _WavyProgressPainter oldDelegate) {`
+- `class` **_AdhanOverlay** — baris 161 — `class _AdhanOverlay extends StatelessWidget {`
+- `field` **prayerName (_AdhanOverlay)** — baris 162 — `  final String prayerName;`
+- `field` **remaining (_AdhanOverlay)** — baris 163 — `  final Duration remaining;`
+- `field` **total (_AdhanOverlay)** — baris 164 — `  final Duration total;`
+- `field` **deadline (_AdhanOverlay)** — baris 165 — `  final DateTime? deadline;`
+- `method` **build (_AdhanOverlay)** — baris 175 — `  Widget build(BuildContext context) {`
+- `class` **_KhutbahOverlay** — baris 247 — `class _KhutbahOverlay extends StatelessWidget {`
+- `field` **khatib (_KhutbahOverlay)** — baris 248 — `  final String? khatib;`
+- `field` **muadzin (_KhutbahOverlay)** — baris 249 — `  final String? muadzin;`
+- `field` **remaining (_KhutbahOverlay)** — baris 250 — `  final Duration remaining;`
+- `field` **total (_KhutbahOverlay)** — baris 251 — `  final Duration total;`
+- `method` **build (_KhutbahOverlay)** — baris 261 — `  Widget build(BuildContext context) {`
+- `class` **_StaffChip** — baris 351 — `class _StaffChip extends StatelessWidget {`
+- `field` **icon (_StaffChip)** — baris 352 — `  final IconData icon;`
+- `field` **label (_StaffChip)** — baris 353 — `  final String label;`
+- `field` **name (_StaffChip)** — baris 354 — `  final String? name;`
+- `method` **build (_StaffChip)** — baris 363 — `  Widget build(BuildContext context) {`
+- `class` **_ShalatOverlay** — baris 404 — `class _ShalatOverlay extends StatelessWidget {`
+- `field` **prayerName (_ShalatOverlay)** — baris 405 — `  final String prayerName;`
+- `method` **build (_ShalatOverlay)** — baris 410 — `  Widget build(BuildContext context) {`
+- `class` **_AnimatedProgressRing** — baris 428 — `class _AnimatedProgressRing extends StatelessWidget {`
+- `field` **progress (_AnimatedProgressRing)** — baris 429 — `  final double progress;`
+- `field` **size (_AnimatedProgressRing)** — baris 430 — `  final double size;`
+- `field` **strokeWidth (_AnimatedProgressRing)** — baris 431 — `  final double strokeWidth;`
+- `field` **color (_AnimatedProgressRing)** — baris 432 — `  final Color color;`
+- `field` **trackColor (_AnimatedProgressRing)** — baris 433 — `  final Color trackColor;`
+- `field` **child (_AnimatedProgressRing)** — baris 434 — `  final Widget child;`
+- `method` **build (_AnimatedProgressRing)** — baris 446 — `  Widget build(BuildContext context) {`
+- `class` **_WavyProgressBar** — baris 481 — `class _WavyProgressBar extends StatefulWidget {`
+- `field` **remaining (_WavyProgressBar)** — baris 482 — `  final Duration remaining;`
+- `field` **total (_WavyProgressBar)** — baris 483 — `  final Duration total;`
+- `field` **deadline (_WavyProgressBar)** — baris 484 — `  final DateTime? deadline;`
+- `field` **activeColor (_WavyProgressBar)** — baris 485 — `  final Color activeColor;`
+- `field` **trackColor (_WavyProgressBar)** — baris 486 — `  final Color trackColor;`
+- `method` **createState (_WavyProgressBar)** — baris 497 — `  State<_WavyProgressBar> createState() => _WavyProgressBarState();`
+- `class` **_WavyProgressBarState** — baris 500 — `class _WavyProgressBarState extends State<_WavyProgressBar>`
+- `field` **_controller (_WavyProgressBarState)** — baris 502 — `  late final AnimationController _controller = AnimationController(`
+- `method` **dispose (_WavyProgressBarState)** — baris 508 — `  void dispose() {`
+- `method` **build (_WavyProgressBarState)** — baris 514 — `  Widget build(BuildContext context) {`
+- `function` **_formatCountdown** — baris 529 — `String _formatCountdown(Duration duration) {`
+- `class` **_CircularRingPainter** — baris 548 — `class _CircularRingPainter extends CustomPainter {`
+- `field` **progress (_CircularRingPainter)** — baris 549 — `  final double progress;`
+- `field` **trackColor (_CircularRingPainter)** — baris 550 — `  final Color trackColor;`
+- `field` **progressColor (_CircularRingPainter)** — baris 551 — `  final Color progressColor;`
+- `field` **strokeWidth (_CircularRingPainter)** — baris 552 — `  final double strokeWidth;`
+- `method` **paint (_CircularRingPainter)** — baris 562 — `  void paint(Canvas canvas, Size size) {`
+- `method` **shouldRepaint (_CircularRingPainter)** — baris 589 — `  bool shouldRepaint(covariant _CircularRingPainter oldDelegate) {`
+- `class` **_WavyProgressPainter** — baris 604 — `class _WavyProgressPainter extends CustomPainter {`
+- `field` **animation (_WavyProgressPainter)** — baris 605 — `  final Animation<double> animation;`
+- `field` **remaining (_WavyProgressPainter)** — baris 606 — `  final Duration remaining;`
+- `field` **total (_WavyProgressPainter)** — baris 607 — `  final Duration total;`
+- `field` **deadline (_WavyProgressPainter)** — baris 608 — `  final DateTime? deadline;`
+- `field` **activeColor (_WavyProgressPainter)** — baris 609 — `  final Color activeColor;`
+- `field` **trackColor (_WavyProgressPainter)** — baris 610 — `  final Color trackColor;`
+- `method` **paint (_WavyProgressPainter)** — baris 622 — `  void paint(Canvas canvas, Size size) {`
+- `method` **shouldRepaint (_WavyProgressPainter)** — baris 697 — `  bool shouldRepaint(covariant _WavyProgressPainter oldDelegate) {`
 
 ### `apps/tv_display/lib/widgets/running_text_bar.dart`
 - `class` **RunningTextBar** — baris 5 — `class RunningTextBar extends StatefulWidget {`
@@ -805,10 +812,10 @@ Total simbol: **923**
 - `field` **_timer (_RunningTextBarState)** — baris 19 — `  Timer? _timer;`
 - `method` **initState (_RunningTextBarState)** — baris 22 — `  void initState() {`
 - `method` **didUpdateWidget (_RunningTextBarState)** — baris 31 — `  void didUpdateWidget(RunningTextBar oldWidget) {`
-- `method` **_startAutoScroll (_RunningTextBarState)** — baris 58 — `  void _startAutoScroll() {`
-- `method` **dispose (_RunningTextBarState)** — baris 76 — `  void dispose() {`
-- `method` **build (_RunningTextBarState)** — baris 83 — `  Widget build(BuildContext context) {`
-- `method` **_buildEmptyState (_RunningTextBarState)** — baris 97 — `  Widget _buildEmptyState(ThemeData theme, ColorScheme colorScheme) {`
+- `method` **_startAutoScroll (_RunningTextBarState)** — baris 65 — `  void _startAutoScroll() {`
+- `method` **dispose (_RunningTextBarState)** — baris 83 — `  void dispose() {`
+- `method` **build (_RunningTextBarState)** — baris 90 — `  Widget build(BuildContext context) {`
+- `method` **_buildEmptyState (_RunningTextBarState)** — baris 104 — `  Widget _buildEmptyState(ThemeData theme, ColorScheme colorScheme) {`
 
 ### `apps/tv_display/lib/widgets/side_card_rotator.dart`
 - `class` **SideCardRotator** — baris 22 — `class SideCardRotator extends StatefulWidget {`
@@ -898,17 +905,17 @@ Total simbol: **923**
 - `field` **description (KasTransaction)** — baris 9 — `  final String description;`
 - `field` **date (KasTransaction)** — baris 10 — `  final DateTime date;`
 - `method` **toMap (KasTransaction)** — baris 20 — `  Map<String, dynamic> toMap() => {`
-- `method` **toJson (KasTransaction)** — baris 47 — `  String toJson() => json.encode(toMap());`
-- `operator` **operator == (KasTransaction)** — baris 53 — `  bool operator ==(Object other) =>`
-- `getter` **hashCode (KasTransaction)** — baris 63 — `  int get hashCode => Object.hash(id, type, amount, description, date);`
-- `method` **toString (KasTransaction)** — baris 66 — `  String toString() =>`
-- `class` **KasSummary** — baris 71 — `class KasSummary {`
-- `field` **totalMasuk (KasSummary)** — baris 72 — `  final int totalMasuk;`
-- `field` **totalKeluar (KasSummary)** — baris 73 — `  final int totalKeluar;`
-- `field` **saldo (KasSummary)** — baris 74 — `  final int saldo;`
-- `operator` **operator == (KasSummary)** — baris 100 — `  bool operator ==(Object other) =>`
-- `getter` **hashCode (KasSummary)** — baris 108 — `  int get hashCode => Object.hash(totalMasuk, totalKeluar, saldo);`
-- `method` **toString (KasSummary)** — baris 111 — `  String toString() =>`
+- `method` **toJson (KasTransaction)** — baris 49 — `  String toJson() => json.encode(toMap());`
+- `operator` **operator == (KasTransaction)** — baris 55 — `  bool operator ==(Object other) =>`
+- `getter` **hashCode (KasTransaction)** — baris 65 — `  int get hashCode => Object.hash(id, type, amount, description, date);`
+- `method` **toString (KasTransaction)** — baris 68 — `  String toString() =>`
+- `class` **KasSummary** — baris 73 — `class KasSummary {`
+- `field` **totalMasuk (KasSummary)** — baris 74 — `  final int totalMasuk;`
+- `field` **totalKeluar (KasSummary)** — baris 75 — `  final int totalKeluar;`
+- `field` **saldo (KasSummary)** — baris 76 — `  final int saldo;`
+- `operator` **operator == (KasSummary)** — baris 102 — `  bool operator ==(Object other) =>`
+- `getter` **hashCode (KasSummary)** — baris 110 — `  int get hashCode => Object.hash(totalMasuk, totalKeluar, saldo);`
+- `method` **toString (KasSummary)** — baris 113 — `  String toString() =>`
 
 ### `packages/shared_models/lib/src/media_banner.dart`
 - `class` **MediaBanner** — baris 3 — `class MediaBanner {`
@@ -1025,13 +1032,13 @@ Total simbol: **923**
 
 ### `packages/shared_models/lib/src/sync_packet.dart`
 - `enum` **SyncAction** — baris 3 — `enum SyncAction {`
-- `class` **SyncPacket** — baris 33 — `class SyncPacket {`
-- `field` **action (SyncPacket)** — baris 34 — `  final SyncAction action;`
-- `field` **payload (SyncPacket)** — baris 35 — `  final Map<String, dynamic> payload;`
-- `method` **toMap (SyncPacket)** — baris 42 — `  Map<String, dynamic> toMap() => {`
-- `method` **_parsePayload (SyncPacket)** — baris 64 — `  static Map<String, dynamic> _parsePayload(Object? raw) {`
-- `method` **toJson (SyncPacket)** — baris 75 — `  String toJson() => json.encode(toMap());`
-- `operator` **operator == (SyncPacket)** — baris 81 — `  bool operator ==(Object other) =>`
-- `method` **_mapsEqual (SyncPacket)** — baris 85 — `  static bool _mapsEqual(Map<String, dynamic> a, Map<String, dynamic> b) {`
-- `getter` **hashCode (SyncPacket)** — baris 94 — `  int get hashCode => Object.hash(action, Object.hashAll(payload.keys.toList()..sort()));`
-- `method` **toString (SyncPacket)** — baris 97 — `  String toString() => 'SyncPacket(action: ${action.name}, payload: $payload)';`
+- `class` **SyncPacket** — baris 47 — `class SyncPacket {`
+- `field` **action (SyncPacket)** — baris 48 — `  final SyncAction action;`
+- `field` **payload (SyncPacket)** — baris 49 — `  final Map<String, dynamic> payload;`
+- `method` **toMap (SyncPacket)** — baris 56 — `  Map<String, dynamic> toMap() => {`
+- `method` **_parsePayload (SyncPacket)** — baris 76 — `  static Map<String, dynamic> _parsePayload(Object? raw) {`
+- `method` **toJson (SyncPacket)** — baris 87 — `  String toJson() => json.encode(toMap());`
+- `operator` **operator == (SyncPacket)** — baris 93 — `  bool operator ==(Object other) =>`
+- `method` **_mapsEqual (SyncPacket)** — baris 97 — `          _mapsEqual(other.payload, payload);`
+- `getter` **hashCode (SyncPacket)** — baris 108 — `  int get hashCode =>`
+- `method` **toString (SyncPacket)** — baris 112 — `  String toString() => 'SyncPacket(action: ${action.name}, payload: $payload)';`

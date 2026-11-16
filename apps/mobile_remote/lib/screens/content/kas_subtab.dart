@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_models/shared_models.dart';
-import '../../widgets/m3_pressable.dart';
 import '../../widgets/kas_stat_card.dart';
 
 class KasSubtab extends StatelessWidget {
@@ -31,7 +30,8 @@ class KasSubtab extends StatelessWidget {
     final colorScheme = theme.colorScheme;
     final summary = KasSummary.fromTransactions(transactions);
 
-    final moneyFormat = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
+    final moneyFormat =
+        NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
     final dateFormat = DateFormat('d MMM yyyy, HH:mm');
 
     return Padding(
@@ -81,7 +81,8 @@ class KasSubtab extends StatelessWidget {
                 children: [
                   Text(
                     'Tambah Transaksi Baru',
-                    style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+                    style: theme.textTheme.titleSmall
+                        ?.copyWith(fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 12),
                   Row(
@@ -124,12 +125,10 @@ class KasSubtab extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  M3Pressable(
-                    child: FilledButton.icon(
-                      onPressed: onAddTransaction,
-                      icon: const Icon(Icons.add),
-                      label: const Text('Simpan Transaksi'),
-                    ),
+                  FilledButton.icon(
+                    onPressed: onAddTransaction,
+                    icon: const Icon(Icons.add),
+                    label: const Text('Simpan Transaksi'),
                   ),
                 ],
               ),
@@ -146,7 +145,9 @@ class KasSubtab extends StatelessWidget {
                 return Card(
                   child: ListTile(
                     leading: CircleAvatar(
-                      backgroundColor: isMasuk ? Colors.green.withValues(alpha: 0.15) : Colors.red.withValues(alpha: 0.15),
+                      backgroundColor: isMasuk
+                          ? Colors.green.withValues(alpha: 0.15)
+                          : Colors.red.withValues(alpha: 0.15),
                       child: Icon(
                         isMasuk ? Icons.arrow_downward : Icons.arrow_upward,
                         color: isMasuk ? Colors.green : Colors.red,
@@ -166,7 +167,8 @@ class KasSubtab extends StatelessWidget {
                         context: context,
                         builder: (ctx) => AlertDialog(
                           title: const Text('Hapus Transaksi?'),
-                          content: Text('Apakah Anda yakin ingin menghapus transaksi "${tx.description}"?'),
+                          content: Text(
+                              'Apakah Anda yakin ingin menghapus transaksi "${tx.description}"?'),
                           actions: [
                             TextButton(
                               onPressed: () => Navigator.pop(ctx),

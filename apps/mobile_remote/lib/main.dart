@@ -15,6 +15,7 @@ import '../services/backup_service.dart';
 import '../theme/remote_theme.dart';
 import '../theme/theme_preferences.dart';
 
+import 'screens/home/home_tab.dart';
 import 'screens/settings/settings_tab.dart';
 import 'screens/content/running_text_subtab.dart';
 import 'screens/content/banners_subtab.dart';
@@ -23,8 +24,6 @@ import 'screens/content/special_images_subtab.dart';
 import 'screens/connection/connection_gateway_screen.dart';
 import 'screens/simulation/simulation_tab.dart';
 
-import '../widgets/m3_pressable.dart';
-import '../widgets/playful_nav_icon.dart';
 
 const List<String> _runningCategories = [
   'Pengumuman',
@@ -151,11 +150,16 @@ class _PinDialogState extends State<_PinDialog> {
 
 class _RemoteHomeScreenState extends State<RemoteHomeScreen>
     with TickerProviderStateMixin, WidgetsBindingObserver {
+  /// Destinasi menu bawah aktif: 0 Beranda, 1 Konten, 2 Pengaturan, 3 Tes.
   int _tabIndex = 0;
 
-  late final TabController _mainTabController;
+  /// Controller sub-tab di dalam destinasi Konten saja (4 editor).
   late final TabController _subTabController;
-  bool _syncingControllers = false;
+
+  /// Status kontrol tampilan TV terakhir dari `stateUpdate` (Beranda):
+  /// mode senyap & standby.
+  bool _tvMuted = false;
+  bool _tvStandby = false;
 
   final _ipController = TextEditingController(text: '192.168.1.');
   final _client = RemoteWsClient();
@@ -291,10 +295,7 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
   @override
   void initState() {
     super.initState();
-    _mainTabController = TabController(length: 6, vsync: this);
     _subTabController = TabController(length: 4, vsync: this);
-    _mainTabController.addListener(_handleMainTabChange);
-    _subTabController.addListener(_handleSubTabChange);
     _syncConfigControllers();
 
     WidgetsBinding.instance.addObserver(this);
@@ -346,13 +347,15 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
         _btIsScanning = state.isScanning;
         switch (state.status) {
           case BluetoothClientStatus.connected:
-            _btStatus = 'Bluetooth: Terhubung ke TV (${state.peerName ?? 'TV'})';
+            _btStatus =
+                'Bluetooth: Terhubung ke TV (${state.peerName ?? 'TV'})';
             break;
           case BluetoothClientStatus.error:
             _btStatus = 'Bluetooth: ${state.error ?? 'gagal'}';
             break;
           case BluetoothClientStatus.discovering:
-            _btStatus = 'Bluetooth: Mencari TV... (${state.devices.length} ditemukan)';
+            _btStatus =
+                'Bluetooth: Mencari TV... (${state.devices.length} ditemukan)';
             break;
           case BluetoothClientStatus.reconnecting:
             _btStatus = 'Bluetooth: Menyambung ulang...';
@@ -385,57 +388,12 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
       }
       return;
     }
-    
+
     // resumed: cek status BT nyata daripada asumsikan terhubung.
     if (state == AppLifecycleState.resumed) {
       // Tidak ada yang perlu dilakukan di sini—state stream akan
       // memberitahu jika ada perubahan koneksi. Jangan paksa apapun.
     }
-  }
-
-  /// Sinkronkan dua `TabController` agar swipe antar halaman menyatu.
-  ///
-  /// `_mainTabController` (6 halaman) menggerakkan seluruh aplikasi, sedangkan
-  /// `_subTabController` (4 sub-tab Konten) hanya menggerakkan indikator
-  /// Top Tab Bar. `_syncingControllers` memutus loop antar-listener.
-  int _bottomNavIndexForPage(int page) {
-    if (page >= 1 && page <= 4) return 1; // Konten
-    if (page == 5) return 2; // Tes
-    return 0; // Pengaturan
-  }
-
-  int _mainPageForBottomNav(int bottom, int currentSub) {
-    switch (bottom) {
-      case 1:
-        return currentSub + 1; // Konten -> sub-tab terakhir dilihat
-      case 2:
-        return 5;
-      default:
-        return 0;
-    }
-  }
-
-  void _handleMainTabChange() {
-    if (_syncingControllers) return;
-    _syncingControllers = true;
-    final main = _mainTabController.index;
-    if (main >= 1 && main <= 4) {
-      _subTabController.index = main - 1;
-    }
-    if (mounted) {
-      setState(() {
-        _tabIndex = _bottomNavIndexForPage(main);
-      });
-    }
-    _syncingControllers = false;
-  }
-
-  void _handleSubTabChange() {
-    if (_syncingControllers) return;
-    if (_subTabController.indexIsChanging) return;
-    _syncingControllers = true;
-    _mainTabController.animateTo(_subTabController.index + 1);
-    _syncingControllers = false;
   }
 
   /// Isi seluruh field form dari [_config] (dipakai saat startup & setelah
@@ -508,17 +466,17 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
   /// `appMessengerKey.currentState ?? ScaffoldMessenger.of(context)...`:
   /// operator `??` mengembalikan operand kiri bila non-null sehingga
   /// `showSnackBar(...)` tidak pernah dievaluasi (umpan balik hilang).
-   void _showSnack(String message, {Color? background}) {
-     final messenger = appMessengerKey.currentState;
-     if (messenger == null) return;
-     messenger.showSnackBar(
-       SnackBar(
-         content: Text(message),
-         backgroundColor: background,
-       ),
-     );
-   }
- 
+  void _showSnack(String message, {Color? background}) {
+    final messenger = appMessengerKey.currentState;
+    if (messenger == null) return;
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: background,
+      ),
+    );
+  }
+
   /// Tampilkan dialog input PIN 4 digit yang diminta TV. PIN dikirim via
   /// [BluetoothClientService.respondWithPin]; dialog menutup sendiri saat
   /// TV mengirim `authSuccess`.
@@ -624,12 +582,10 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
           adhanMinutes: prefs.getInt('adhanMinutes') ?? _config.adhanMinutes,
           preIqomahMinutes:
               prefs.getInt('preIqomahMinutes') ?? _config.preIqomahMinutes,
-          shalatMinutes:
-              prefs.getInt('shalatMinutes') ?? _config.shalatMinutes,
+          shalatMinutes: prefs.getInt('shalatMinutes') ?? _config.shalatMinutes,
           khutbahMinutes:
               prefs.getInt('khutbahMinutes') ?? _config.khutbahMinutes,
-          fridayKhatib:
-              prefs.getString('fridayKhatib') ?? _config.fridayKhatib,
+          fridayKhatib: prefs.getString('fridayKhatib') ?? _config.fridayKhatib,
           fridayMuadzin:
               prefs.getString('fridayMuadzin') ?? _config.fridayMuadzin,
           showKas: savedShowKas ?? _config.showKas,
@@ -684,14 +640,17 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
   }
 
   /// Perbarui indikator fase TV dari `SyncAction.stateUpdate`.
+  /// Payload juga membawa status kontrol tampilan (`muted`, `standby`)
+  /// bila TV mendukungnya — TV lama tanpa kunci ini tidak mengubah status.
   void _applyTvPhase(SyncPacket packet) {
     final phaseName = packet.payload['phase'] as String?;
     if (phaseName == null || !mounted) return;
     setState(() {
-      _tvPhase = PrayerPhase.values.firstWhere(
-        (p) => p.name == phaseName,
-        orElse: () => PrayerPhase.normal,
-      );
+      _tvPhase = PrayerPhase.fromName(phaseName);
+      final muted = packet.payload['muted'];
+      if (muted is bool) _tvMuted = muted;
+      final standby = packet.payload['standby'];
+      if (standby is bool) _tvStandby = standby;
     });
   }
 
@@ -784,20 +743,16 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
             ],
           ),
           actions: [
-            M3Pressable(
-              child: TextButton(
-                onPressed: () => Navigator.pop(dialogContext),
-                child: const Text('Batal'),
-              ),
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Batal'),
             ),
-            M3Pressable(
-              child: FilledButton(
-                onPressed: () async {
-                  Navigator.pop(dialogContext);
-                  await _applyImportedBackup(bundle);
-                },
-                child: const Text('Terapkan'),
-              ),
+            FilledButton(
+              onPressed: () async {
+                Navigator.pop(dialogContext);
+                await _applyImportedBackup(bundle);
+              },
+              child: const Text('Terapkan'),
             ),
           ],
         );
@@ -842,7 +797,8 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
         setState(() {
           _isConnected = _btConnected;
         });
-        _showSnack('Koneksi gagal: alamat IP tidak valid atau TV tidak terhubung');
+        _showSnack(
+            'Koneksi gagal: alamat IP tidak valid atau TV tidak terhubung');
       }
       // Sukses: `_handleConnectionEstablished('ip')` dipanggil oleh
       // callback `onConnected` dari RemoteWsClient.
@@ -964,21 +920,21 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
       address: _addressController.text.trim().isEmpty
           ? _config.address
           : _addressController.text.trim(),
-      latitude: double.tryParse(_latitudeController.text.trim()) ??
-          _config.latitude,
+      latitude:
+          double.tryParse(_latitudeController.text.trim()) ?? _config.latitude,
       longitude: double.tryParse(_longitudeController.text.trim()) ??
           _config.longitude,
       prayerOffsets: {
         for (final type in kAllPrayerTypes)
           type: int.tryParse(_prayerOffsetControllers[type]!.text.trim()) ?? 0,
       },
-      preAdhanMinutes: _minutesFrom(_preAdhanController, _config.preAdhanMinutes),
+      preAdhanMinutes:
+          _minutesFrom(_preAdhanController, _config.preAdhanMinutes),
       adhanMinutes: _minutesFrom(_adhanController, _config.adhanMinutes),
       preIqomahMinutes:
           _minutesFrom(_preIqomahController, _config.preIqomahMinutes),
       shalatMinutes: _minutesFrom(_shalatController, _config.shalatMinutes),
-      khutbahMinutes:
-          _minutesFrom(_khutbahController, _config.khutbahMinutes),
+      khutbahMinutes: _minutesFrom(_khutbahController, _config.khutbahMinutes),
       fridayKhatib: _fridayKhatibController.text.trim().isEmpty
           ? _config.fridayKhatib
           : _fridayKhatibController.text.trim(),
@@ -1038,6 +994,35 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
       });
       _showSnack('Pengaturan disimpan lokal (belum dikirim).');
     }
+  }
+
+  /// Total kas per tipe (untuk ringkasan di Beranda).
+  int _totalKas(KasType type) => _kasTransactions
+      .where((t) => t.type == type)
+      .fold(0, (sum, t) => sum + t.amount);
+
+  /// Toggle mode senyap TV dari Beranda (optimistis; dikonfirmasi balik
+  /// oleh `stateUpdate` TV).
+  void _toggleTvMuted() {
+    if (!_isConnected) {
+      _showSnack('Belum terhubung ke TV. Sambungkan dulu.');
+      return;
+    }
+    final next = !_tvMuted;
+    setState(() => _tvMuted = next);
+    _client.sendSetMuted(next);
+  }
+
+  /// Toggle standby TV dari Beranda (optimistis; dikonfirmasi balik
+  /// oleh `stateUpdate` TV).
+  void _toggleTvStandby() {
+    if (!_isConnected) {
+      _showSnack('Belum terhubung ke TV. Sambungkan dulu.');
+      return;
+    }
+    final next = !_tvStandby;
+    setState(() => _tvStandby = next);
+    _client.sendSetStandby(next);
   }
 
   /// Kirim aksi cepat (skip) ke TV. Valid hanya saat TV berada di fase terkait.
@@ -1203,40 +1188,36 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
                 ],
               ),
               actions: [
-                M3Pressable(
-                  child: TextButton(
-                    onPressed: () => Navigator.pop(dialogContext),
-                    child: const Text('Batal'),
-                  ),
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogContext),
+                  child: const Text('Batal'),
                 ),
-                M3Pressable(
-                  child: FilledButton(
-                    onPressed: () {
-                      final newContent = textController.text.trim();
-                      if (newContent.isEmpty) return;
-                      setState(() {
-                        final index =
-                            _runningTexts.indexWhere((t) => t.id == item.id);
-                        if (index >= 0) {
-                          _runningTexts[index] = RunningTextMessage(
-                            id: item.id,
-                            content: newContent,
-                            category: selectedCategory,
-                            isActive: item.isActive,
-                          );
-                        }
-                        _hasUnsyncedChanges = true;
-                      });
-                      if (_isConnected) {
-                        _client.sendRunningTextsUpdate(_runningTexts);
-                        setState(() {
-                          _hasUnsyncedChanges = false;
-                        });
+                FilledButton(
+                  onPressed: () {
+                    final newContent = textController.text.trim();
+                    if (newContent.isEmpty) return;
+                    setState(() {
+                      final index =
+                          _runningTexts.indexWhere((t) => t.id == item.id);
+                      if (index >= 0) {
+                        _runningTexts[index] = RunningTextMessage(
+                          id: item.id,
+                          content: newContent,
+                          category: selectedCategory,
+                          isActive: item.isActive,
+                        );
                       }
-                      Navigator.pop(dialogContext);
-                    },
-                    child: const Text('Simpan'),
-                  ),
+                      _hasUnsyncedChanges = true;
+                    });
+                    if (_isConnected) {
+                      _client.sendRunningTextsUpdate(_runningTexts);
+                      setState(() {
+                        _hasUnsyncedChanges = false;
+                      });
+                    }
+                    Navigator.pop(dialogContext);
+                  },
+                  child: const Text('Simpan'),
                 ),
               ],
             );
@@ -1249,7 +1230,11 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
   void _addBanner(String? base64Image) {
     final title = _bannerTitleController.text.trim();
     final content = _bannerContentController.text.trim();
-    if (title.isEmpty && content.isEmpty && (base64Image == null || base64Image.isEmpty)) return;
+    if (title.isEmpty &&
+        content.isEmpty &&
+        (base64Image == null || base64Image.isEmpty)) {
+      return;
+    }
 
     setState(() {
       _banners.add(MediaBanner(
@@ -1380,7 +1365,8 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
               children: [
                 TextFormField(
                   controller: headerController,
-                  decoration: const InputDecoration(labelText: 'Header/Kategori'),
+                  decoration:
+                      const InputDecoration(labelText: 'Header/Kategori'),
                 ),
                 TextFormField(
                   controller: titleController,
@@ -1399,41 +1385,37 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
             ),
           ),
           actions: [
-            M3Pressable(
-              child: TextButton(
-                onPressed: () => Navigator.pop(dialogContext),
-                child: const Text('Batal'),
-              ),
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Batal'),
             ),
-            M3Pressable(
-              child: FilledButton(
-                onPressed: () {
-                  setState(() {
-                    final index = _banners.indexWhere((b) => b.id == banner.id);
-                    if (index >= 0) {
-                      _banners[index] = MediaBanner(
-                        id: banner.id,
-                        header: headerController.text.trim().isEmpty
-                            ? 'INFO MASJID'
-                            : headerController.text.trim(),
-                        title: titleController.text.trim(),
-                        content: contentController.text.trim(),
-                        footer: footerController.text.trim(),
-                        isActive: banner.isActive,
-                      );
-                    }
-                    _hasUnsyncedChanges = true;
-                  });
-                  if (_isConnected) {
-                    _client.sendBannersUpdate(_banners);
-                    setState(() {
-                      _hasUnsyncedChanges = false;
-                    });
+            FilledButton(
+              onPressed: () {
+                setState(() {
+                  final index = _banners.indexWhere((b) => b.id == banner.id);
+                  if (index >= 0) {
+                    _banners[index] = MediaBanner(
+                      id: banner.id,
+                      header: headerController.text.trim().isEmpty
+                          ? 'INFO MASJID'
+                          : headerController.text.trim(),
+                      title: titleController.text.trim(),
+                      content: contentController.text.trim(),
+                      footer: footerController.text.trim(),
+                      isActive: banner.isActive,
+                    );
                   }
-                  Navigator.pop(dialogContext);
-                },
-                child: const Text('Simpan'),
-              ),
+                  _hasUnsyncedChanges = true;
+                });
+                if (_isConnected) {
+                  _client.sendBannersUpdate(_banners);
+                  setState(() {
+                    _hasUnsyncedChanges = false;
+                  });
+                }
+                Navigator.pop(dialogContext);
+              },
+              child: const Text('Simpan'),
             ),
           ],
         );
@@ -1533,62 +1515,58 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
                       Row(
                         children: [
                           Expanded(
-                            child: M3Pressable(
-                              child: OutlinedButton.icon(
-                                icon: const Icon(Icons.calendar_today, size: 18),
-                                label: Text(
-                                  dateFormat.format(simDateTime),
-                                ),
-                                onPressed: () async {
-                                  final picked = await showDatePicker(
-                                    context: context,
-                                    initialDate: simDateTime,
-                                    firstDate: DateTime(2020),
-                                    lastDate: DateTime(2100),
-                                  );
-                                  if (picked != null) {
-                                    setDialogState(() {
-                                      simDateTime = DateTime(
-                                        picked.year,
-                                        picked.month,
-                                        picked.day,
-                                        simDateTime.hour,
-                                        simDateTime.minute,
-                                      );
-                                    });
-                                  }
-                                },
+                            child: OutlinedButton.icon(
+                              icon: const Icon(Icons.calendar_today, size: 18),
+                              label: Text(
+                                dateFormat.format(simDateTime),
                               ),
+                              onPressed: () async {
+                                final picked = await showDatePicker(
+                                  context: context,
+                                  initialDate: simDateTime,
+                                  firstDate: DateTime(2020),
+                                  lastDate: DateTime(2100),
+                                );
+                                if (picked != null) {
+                                  setDialogState(() {
+                                    simDateTime = DateTime(
+                                      picked.year,
+                                      picked.month,
+                                      picked.day,
+                                      simDateTime.hour,
+                                      simDateTime.minute,
+                                    );
+                                  });
+                                }
+                              },
                             ),
                           ),
                           const SizedBox(width: 8),
                           Expanded(
-                            child: M3Pressable(
-                              child: OutlinedButton.icon(
-                                icon: const Icon(Icons.access_time, size: 18),
-                                label: Text(
-                                  DateFormat('HH:mm').format(simDateTime),
-                                ),
-                                onPressed: () async {
-                                  final picked = await showTimePicker(
-                                    context: context,
-                                    initialTime: TimeOfDay.fromDateTime(
-                                      simDateTime,
-                                    ),
-                                  );
-                                  if (picked != null) {
-                                    setDialogState(() {
-                                      simDateTime = DateTime(
-                                        simDateTime.year,
-                                        simDateTime.month,
-                                        simDateTime.day,
-                                        picked.hour,
-                                        picked.minute,
-                                      );
-                                    });
-                                  }
-                                },
+                            child: OutlinedButton.icon(
+                              icon: const Icon(Icons.access_time, size: 18),
+                              label: Text(
+                                DateFormat('HH:mm').format(simDateTime),
                               ),
+                              onPressed: () async {
+                                final picked = await showTimePicker(
+                                  context: context,
+                                  initialTime: TimeOfDay.fromDateTime(
+                                    simDateTime,
+                                  ),
+                                );
+                                if (picked != null) {
+                                  setDialogState(() {
+                                    simDateTime = DateTime(
+                                      simDateTime.year,
+                                      simDateTime.month,
+                                      simDateTime.day,
+                                      picked.hour,
+                                      picked.minute,
+                                    );
+                                  });
+                                }
+                              },
                             ),
                           ),
                         ],
@@ -1610,11 +1588,9 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
                 ),
               ),
               actions: [
-                M3Pressable(
-                  child: TextButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: const Text('Tutup'),
-                  ),
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Tutup'),
                 ),
               ],
             );
@@ -1632,25 +1608,20 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
     final isNext = schedule.nextPrayer == item.type;
     return Card(
       margin: const EdgeInsets.only(bottom: 6),
-      color: isNext
-          ? Theme.of(context).colorScheme.primaryContainer
-          : null,
+      color: isNext ? Theme.of(context).colorScheme.primaryContainer : null,
       child: ListTile(
         dense: true,
         leading: Icon(
           isNext ? Icons.alarm_on : Icons.schedule,
-          color: isNext
-              ? Theme.of(context).colorScheme.onPrimaryContainer
-              : null,
+          color:
+              isNext ? Theme.of(context).colorScheme.onPrimaryContainer : null,
         ),
         title: Text(
           item.type.displayNameForDate(
             item.time,
             hasFridayPrayer: _hasFridayPrayer,
           ),
-          style: isNext
-              ? const TextStyle(fontWeight: FontWeight.bold)
-              : null,
+          style: isNext ? const TextStyle(fontWeight: FontWeight.bold) : null,
         ),
         trailing: isNext
             ? Text(
@@ -1694,7 +1665,6 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
     _bannerFooterController.dispose();
     _kasAmountController.dispose();
     _kasDescriptionController.dispose();
-    _mainTabController.dispose();
     _subTabController.dispose();
     WidgetsBinding.instance.removeObserver(this);
     _btClient.disconnect();
@@ -1728,136 +1698,135 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
           )
         : Column(
             children: [
-          if (_showDisconnectedNotice)
-            _buildDisconnectedBanner(theme, colorScheme),
-          if (_hasUnsyncedChanges) _buildUnsyncedBanner(theme, colorScheme),
-          AnimatedBuilder(
-            animation: _mainTabController.animation!,
-            builder: (context, child) {
-              final val = _mainTabController.animation!.value;
-              double factor;
-              if (val < 1) {
-                factor = val;
-              } else if (val <= 4) {
-                factor = 1;
-              } else if (val < 5) {
-                factor = 5 - val;
-              } else {
-                factor = 0;
-              }
-              factor = factor.clamp(0.0, 1.0);
-              return ClipRect(
-                child: Align(
-                  alignment: Alignment.topCenter,
-                  heightFactor: factor,
-                  child: Opacity(
-                    opacity: factor,
-                    child: child,
-                  ),
+              if (_showDisconnectedNotice)
+                _buildDisconnectedBanner(theme, colorScheme),
+              if (_hasUnsyncedChanges) _buildUnsyncedBanner(theme, colorScheme),
+              _buildConnectionStatusStrip(theme, colorScheme),
+              Expanded(
+                child: IndexedStack(
+                  index: _tabIndex,
+                  children: [
+                    HomeTab(
+                      mosqueName: _config.name,
+                      transportLabel: _transportLabel,
+                      tvPhase: _tvPhase,
+                      tvMuted: _tvMuted,
+                      tvStandby: _tvStandby,
+                      config: _config,
+                      totalKasMasuk: _totalKas(KasType.masuk),
+                      totalKasKeluar: _totalKas(KasType.keluar),
+                      onToggleMuted: _toggleTvMuted,
+                      onToggleStandby: _toggleTvStandby,
+                      onSyncNow: _pushAllToTv,
+                    ),
+                    Column(
+                      children: [
+                        _buildContentTabBar(theme, colorScheme),
+                        Expanded(
+                          child: TabBarView(
+                            controller: _subTabController,
+                            children: [
+                              RunningTextSubtab(
+                                runningTexts: _runningTexts,
+                                runningTextController: _runningTextController,
+                                selectedCategory: _runningCategory,
+                                categories: _runningCategories,
+                                onCategoryChanged: (cat) {
+                                  setState(() {
+                                    _runningCategory = cat;
+                                  });
+                                },
+                                onAddMessage: _addRunningText,
+                                onEditMessage: _editRunningText,
+                                onRemoveMessage: _removeRunningText,
+                              ),
+                              BannersSubtab(
+                                banners: _banners,
+                                headerController: _bannerHeaderController,
+                                titleController: _bannerTitleController,
+                                contentController: _bannerContentController,
+                                footerController: _bannerFooterController,
+                                onAddBanner: _addBanner,
+                                onEditBanner: _editBanner,
+                                onRemoveBanner: _removeBanner,
+                                onToggleBanner: _toggleBanner,
+                              ),
+                              KasSubtab(
+                                transactions: _kasTransactions,
+                                amountController: _kasAmountController,
+                                descriptionController:
+                                    _kasDescriptionController,
+                                kasType: _kasType,
+                                onTypeChanged: (type) {
+                                  setState(() {
+                                    _kasType = type;
+                                  });
+                                },
+                                onAddTransaction: _addKasTransaction,
+                                onRemoveTransaction: _removeKasTransaction,
+                              ),
+                              SpecialImagesSubtab(
+                                images: _sideImages,
+                                onAddImage: _addSideImage,
+                                onRemoveImage: _removeSideImage,
+                                onToggleImage: _toggleSideImage,
+                                onMoveImage: _moveSideImage,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    SettingsTab(
+                      config: _config,
+                      nameController: _nameController,
+                      addressController: _addressController,
+                      latitudeController: _latitudeController,
+                      longitudeController: _longitudeController,
+                      prayerOffsetControllers: _prayerOffsetControllers,
+                      preAdhanController: _preAdhanController,
+                      adhanController: _adhanController,
+                      preIqomahController: _preIqomahController,
+                      shalatController: _shalatController,
+                      khutbahController: _khutbahController,
+                      fridayKhatibController: _fridayKhatibController,
+                      fridayMuadzinController: _fridayMuadzinController,
+                      showKas: _showKas,
+                      hasFridayPrayer: _hasFridayPrayer,
+                      onShowKasChanged: (val) {
+                        setState(() {
+                          _showKas = val;
+                        });
+                      },
+                      onHasFridayPrayerChanged: (val) {
+                        setState(() {
+                          _hasFridayPrayer = val;
+                        });
+                      },
+                      isFetchingLocation: _isFetchingLocation,
+                      isConnected: _isConnected,
+                      tvPhase: _tvPhase,
+                      onFetchLocation: _getLocationFromGps,
+                      onSaveConfig: _sendConfigUpdate,
+                      onSendQuickAction: _sendQuickAction,
+                      onShowSimulation: _showScheduleSimulation,
+                      onExportBackup: _exportBackup,
+                      onImportBackup: _importBackup,
+                      themeMode: widget.themeMode,
+                      colorSource: widget.colorSource,
+                      onThemeModeChanged: widget.onThemeModeChanged,
+                      onColorSourceChanged: widget.onColorSourceChanged,
+                    ),
+                    SimulationTab(
+                      isConnected: _isConnected,
+                      tvPhase: _tvPhase,
+                      onSendForcePhase: _sendForcePhase,
+                    ),
+                  ],
                 ),
-              );
-            },
-            child: _buildContentTabBar(theme, colorScheme),
-          ),
-          Expanded(
-            child: TabBarView(
-              controller: _mainTabController,
-              children: [
-                SettingsTab(
-                  config: _config,
-                  nameController: _nameController,
-                  addressController: _addressController,
-                  latitudeController: _latitudeController,
-                  longitudeController: _longitudeController,
-                  prayerOffsetControllers: _prayerOffsetControllers,
-                  preAdhanController: _preAdhanController,
-                  adhanController: _adhanController,
-                  preIqomahController: _preIqomahController,
-                  shalatController: _shalatController,
-                  khutbahController: _khutbahController,
-                  fridayKhatibController: _fridayKhatibController,
-                  fridayMuadzinController: _fridayMuadzinController,
-                  showKas: _showKas,
-                  hasFridayPrayer: _hasFridayPrayer,
-                  onShowKasChanged: (val) {
-                    setState(() {
-                      _showKas = val;
-                    });
-                  },
-                  onHasFridayPrayerChanged: (val) {
-                    setState(() {
-                      _hasFridayPrayer = val;
-                    });
-                  },
-                  isFetchingLocation: _isFetchingLocation,
-                  isConnected: _isConnected,
-                  tvPhase: _tvPhase,
-                  onFetchLocation: _getLocationFromGps,
-                  onSaveConfig: _sendConfigUpdate,
-                  onSendQuickAction: _sendQuickAction,
-                  onShowSimulation: _showScheduleSimulation,
-                  onExportBackup: _exportBackup,
-                  onImportBackup: _importBackup,
-                  themeMode: widget.themeMode,
-                  colorSource: widget.colorSource,
-                  onThemeModeChanged: widget.onThemeModeChanged,
-                  onColorSourceChanged: widget.onColorSourceChanged,
-                ),
-                RunningTextSubtab(
-                  runningTexts: _runningTexts,
-                  runningTextController: _runningTextController,
-                  selectedCategory: _runningCategory,
-                  categories: _runningCategories,
-                  onCategoryChanged: (cat) {
-                    setState(() {
-                      _runningCategory = cat;
-                    });
-                  },
-                  onAddMessage: _addRunningText,
-                  onEditMessage: _editRunningText,
-                  onRemoveMessage: _removeRunningText,
-                ),
-                BannersSubtab(
-                  banners: _banners,
-                  headerController: _bannerHeaderController,
-                  titleController: _bannerTitleController,
-                  contentController: _bannerContentController,
-                  footerController: _bannerFooterController,
-                  onAddBanner: _addBanner,
-                  onEditBanner: _editBanner,
-                  onRemoveBanner: _removeBanner,
-                  onToggleBanner: _toggleBanner,
-                ),
-                KasSubtab(
-                  transactions: _kasTransactions,
-                  amountController: _kasAmountController,
-                  descriptionController: _kasDescriptionController,
-                  kasType: _kasType,
-                  onTypeChanged: (type) {
-                    setState(() {
-                      _kasType = type;
-                    });
-                  },
-                  onAddTransaction: _addKasTransaction,
-                  onRemoveTransaction: _removeKasTransaction,
-                ),
-                SpecialImagesSubtab(
-                  images: _sideImages,
-                  onAddImage: _addSideImage,
-                  onRemoveImage: _removeSideImage,
-                  onToggleImage: _toggleSideImage,
-                  onMoveImage: _moveSideImage,
-                ),
-                SimulationTab(
-                  isConnected: _isConnected,
-                  tvPhase: _tvPhase,
-                  onSendForcePhase: _sendForcePhase,
-                ),
-              ],
-            ),
-          ),
-        ],
-      );
+              ),
+            ],
+          );
     final connected = _isConnected;
     return Scaffold(
       appBar: connected
@@ -1866,104 +1835,163 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
               centerTitle: true,
               backgroundColor: colorScheme.surfaceContainer,
               elevation: 0,
-              actions: [
-                Padding(
-                  padding: const EdgeInsets.only(right: 12),
-                  child: _buildConnectionBadge(colorScheme),
-                ),
-              ],
             )
           : null,
       body: body,
       bottomNavigationBar: connected
           ? NavigationBar(
-        selectedIndex: _tabIndex,
-        onDestinationSelected: (index) {
-          _mainTabController.animateTo(
-            _mainPageForBottomNav(index, _subTabController.index),
-          );
-        },
-        destinations: [
-          NavigationDestination(
-            icon: PlayfulNavIcon(
-              unselectedIcon: Icons.settings_outlined,
-              selectedIcon: Icons.settings,
-              isSelected: _tabIndex == 0,
-              shouldRotate: true,
-            ),
-            label: 'Pengaturan',
-          ),
-          NavigationDestination(
-            icon: PlayfulNavIcon(
-              unselectedIcon: Icons.collections_bookmark_outlined,
-              selectedIcon: Icons.collections_bookmark,
-              isSelected: _tabIndex == 1,
-              shouldRotate: true,
-            ),
-            label: 'Konten',
-          ),
-          NavigationDestination(
-            icon: PlayfulNavIcon(
-              unselectedIcon: Icons.science_outlined,
-              selectedIcon: Icons.science,
-              isSelected: _tabIndex == 2,
-              shouldRotate: true,
-            ),
-            label: 'Tes',
-          ),
-        ],
-      )
+              selectedIndex: _tabIndex,
+              onDestinationSelected: (index) {
+                setState(() {
+                  _tabIndex = index;
+                });
+              },
+              destinations: const [
+                NavigationDestination(
+                  icon: Icon(Icons.home_outlined),
+                  selectedIcon: Icon(Icons.home),
+                  label: 'Beranda',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.collections_bookmark_outlined),
+                  selectedIcon: Icon(Icons.collections_bookmark),
+                  label: 'Konten',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.settings_outlined),
+                  selectedIcon: Icon(Icons.settings),
+                  label: 'Pengaturan',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.science_outlined),
+                  selectedIcon: Icon(Icons.science),
+                  label: 'Tes',
+                ),
+              ],
+            )
           : null,
     );
   }
 
-  /// Badge status koneksi di AppBar. Diketuk untuk membuka menu
-  /// "Putuskan Koneksi" (kembali ke layar sambungan).
-  Widget _buildConnectionBadge(ColorScheme colorScheme) {
+  /// Label jalur koneksi aktif untuk strip status & Beranda.
+  String get _transportLabel =>
+      _lastConnectionKind == 'bluetooth' ? 'Bluetooth' : 'IP Address';
+
+  /// Strip status koneksi tonal di bawah AppBar (keputusan D3). Diketuk
+  /// untuk membuka bottom sheet detail koneksi & putus koneksi.
+  Widget _buildConnectionStatusStrip(ThemeData theme, ColorScheme colorScheme) {
     final viaBt = _lastConnectionKind == 'bluetooth';
-    final label = viaBt ? 'Terhubung via Bluetooth' : 'Terhubung via IP';
-    final icon = viaBt ? Icons.bluetooth_connected : Icons.wifi_rounded;
-    return PopupMenuButton<String>(
-      tooltip: 'Status koneksi',
-      onSelected: (value) {
-        if (value == 'disconnect') {
-          _disconnectFromTv();
-        }
-      },
-      itemBuilder: (context) => const [
-        PopupMenuItem<String>(
-          value: 'disconnect',
+    return Material(
+      color: colorScheme.secondaryContainer,
+      child: InkWell(
+        onTap: _showConnectionSheet,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           child: Row(
             children: [
-              Icon(Icons.link_off),
-              SizedBox(width: 8),
-              Text('Putuskan Koneksi'),
+              Icon(
+                viaBt ? Icons.bluetooth_connected : Icons.wifi_rounded,
+                size: 20,
+                color: colorScheme.onSecondaryContainer,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Terhubung ke TV via $_transportLabel',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSecondaryContainer,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              if (_tvStandby)
+                Icon(Icons.power_settings_new,
+                    size: 18, color: colorScheme.onSecondaryContainer),
+              if (_tvMuted)
+                Icon(Icons.volume_off,
+                    size: 18, color: colorScheme.onSecondaryContainer),
+              const SizedBox(width: 4),
+              Icon(Icons.expand_more,
+                  size: 20, color: colorScheme.onSecondaryContainer),
             ],
           ),
         ),
-      ],
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        decoration: BoxDecoration(
-          color: const Color(0xFF1B5E20),
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 16, color: Colors.white),
-            const SizedBox(width: 6),
-            Text(
-              label,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
       ),
+    );
+  }
+
+  /// Bottom sheet detail koneksi: jalur, fase TV, status senyap/standby,
+  /// dan aksi putus koneksi.
+  void _showConnectionSheet() {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Koneksi TV',
+                  style: theme.textTheme.titleLarge
+                      ?.copyWith(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 16),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: Icon(
+                    _lastConnectionKind == 'bluetooth'
+                        ? Icons.bluetooth_connected
+                        : Icons.wifi_rounded,
+                  ),
+                  title: const Text('Jalur koneksi'),
+                  subtitle: Text(_transportLabel),
+                ),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.schedule),
+                  title: const Text('Fase TV saat ini'),
+                  subtitle: Text(tvPhaseLabel(_tvPhase)),
+                ),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: Icon(_tvMuted ? Icons.volume_off : Icons.volume_up),
+                  title: const Text('Suara TV'),
+                  subtitle: Text(_tvMuted ? 'Senyap' : 'Normal'),
+                ),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.power_settings_new),
+                  title: const Text('Layar TV'),
+                  subtitle: Text(_tvStandby ? 'Standby (hitam)' : 'Menyala'),
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  height: 52,
+                  child: FilledButton.tonalIcon(
+                    style: FilledButton.styleFrom(
+                      backgroundColor: colorScheme.errorContainer,
+                      foregroundColor: colorScheme.onErrorContainer,
+                    ),
+                    onPressed: () {
+                      Navigator.of(sheetContext).pop();
+                      _disconnectFromTv();
+                    },
+                    icon: const Icon(Icons.link_off),
+                    label: const Text('Putuskan Koneksi'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -1985,12 +2013,10 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
               ),
             ),
           ),
-          M3Pressable(
-            child: TextButton.icon(
-              onPressed: _reconnectLast,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Sambungkan Ulang'),
-            ),
+          TextButton.icon(
+            onPressed: _reconnectLast,
+            icon: const Icon(Icons.refresh),
+            label: const Text('Sambungkan Ulang'),
           ),
         ],
       ),
@@ -2041,12 +2067,10 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
               ),
             ),
           ),
-          M3Pressable(
-            child: TextButton.icon(
-              onPressed: _pushAllToTv,
-              icon: const Icon(Icons.sync),
-              label: const Text('Kirim ke TV'),
-            ),
+          TextButton.icon(
+            onPressed: _pushAllToTv,
+            icon: const Icon(Icons.sync),
+            label: const Text('Kirim ke TV'),
           ),
         ],
       ),

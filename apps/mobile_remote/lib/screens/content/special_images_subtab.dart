@@ -4,7 +4,6 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_models/shared_models.dart';
-import '../../widgets/m3_pressable.dart';
 
 /// Editor kartu gambar khusus slot samping TV.
 ///
@@ -170,12 +169,10 @@ class _SpecialImagesSubtabState extends State<SpecialImagesSubtab> {
             ),
           ),
           const SizedBox(height: 16),
-          M3Pressable(
-            child: FilledButton.icon(
-              onPressed: _selectedBase64Image == null ? null : _submit,
-              icon: const Icon(Icons.add),
-              label: const Text('Simpan Gambar'),
-            ),
+          FilledButton.icon(
+            onPressed: _selectedBase64Image == null ? null : _submit,
+            icon: const Icon(Icons.add),
+            label: const Text('Simpan Gambar'),
           ),
           const SizedBox(height: 24),
           Text(
@@ -236,31 +233,25 @@ class _SpecialImagesSubtabState extends State<SpecialImagesSubtab> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        M3Pressable(
-                          child: IconButton(
-                            tooltip: 'Naikkan urutan',
-                            onPressed: isFirst
-                                ? null
-                                : () => widget.onMoveImage(image.id, -1),
-                            icon: const Icon(Icons.arrow_upward, size: 20),
-                          ),
+                        IconButton(
+                          tooltip: 'Naikkan urutan',
+                          onPressed: isFirst
+                              ? null
+                              : () => widget.onMoveImage(image.id, -1),
+                          icon: const Icon(Icons.arrow_upward, size: 20),
                         ),
-                        M3Pressable(
-                          child: IconButton(
-                            tooltip: 'Turunkan urutan',
-                            onPressed: isLast
-                                ? null
-                                : () => widget.onMoveImage(image.id, 1),
-                            icon: const Icon(Icons.arrow_downward, size: 20),
-                          ),
+                        IconButton(
+                          tooltip: 'Turunkan urutan',
+                          onPressed: isLast
+                              ? null
+                              : () => widget.onMoveImage(image.id, 1),
+                          icon: const Icon(Icons.arrow_downward, size: 20),
                         ),
-                        M3Pressable(
-                          child: TextButton.icon(
-                            onPressed: () => widget.onRemoveImage(image.id),
-                            icon: const Icon(Icons.delete,
-                                size: 18, color: Colors.red),
-                            label: const Text('Hapus'),
-                          ),
+                        TextButton.icon(
+                          onPressed: () => widget.onRemoveImage(image.id),
+                          icon: const Icon(Icons.delete,
+                              size: 18, color: Colors.red),
+                          label: const Text('Hapus'),
                         ),
                       ],
                     ),

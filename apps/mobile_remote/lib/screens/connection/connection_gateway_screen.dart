@@ -1,8 +1,6 @@
 import 'package:bluetooth_sync/bluetooth_sync.dart';
 import 'package:flutter/material.dart';
 
-import '../../widgets/m3_pressable.dart';
-
 class ConnectionGatewayScreen extends StatelessWidget {
   final TextEditingController ipController;
   final bool isConnecting;
@@ -77,20 +75,18 @@ class ConnectionGatewayScreen extends StatelessWidget {
                             ),
                           ),
                         ),
-                        M3Pressable(
-                          child: FilledButton.tonalIcon(
-                            onPressed:
-                                btIsScanning ? onBtStopScan : onBtStartScan,
-                            icon: btIsScanning
-                                ? const SizedBox(
-                                    width: 16,
-                                    height: 16,
-                                    child: CircularProgressIndicator(
-                                        strokeWidth: 2),
-                                  )
-                                : const Icon(Icons.radar),
-                            label: Text(btIsScanning ? 'Stop' : 'Cari TV'),
-                          ),
+                        FilledButton.tonalIcon(
+                          onPressed:
+                              btIsScanning ? onBtStopScan : onBtStartScan,
+                          icon: btIsScanning
+                              ? const SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child:
+                                      CircularProgressIndicator(strokeWidth: 2),
+                                )
+                              : const Icon(Icons.radar),
+                          label: Text(btIsScanning ? 'Stop' : 'Cari TV'),
                         ),
                       ],
                     ),
@@ -181,20 +177,18 @@ class ConnectionGatewayScreen extends StatelessWidget {
                     const SizedBox(height: 12),
                     SizedBox(
                       width: double.infinity,
-                      child: M3Pressable(
-                        child: FilledButton.icon(
-                          onPressed: isConnecting ? null : onConnectIp,
-                          icon: isConnecting
-                              ? const SizedBox(
-                                  width: 18,
-                                  height: 18,
-                                  child: CircularProgressIndicator(
-                                      strokeWidth: 2),
-                                )
-                              : const Icon(Icons.connect_without_contact),
-                          label: Text(
-                            isConnecting ? 'Menyambungkan...' : 'Hubungkan',
-                          ),
+                      child: FilledButton.icon(
+                        onPressed: isConnecting ? null : onConnectIp,
+                        icon: isConnecting
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child:
+                                    CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : const Icon(Icons.connect_without_contact),
+                        label: Text(
+                          isConnecting ? 'Menyambungkan...' : 'Hubungkan',
                         ),
                       ),
                     ),

@@ -71,6 +71,7 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
   DateTime _now = DateTime.now();
   Timer? _clockTimer;
   LocalServer? _localServer;
+
   /// Host Bluetooth Classic (RFCOMM) — jalur sync langsung tanpa router.
   BluetoothHostService? _btHost;
   BluetoothHostState? _btState;
@@ -159,6 +160,11 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
   /// DKM). Selama `false`, Remote boleh mengirim datanya sekali (bootstrap).
   bool _hasStoredData = false;
 
+  /// Kontrol tampilan dari Remote (Beranda): mode senyap & standby.
+  /// Dilaporkan balik ke Remote lewat `stateUpdate`.
+  bool _muted = false;
+  bool _standby = false;
+
   @override
   void initState() {
     super.initState();
@@ -205,6 +211,14 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
       });
       _recalculateSchedule();
       _prayerStateMachine.updateConfig(_config, _now);
+    }
+
+    final display = await _store.loadDisplayState();
+    if (mounted) {
+      setState(() {
+        _muted = display.muted;
+        _standby = display.standby;
+      });
     }
 
     await _initLocalServer();
@@ -261,8 +275,7 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
         final list = (packet.payload['banners'] as List?)
                 ?.map((e) {
                   if (e is Map) {
-                    return MediaBanner.fromMap(
-                        Map<String, dynamic>.from(e));
+                    return MediaBanner.fromMap(Map<String, dynamic>.from(e));
                   }
                   return null;
                 })
@@ -277,8 +290,7 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
         final list = (packet.payload['transactions'] as List?)
                 ?.map((e) {
                   if (e is Map) {
-                    return KasTransaction.fromMap(
-                        Map<String, dynamic>.from(e));
+                    return KasTransaction.fromMap(Map<String, dynamic>.from(e));
                   }
                   return null;
                 })
@@ -293,8 +305,7 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
         final list = (packet.payload['images'] as List?)
                 ?.map((e) {
                   if (e is Map) {
-                    return SpecialImage.fromMap(
-                        Map<String, dynamic>.from(e));
+                    return SpecialImage.fromMap(Map<String, dynamic>.from(e));
                   }
                   return null;
                 })
@@ -323,6 +334,16 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
           now: _now,
           schedule: _prayerSchedule,
         );
+        break;
+      case SyncAction.setMuted:
+        _muted = packet.payload['muted'] == true;
+        _store.saveMuted(_muted);
+        _broadcastState();
+        break;
+      case SyncAction.setStandby:
+        _standby = packet.payload['standby'] == true;
+        _store.saveStandby(_standby);
+        _broadcastState();
         break;
       case SyncAction.getInitialState:
         // Remote minta keadaan awal: kirim snapshot lengkap (data resmi TV)
@@ -422,6 +443,8 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
         'prayer': _prayerStateMachine.prayer?.name,
         'remainingSeconds': _prayerStateMachine.remaining.inSeconds,
         'totalSeconds': _prayerStateMachine.total.inSeconds,
+        'muted': _muted,
+        'standby': _standby,
       },
     );
     _localServer?.broadcast(packet);
@@ -495,122 +518,145 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
         }
       },
       child: Scaffold(
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          // Background Mosque Wallpaper with dark overlay for readability
-          Image.asset(
-            'assets/images/bg_mosque.jpg',
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) => Container(
-              color: colorScheme.surfaceContainerLowest,
+        body: Stack(
+          fit: StackFit.expand,
+          children: [
+            // Background Mosque Wallpaper with dark overlay for readability
+            Image.asset(
+              'assets/images/bg_mosque.jpg',
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) => Container(
+                color: colorScheme.surfaceContainerLowest,
+              ),
             ),
-          ),
-          Container(
-            color: Colors.black.withValues(alpha: 0.85), // Soft dark filter for contrast
-          ),
+            Container(
+              color: Colors.black
+                  .withValues(alpha: 0.85), // Soft dark filter for contrast
+            ),
 
-          // Material You Dynamic Blob Background — di atas overlay, di bawah konten
-          const MaterialBlobBackground(),
+            // Material You Dynamic Blob Background — di atas overlay, di bawah konten
+            const MaterialBlobBackground(),
 
-          // Main Content Layer
-          SafeArea(
-            child: Column(
-              children: [
-                // Konten atas (header, banner/kas, jadwal) diberi padding;
-                // running text di bawah TANPA padding agar full-width.
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(10, 10, 10, 6),
-                    child: Column(
-                      children: [
-                        // Top Bar: Clock, Mosque Info (chip status sync dihapus —
-                        // ruang vertikal dipakai konten utama)
-                        HeaderClock(
-                          config: _config,
-                          currentTime: _now,
-                        ),
-
-                        const SizedBox(height: 6),
-
-                        // Middle: Banner Carousel & rotasi kartu samping
-                        // [Kas -> Petugas Jumat -> Gambar khusus 1..n -> ulang]
-                        Expanded(
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Expanded(
-                                flex: 3,
-                                child: BannerCarousel(banners: _banners),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                flex: 2,
-                                child: SideCardRotator(
-                                  config: _config,
-                                  transactions: _kasTransactions,
-                                  images: _sideImages,
-                                  date: _now,
-                                ),
-                              ),
-                            ],
+            // Main Content Layer
+            SafeArea(
+              child: Column(
+                children: [
+                  // Konten atas (header, banner/kas, jadwal) diberi padding;
+                  // running text di bawah TANPA padding agar full-width.
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(10, 10, 10, 6),
+                      child: Column(
+                        children: [
+                          // Top Bar: Clock, Mosque Info (chip status sync dihapus —
+                          // ruang vertikal dipakai konten utama)
+                          HeaderClock(
+                            config: _config,
+                            currentTime: _now,
                           ),
-                        ),
 
-                        const SizedBox(height: 6),
+                          const SizedBox(height: 6),
 
-                        // Prayer Cards Row
-                        PrayerCardsRow(
-                          schedule: _prayerSchedule,
-                          hasFridayPrayer: _config.hasFridayPrayer,
-                        ),
-                      ],
+                          // Middle: Banner Carousel & rotasi kartu samping
+                          // [Kas -> Petugas Jumat -> Gambar khusus 1..n -> ulang]
+                          Expanded(
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                Expanded(
+                                  flex: 3,
+                                  child: BannerCarousel(banners: _banners),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  flex: 2,
+                                  child: SideCardRotator(
+                                    config: _config,
+                                    transactions: _kasTransactions,
+                                    images: _sideImages,
+                                    date: _now,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          const SizedBox(height: 6),
+
+                          // Prayer Cards Row
+                          PrayerCardsRow(
+                            schedule: _prayerSchedule,
+                            hasFridayPrayer: _config.hasFridayPrayer,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
 
-                // Bottom Running Text Bar — full-width, menempel dasar layar.
-                RunningTextBar(messages: _runningTexts),
-              ],
+                  // Bottom Running Text Bar — full-width, menempel dasar layar.
+                  RunningTextBar(messages: _runningTexts),
+                ],
+              ),
             ),
-          ),
 
-          // Prayer State Machine Overlay (PRE_ADHAN / ADHAN / PRE_IQOMAH / SHALAT)
-          AnimatedBuilder(
-            animation: _prayerStateMachine,
-            builder: (context, _) {
-              return PrayerStateOverlay(
-                phase: _prayerStateMachine.phase,
-                prayerName: _prayerStateMachine.prayer?.displayNameForDate(
-                  _now,
-                  hasFridayPrayer: _config.hasFridayPrayer,
-                ),
-                remaining: _prayerStateMachine.remaining,
-                total: _prayerStateMachine.total,
-                deadline: _prayerStateMachine.deadline,
-                fridayKhatib: _config.fridayKhatib,
-                fridayMuadzin: _config.fridayMuadzin,
-              );
-            },
-          ),
-
-          // Menu Admin (dibuka dengan tombol Back remote). Paling atas agar
-          // menutupi seluruh konten & overlay shalat.
-          if (_showAdminMenu)
-            AdminMenuOverlay(
-              btEnabled: _btEnabled,
-              pin: _btHost?.pin,
-              statusText: btStatus,
-              isError: btError,
-              onToggleBluetooth: _toggleBluetooth,
-              onClose: () {
-                setState(() {
-                  _showAdminMenu = false;
-                });
+            // Prayer State Machine Overlay (PRE_ADHAN / ADHAN / PRE_IQOMAH / SHALAT)
+            AnimatedBuilder(
+              animation: _prayerStateMachine,
+              builder: (context, _) {
+                return PrayerStateOverlay(
+                  phase: _prayerStateMachine.phase,
+                  prayerName: _prayerStateMachine.prayer?.displayNameForDate(
+                    _now,
+                    hasFridayPrayer: _config.hasFridayPrayer,
+                  ),
+                  remaining: _prayerStateMachine.remaining,
+                  total: _prayerStateMachine.total,
+                  deadline: _prayerStateMachine.deadline,
+                  fridayKhatib: _config.fridayKhatib,
+                  fridayMuadzin: _config.fridayMuadzin,
+                );
               },
             ),
-        ],
-      ),
+
+            // Indikator mode senyap (dari Remote): ikon kecil pojok kanan
+            // bawah, di atas running text, tidak mengganggu konten.
+            if (_muted && !_standby)
+              const Positioned(
+                right: 16,
+                bottom: 44,
+                child: Icon(Icons.volume_off, color: Colors.white54, size: 28),
+              ),
+
+            // Standby (dari Remote): layar hitam penuh. Di bawah menu admin
+            // agar admin lokal tetap bisa membuka panel.
+            if (_standby)
+              Container(
+                color: Colors.black,
+                alignment: Alignment.center,
+                child: const Icon(
+                  Icons.power_settings_new,
+                  color: Colors.white10,
+                  size: 64,
+                ),
+              ),
+
+            // Menu Admin (dibuka dengan tombol Back remote). Paling atas agar
+            // menutupi seluruh konten & overlay shalat.
+            if (_showAdminMenu)
+              AdminMenuOverlay(
+                btEnabled: _btEnabled,
+                pin: _btHost?.pin,
+                statusText: btStatus,
+                isError: btError,
+                onToggleBluetooth: _toggleBluetooth,
+                onClose: () {
+                  setState(() {
+                    _showAdminMenu = false;
+                  });
+                },
+              ),
+          ],
+        ),
       ),
     );
   }

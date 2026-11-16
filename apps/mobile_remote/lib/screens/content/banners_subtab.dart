@@ -4,7 +4,6 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_models/shared_models.dart';
-import '../../widgets/m3_pressable.dart';
 
 class BannersSubtab extends StatefulWidget {
   final List<MediaBanner> banners;
@@ -78,7 +77,8 @@ class _BannersSubtabState extends State<BannersSubtab> {
         children: [
           Text(
             'Tambah Info Masjid',
-            style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            style: theme.textTheme.titleMedium
+                ?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 12),
           TextFormField(
@@ -97,15 +97,17 @@ class _BannersSubtabState extends State<BannersSubtab> {
           TextFormField(
             controller: widget.contentController,
             maxLines: 3,
-            decoration: const InputDecoration(labelText: 'Isi Informasi (Max 3 Baris)'),
+            decoration:
+                const InputDecoration(labelText: 'Isi Informasi (Max 3 Baris)'),
           ),
           const SizedBox(height: 12),
           TextFormField(
             controller: widget.footerController,
-            decoration: const InputDecoration(labelText: 'Kaki Banner / Catatan Bawah'),
+            decoration:
+                const InputDecoration(labelText: 'Kaki Banner / Catatan Bawah'),
           ),
           const SizedBox(height: 12),
-          
+
           // Image upload area
           Card(
             clipBehavior: Clip.antiAlias,
@@ -130,9 +132,11 @@ class _BannersSubtabState extends State<BannersSubtab> {
                             top: 8,
                             right: 8,
                             child: CircleAvatar(
-                              backgroundColor: Colors.black.withValues(alpha: 0.6),
+                              backgroundColor:
+                                  Colors.black.withValues(alpha: 0.6),
                               child: IconButton(
-                                icon: const Icon(Icons.close, color: Colors.white),
+                                icon: const Icon(Icons.close,
+                                    color: Colors.white),
                                 onPressed: _clearImage,
                               ),
                             ),
@@ -142,7 +146,8 @@ class _BannersSubtabState extends State<BannersSubtab> {
                     : Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.image, size: 40, color: colorScheme.primary),
+                          Icon(Icons.image,
+                              size: 40, color: colorScheme.primary),
                           const SizedBox(height: 8),
                           Text(
                             'Pilih Poster / Gambar (Maks 1080p)',
@@ -151,7 +156,8 @@ class _BannersSubtabState extends State<BannersSubtab> {
                           const SizedBox(height: 4),
                           Text(
                             'Berjalan 100% Offline',
-                            style: theme.textTheme.labelSmall?.copyWith(color: colorScheme.outline),
+                            style: theme.textTheme.labelSmall
+                                ?.copyWith(color: colorScheme.outline),
                           ),
                         ],
                       ),
@@ -159,21 +165,20 @@ class _BannersSubtabState extends State<BannersSubtab> {
             ),
           ),
           const SizedBox(height: 16),
-          
-          M3Pressable(
-            child: FilledButton.icon(
-              onPressed: () {
-                widget.onAddBanner(_selectedBase64Image);
-                _clearImage();
-              },
-              icon: const Icon(Icons.add),
-              label: const Text('Simpan Banner'),
-            ),
+
+          FilledButton.icon(
+            onPressed: () {
+              widget.onAddBanner(_selectedBase64Image);
+              _clearImage();
+            },
+            icon: const Icon(Icons.add),
+            label: const Text('Simpan Banner'),
           ),
           const SizedBox(height: 24),
           Text(
             'Daftar Banner Aktif',
-            style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            style: theme.textTheme.titleMedium
+                ?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 12),
           if (widget.banners.isEmpty)
@@ -182,7 +187,8 @@ class _BannersSubtabState extends State<BannersSubtab> {
               child: Center(
                 child: Text(
                   'Belum ada banner informasi.',
-                  style: theme.textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
+                  style: theme.textTheme.bodyMedium
+                      ?.copyWith(color: colorScheme.onSurfaceVariant),
                 ),
               ),
             ),
@@ -214,7 +220,8 @@ class _BannersSubtabState extends State<BannersSubtab> {
                     ],
                     Text(
                       b.title,
-                      style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                      style: theme.textTheme.titleMedium
+                          ?.copyWith(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 4),
                     Text(b.content),
@@ -232,19 +239,16 @@ class _BannersSubtabState extends State<BannersSubtab> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        M3Pressable(
-                          child: TextButton.icon(
-                            onPressed: () => widget.onEditBanner(b),
-                            icon: const Icon(Icons.edit, size: 18),
-                            label: const Text('Edit'),
-                          ),
+                        TextButton.icon(
+                          onPressed: () => widget.onEditBanner(b),
+                          icon: const Icon(Icons.edit, size: 18),
+                          label: const Text('Edit'),
                         ),
-                        M3Pressable(
-                          child: TextButton.icon(
-                            onPressed: () => widget.onRemoveBanner(b.id),
-                            icon: const Icon(Icons.delete, size: 18, color: Colors.red),
-                            label: const Text('Hapus'),
-                          ),
+                        TextButton.icon(
+                          onPressed: () => widget.onRemoveBanner(b.id),
+                          icon: const Icon(Icons.delete,
+                              size: 18, color: Colors.red),
+                          label: const Text('Hapus'),
                         ),
                       ],
                     ),

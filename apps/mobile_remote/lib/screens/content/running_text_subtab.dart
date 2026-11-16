@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:shared_models/shared_models.dart';
-import '../../widgets/m3_pressable.dart';
 
 class RunningTextSubtab extends StatelessWidget {
   final List<RunningTextMessage> runningTexts;
@@ -42,11 +41,9 @@ class RunningTextSubtab extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              M3Pressable(
-                child: IconButton.filled(
-                  onPressed: onAddMessage,
-                  icon: const Icon(Icons.add),
-                ),
+              IconButton.filled(
+                onPressed: onAddMessage,
+                icon: const Icon(Icons.add),
               ),
             ],
           ),
@@ -80,17 +77,13 @@ class RunningTextSubtab extends StatelessWidget {
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        M3Pressable(
-                          child: IconButton(
-                            icon: const Icon(Icons.edit),
-                            onPressed: () => onEditMessage(item),
-                          ),
+                        IconButton(
+                          icon: const Icon(Icons.edit),
+                          onPressed: () => onEditMessage(item),
                         ),
-                        M3Pressable(
-                          child: IconButton(
-                            icon: const Icon(Icons.delete, color: Colors.red),
-                            onPressed: () => onRemoveMessage(item.id),
-                          ),
+                        IconButton(
+                          icon: const Icon(Icons.delete, color: Colors.red),
+                          onPressed: () => onRemoveMessage(item.id),
                         ),
                       ],
                     ),

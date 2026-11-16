@@ -75,6 +75,24 @@ void main() {
       expect(loaded.kasTransactions, isEmpty);
     });
 
+    test('status tampilan (senyap/standby): default mati, round-trip, '
+        'dan tidak menandai TV punya data resmi', () async {
+      final store = TvStore();
+
+      final awal = await store.loadDisplayState();
+      expect(awal.muted, isFalse);
+      expect(awal.standby, isFalse);
+
+      await store.saveMuted(true);
+      await store.saveStandby(true);
+      final tersimpan = await store.loadDisplayState();
+      expect(tersimpan.muted, isTrue);
+      expect(tersimpan.standby, isTrue);
+
+      // Preferensi perangkat bukan data resmi: load() tetap null.
+      expect(await store.load(), isNull);
+    });
+
     test('menyimpan satu blok saja sudah menandai TV punya data resmi', () async {
       final store = TvStore();
       await store.saveKas(const []);

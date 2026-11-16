@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_models/shared_models.dart';
 import '../../theme/theme_preferences.dart';
-import '../../widgets/m3_pressable.dart';
 
 class SettingsTab extends StatelessWidget {
   final MosqueConfig config;
@@ -87,7 +86,8 @@ class SettingsTab extends StatelessWidget {
         children: [
           Text(
             'Identitas Masjid',
-            style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            style: theme.textTheme.titleMedium
+                ?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 12),
           TextFormField(
@@ -108,7 +108,8 @@ class SettingsTab extends StatelessWidget {
           const SizedBox(height: 24),
           Text(
             'Koordinat & Jadwal Sholat',
-            style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            style: theme.textTheme.titleMedium
+                ?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 12),
           Row(
@@ -116,7 +117,8 @@ class SettingsTab extends StatelessWidget {
               Expanded(
                 child: TextFormField(
                   controller: latitudeController,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
                   decoration: const InputDecoration(labelText: 'Latitude'),
                 ),
               ),
@@ -124,7 +126,8 @@ class SettingsTab extends StatelessWidget {
               Expanded(
                 child: TextFormField(
                   controller: longitudeController,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
                   decoration: const InputDecoration(labelText: 'Longitude'),
                 ),
               ),
@@ -133,24 +136,23 @@ class SettingsTab extends StatelessWidget {
           const SizedBox(height: 12),
           SizedBox(
             width: double.infinity,
-            child: M3Pressable(
-              child: OutlinedButton.icon(
-                onPressed: isFetchingLocation ? null : onFetchLocation,
-                icon: isFetchingLocation
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.my_location),
-                label: const Text('Ambil Koordinat dari GPS'),
-              ),
+            child: OutlinedButton.icon(
+              onPressed: isFetchingLocation ? null : onFetchLocation,
+              icon: isFetchingLocation
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.my_location),
+              label: const Text('Ambil Koordinat dari GPS'),
             ),
           ),
           const SizedBox(height: 16),
           Text(
             'Offset Jadwal Sholat (Menit)',
-            style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+            style: theme.textTheme.titleSmall
+                ?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
           GridView.count(
@@ -170,7 +172,8 @@ class SettingsTab extends StatelessWidget {
                     hasFridayPrayer: hasFridayPrayer,
                   ),
                   suffixText: 'mnt',
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                 ),
               );
             }).toList(),
@@ -178,12 +181,14 @@ class SettingsTab extends StatelessWidget {
           const SizedBox(height: 24),
           Text(
             'Durasi Siklus Waktu Shalat (Menit)',
-            style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            style: theme.textTheme.titleMedium
+                ?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 4),
           Text(
             'Sesuaikan durasi tampilan transisi layar TV.',
-            style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+            style: theme.textTheme.bodySmall
+                ?.copyWith(color: colorScheme.onSurfaceVariant),
           ),
           const SizedBox(height: 12),
           Row(
@@ -240,12 +245,14 @@ class SettingsTab extends StatelessWidget {
           const SizedBox(height: 24),
           Text(
             'Tampilan Kartu Samping TV',
-            style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            style: theme.textTheme.titleMedium
+                ?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 4),
           Text(
             'Kartu samping bergantian tampil: Kas -> Petugas Jumat -> Gambar Khusus.',
-            style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+            style: theme.textTheme.bodySmall
+                ?.copyWith(color: colorScheme.onSurfaceVariant),
           ),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
@@ -258,7 +265,8 @@ class SettingsTab extends StatelessWidget {
           const SizedBox(height: 16),
           Text(
             'Siklus Hari Jumat & Petugas',
-            style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+            style: theme.textTheme.titleSmall
+                ?.copyWith(fontWeight: FontWeight.bold),
           ),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
@@ -312,17 +320,20 @@ class SettingsTab extends StatelessWidget {
           const SizedBox(height: 24),
           Text(
             'Tampilan Aplikasi',
-            style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            style: theme.textTheme.titleMedium
+                ?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 4),
           Text(
             'Tema dan warna aplikasi remote di HP ini.',
-            style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+            style: theme.textTheme.bodySmall
+                ?.copyWith(color: colorScheme.onSurfaceVariant),
           ),
           const SizedBox(height: 12),
           Text(
             'Tema',
-            style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+            style: theme.textTheme.titleSmall
+                ?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
           SegmentedButton<ThemeMode>(
@@ -351,7 +362,8 @@ class SettingsTab extends StatelessWidget {
           const SizedBox(height: 16),
           Text(
             'Warna',
-            style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+            style: theme.textTheme.titleSmall
+                ?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
           SegmentedButton<AppColorSource>(
@@ -376,7 +388,8 @@ class SettingsTab extends StatelessWidget {
           Text(
             'Ikuti Wallpaper hanya tersedia di Android 12 ke atas; '
             'di perangkat lain otomatis memakai Hijau Masjid.',
-            style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+            style: theme.textTheme.bodySmall
+                ?.copyWith(color: colorScheme.onSurfaceVariant),
           ),
           const SizedBox(height: 24),
           _buildQuickActionsCard(theme, colorScheme),
@@ -384,43 +397,38 @@ class SettingsTab extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: M3Pressable(
-                  child: OutlinedButton.icon(
-                    onPressed: () {
-                      final curr = MosqueConfig(
-                        name: nameController.text.trim(),
-                        address: addressController.text.trim(),
-                        latitude:
-                            double.tryParse(latitudeController.text.trim()) ??
-                                config.latitude,
-                        longitude:
-                            double.tryParse(longitudeController.text.trim()) ??
-                                config.longitude,
-                        prayerOffsets: {
-                          for (final type in kAllPrayerTypes)
-                            type: int.tryParse(prayerOffsetControllers[type]!
-                                    .text
-                                    .trim()) ??
-                                0,
-                        },
-                        showKas: showKas,
-                        hasFridayPrayer: hasFridayPrayer,
-                      );
-                      onShowSimulation(curr);
-                    },
-                    icon: const Icon(Icons.analytics_outlined),
-                    label: const Text('Simulasi Jadwal'),
-                  ),
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    final curr = MosqueConfig(
+                      name: nameController.text.trim(),
+                      address: addressController.text.trim(),
+                      latitude:
+                          double.tryParse(latitudeController.text.trim()) ??
+                              config.latitude,
+                      longitude:
+                          double.tryParse(longitudeController.text.trim()) ??
+                              config.longitude,
+                      prayerOffsets: {
+                        for (final type in kAllPrayerTypes)
+                          type: int.tryParse(
+                                  prayerOffsetControllers[type]!.text.trim()) ??
+                              0,
+                      },
+                      showKas: showKas,
+                      hasFridayPrayer: hasFridayPrayer,
+                    );
+                    onShowSimulation(curr);
+                  },
+                  icon: const Icon(Icons.analytics_outlined),
+                  label: const Text('Simulasi Jadwal'),
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: M3Pressable(
-                  child: FilledButton.icon(
-                    onPressed: onSaveConfig,
-                    icon: const Icon(Icons.save),
-                    label: const Text('Simpan & Update'),
-                  ),
+                child: FilledButton.icon(
+                  onPressed: onSaveConfig,
+                  icon: const Icon(Icons.save),
+                  label: const Text('Simpan & Update'),
                 ),
               ),
             ],
@@ -429,22 +437,18 @@ class SettingsTab extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: M3Pressable(
-                  child: OutlinedButton.icon(
-                    onPressed: onExportBackup,
-                    icon: const Icon(Icons.backup_outlined),
-                    label: const Text('Export Backup'),
-                  ),
+                child: OutlinedButton.icon(
+                  onPressed: onExportBackup,
+                  icon: const Icon(Icons.backup_outlined),
+                  label: const Text('Export Backup'),
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: M3Pressable(
-                  child: FilledButton.icon(
-                    onPressed: onImportBackup,
-                    icon: const Icon(Icons.restore),
-                    label: const Text('Import Backup'),
-                  ),
+                child: FilledButton.icon(
+                  onPressed: onImportBackup,
+                  icon: const Icon(Icons.restore),
+                  label: const Text('Import Backup'),
                 ),
               ),
             ],
@@ -456,7 +460,8 @@ class SettingsTab extends StatelessWidget {
 
   Widget _buildQuickActionsCard(ThemeData theme, ColorScheme colorScheme) {
     final adhanActive = tvPhase == PrayerPhase.adhan;
-    final iqomahActive = tvPhase == PrayerPhase.preIqomah || tvPhase == PrayerPhase.khutbah;
+    final iqomahActive =
+        tvPhase == PrayerPhase.preIqomah || tvPhase == PrayerPhase.khutbah;
     final shalatActive = tvPhase == PrayerPhase.shalat;
 
     return Card(
@@ -472,48 +477,44 @@ class SettingsTab extends StatelessWidget {
                 const SizedBox(width: 8),
                 Text(
                   'Aksi Cepat Waktu Shalat',
-                  style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                  style: theme.textTheme.titleMedium
+                      ?.copyWith(fontWeight: FontWeight.bold),
                 ),
               ],
             ),
             const SizedBox(height: 4),
             Text(
               'Gunakan tombol di bawah ini untuk melewati fase TV saat ini.',
-              style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+              style: theme.textTheme.bodySmall
+                  ?.copyWith(color: colorScheme.onSurfaceVariant),
             ),
             const SizedBox(height: 12),
             Row(
               children: [
                 Expanded(
-                  child: M3Pressable(
-                    child: FilledButton.tonal(
-                      onPressed: isConnected && adhanActive
-                          ? () => onSendQuickAction(SyncAction.skipAdhan)
-                          : null,
-                      child: const Text('Skip Azan'),
-                    ),
+                  child: FilledButton.tonal(
+                    onPressed: isConnected && adhanActive
+                        ? () => onSendQuickAction(SyncAction.skipAdhan)
+                        : null,
+                    child: const Text('Skip Azan'),
                   ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: M3Pressable(
-                    child: FilledButton.tonal(
-                      onPressed: isConnected && iqomahActive
-                          ? () => onSendQuickAction(SyncAction.startShalat)
-                          : null,
-                      child: const Text('Mulai Shalat'),
-                    ),
+                  child: FilledButton.tonal(
+                    onPressed: isConnected && iqomahActive
+                        ? () => onSendQuickAction(SyncAction.startShalat)
+                        : null,
+                    child: const Text('Mulai Shalat'),
                   ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: M3Pressable(
-                    child: FilledButton.tonal(
-                      onPressed: isConnected && shalatActive
-                          ? () => onSendQuickAction(SyncAction.finishShalat)
-                          : null,
-                      child: const Text('Selesai Shalat'),
-                    ),
+                  child: FilledButton.tonal(
+                    onPressed: isConnected && shalatActive
+                        ? () => onSendQuickAction(SyncAction.finishShalat)
+                        : null,
+                    child: const Text('Selesai Shalat'),
                   ),
                 ),
               ],
