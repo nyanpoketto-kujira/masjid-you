@@ -115,6 +115,15 @@ class RemoteWsClient {
     ));
   }
 
+  void sendSideImagesUpdate(List<SpecialImage> images) {
+    sendPacket(SyncPacket(
+      action: SyncAction.updateSideImages,
+      payload: {
+        'images': images.map((i) => i.toMap()).toList(),
+      },
+    ));
+  }
+
   void sendKasUpdate(List<KasTransaction> transactions) {
     sendPacket(SyncPacket(
       action: SyncAction.updateKas,

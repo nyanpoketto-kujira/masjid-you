@@ -10,8 +10,7 @@ import 'theme/app_theme.dart';
 import 'widgets/header_clock.dart';
 import 'widgets/prayer_cards.dart';
 import 'widgets/banner_carousel.dart';
-import 'widgets/kas_summary_card.dart';
-import 'widgets/friday_staff_card.dart';
+import 'widgets/side_card_rotator.dart';
 import 'widgets/running_text_bar.dart';
 import 'widgets/prayer_state_overlay.dart';
 import 'widgets/material_blob_background.dart';
@@ -92,8 +91,8 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
 
   final PrayerStateMachine _prayerStateMachine = PrayerStateMachine();
 
-  /// Bergantian antara Kartu Kas & Kartu Petugas Jumat (hari Jumat).
-  bool _showKasCard = true;
+  /// Kartu gambar khusus slot samping (dikelola dari Remote).
+  List<SpecialImage> _sideImages = const [];
 
   List<RunningTextMessage> _runningTexts = const [
     RunningTextMessage(
@@ -177,10 +176,6 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
       setState(() {
         _now = DateTime.now();
         _prayerSchedule = PrayerSchedule.calculate(_config, _now);
-        // Hari Jumat: kartu kanan bergantian tiap 10 detik secara absolut.
-        if (_now.weekday == DateTime.friday && _now.second % 10 == 0) {
-          _showKasCard = !_showKasCard;
-        }
       });
       _prayerStateMachine.tick(_now, _prayerSchedule);
     });
@@ -205,6 +200,7 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
         _runningTexts = snapshot.runningTexts;
         _banners = snapshot.banners;
         _kasTransactions = snapshot.kasTransactions;
+        _sideImages = snapshot.sideImages;
         _hasStoredData = true;
       });
       _recalculateSchedule();
@@ -292,6 +288,22 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
         _kasTransactions = list;
         _hasStoredData = true;
         _store.saveKas(list);
+        break;
+      case SyncAction.updateSideImages:
+        final list = (packet.payload['images'] as List?)
+                ?.map((e) {
+                  if (e is Map) {
+                    return SpecialImage.fromMap(
+                        Map<String, dynamic>.from(e));
+                  }
+                  return null;
+                })
+                .whereType<SpecialImage>()
+                .toList() ??
+            [];
+        _sideImages = list;
+        _hasStoredData = true;
+        _store.saveSideImages(list);
         break;
       case SyncAction.skipAdhan:
         _prayerStateMachine.skipAdhan(now: _now);
@@ -393,6 +405,7 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
         runningTexts: _runningTexts,
         banners: _banners,
         kasTransactions: _kasTransactions,
+        sideImages: _sideImages,
         hasData: _hasStoredData,
       ).toMap(),
     );
@@ -520,7 +533,8 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
 
                         const SizedBox(height: 6),
 
-                        // Middle: Banner Carousel & Kas Summary
+                        // Middle: Banner Carousel & rotasi kartu samping
+                        // [Kas -> Petugas Jumat -> Gambar khusus 1..n -> ulang]
                         Expanded(
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -532,37 +546,12 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
                               const SizedBox(width: 8),
                               Expanded(
                                 flex: 2,
-                                child: _now.weekday == DateTime.friday
-                                    ? AnimatedSwitcher(
-                                        duration: const Duration(milliseconds: 500),
-                                        switchInCurve: Curves.easeOutCubic,
-                                        switchOutCurve: Curves.easeInCubic,
-                                        transitionBuilder: (child, animation) {
-                                          return FadeTransition(
-                                            opacity: animation,
-                                            child: SlideTransition(
-                                              position: Tween<Offset>(
-                                                begin: const Offset(0, 0.06),
-                                                end: Offset.zero,
-                                              ).animate(animation),
-                                              child: child,
-                                            ),
-                                          );
-                                        },
-                                        child: _showKasCard
-                                            ? KasSummaryCard(
-                                                key: const ValueKey('kas-summary'),
-                                                transactions: _kasTransactions,
-                                              )
-                                            : FridayStaffCard(
-                                                key: const ValueKey('friday-staff'),
-                                                khatib: _config.fridayKhatib,
-                                                muadzin: _config.fridayMuadzin,
-                                              ),
-                                      )
-                                    : KasSummaryCard(
-                                        transactions: _kasTransactions,
-                                      ),
+                                child: SideCardRotator(
+                                  config: _config,
+                                  transactions: _kasTransactions,
+                                  images: _sideImages,
+                                  date: _now,
+                                ),
                               ),
                             ],
                           ),
@@ -571,7 +560,10 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
                         const SizedBox(height: 6),
 
                         // Prayer Cards Row
-                        PrayerCardsRow(schedule: _prayerSchedule),
+                        PrayerCardsRow(
+                          schedule: _prayerSchedule,
+                          hasFridayPrayer: _config.hasFridayPrayer,
+                        ),
                       ],
                     ),
                   ),
@@ -589,8 +581,10 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
             builder: (context, _) {
               return PrayerStateOverlay(
                 phase: _prayerStateMachine.phase,
-                prayerName:
-                    _prayerStateMachine.prayer?.displayNameForDate(_now),
+                prayerName: _prayerStateMachine.prayer?.displayNameForDate(
+                  _now,
+                  hasFridayPrayer: _config.hasFridayPrayer,
+                ),
                 remaining: _prayerStateMachine.remaining,
                 total: _prayerStateMachine.total,
                 deadline: _prayerStateMachine.deadline,

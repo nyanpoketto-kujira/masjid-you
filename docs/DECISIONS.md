@@ -592,4 +592,27 @@ Setelah refactor gatekeeper (ADR-019), dua keluhan pengguna saat memakai Remote:
 
 ---
 
+## ADR-021 — Rotasi Kartu Slot Samping TV + Toggle Kas & Jumatan
+
+### Konteks
+Slot kanan TV sebelumnya hard-coded: hari biasa kartu Kas tampil statis, hari Jumat Kas bergantian dengan kartu Petugas Jumat tiap 10 detik (logika menempel di timer jam `main.dart`). Tiga kebutuhan DKM tidak terpenuhi:
+
+1. Ada masjid/musholla yang tidak ingin menampilkan kas di TV — belum ada sakelarnya.
+2. Musholla tidak menyelenggarakan Jumatan, tetapi TV-nya tetap menampilkan kartu Petugas Jumat, label "Jumat" pada jadwal Dzuhur, dan masuk fase khutbah tiap Jumat.
+3. DKM ingin menampilkan gambar khusus (pengumuman/poster) di slot yang sama dengan kas, bergantian dalam satu urutan.
+
+### Keputusan
+1. **Satu rotator untuk slot samping** (`SideCardRotator` + `buildSideCardPlaylist`): playlist disusun murni dari konfigurasi + tanggal + daftar gambar — `[Kas] -> [Petugas Jumat] -> [Gambar 1..n] -> ulang`, tiap kartu 10 detik. Playlist kosong menampilkan kartu placeholder; playlist isi 1 tampil statis.
+2. **Dua toggle di `MosqueConfig`** (default `true`, payload lama tanpa kunci ini terbaca `true`): `showKas` (kas masuk rotasi atau tidak) dan `hasFridayPrayer` (ada Jumatan atau tidak), diatur dari tab Pengaturan Remote.
+3. **`hasFridayPrayer = false` berlaku menyeluruh**, bukan hanya kartu: label Dzuhur tidak menjadi "Jumat" (`displayNameForDate(..., hasFridayPrayer:)`), dan `PrayerStateMachine` tidak masuk fase khutbah (auto-cycle maupun `skipAdhan`). Fase khutbah yang dipaksa manual dari Menu Tes tetap dimungkinkan.
+4. **Gambar khusus adalah model tersendiri** (`SpecialImage` di `shared_models`), bukan memakai ulang `MediaBanner`: banner tetap carousel teks+poster di sisi kiri, gambar khusus tampil penuh satu kartu di sisi kanan. Gambar khusus ikut `StateSnapshot`/`BackupBundle`, tersimpan di TV (`tv_sideImages`), dan disinkronkan dengan aksi baru `updateSideImages`; urutan tampil = urutan daftar di Remote, gambar non-aktif dilewati.
+
+### Konsekuensi
+- Perilaku lama terpertahankan persis untuk konfigurasi default (kas tampil, Jumatan ada, tanpa gambar khusus: hari biasa kas statis, Jumat kas ↔ petugas).
+- Satu-satunya sumber kebenaran susunan rotasi adalah fungsi murni `buildSideCardPlaylist`, sehingga kombinasi toggle × hari × gambar terkunci unit test tanpa widget.
+- Remote bertambah satu sub-tab Konten ("Gambar Khusus") — total halaman utama menjadi 6 dan sub-tab Konten menjadi 4; pemetaan bottom-nav/sub-tab disesuaikan.
+- Data lama (persist TV, cache Remote, file backup) tetap terbaca: snapshot tanpa `sideImages` berarti daftar kosong, config tanpa toggle berarti keduanya aktif.
+
+---
+
 > Kembali ke [MAP.md](MAP.md) | Lanjut ke [tv_display/widget_mapping.md](tv_display/widget_mapping.md) | [mobile_remote/tab_mapping.md](mobile_remote/tab_mapping.md) | [mobile_remote/theme_shapes.md](mobile_remote/theme_shapes.md)

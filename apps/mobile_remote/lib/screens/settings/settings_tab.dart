@@ -17,6 +17,14 @@ class SettingsTab extends StatelessWidget {
   final TextEditingController khutbahController;
   final TextEditingController fridayKhatibController;
   final TextEditingController fridayMuadzinController;
+
+  /// Toggle tampil/tidaknya kartu Kas di slot samping TV.
+  final bool showKas;
+
+  /// Toggle ada/tidaknya shalat Jumat (dimatikan untuk musholla).
+  final bool hasFridayPrayer;
+  final ValueChanged<bool> onShowKasChanged;
+  final ValueChanged<bool> onHasFridayPrayerChanged;
   final bool isFetchingLocation;
   final bool isConnected;
   final PrayerPhase tvPhase;
@@ -42,6 +50,10 @@ class SettingsTab extends StatelessWidget {
     required this.khutbahController,
     required this.fridayKhatibController,
     required this.fridayMuadzinController,
+    required this.showKas,
+    required this.hasFridayPrayer,
+    required this.onShowKasChanged,
+    required this.onHasFridayPrayerChanged,
     required this.isFetchingLocation,
     required this.isConnected,
     required this.tvPhase,
@@ -142,7 +154,10 @@ class SettingsTab extends StatelessWidget {
                 controller: prayerOffsetControllers[type],
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
-                  labelText: type.displayNameForDate(DateTime.now()),
+                  labelText: type.displayNameForDate(
+                    DateTime.now(),
+                    hasFridayPrayer: hasFridayPrayer,
+                  ),
                   suffixText: 'mnt',
                   contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                 ),
@@ -211,10 +226,38 @@ class SettingsTab extends StatelessWidget {
               ),
             ],
           ),
+          const SizedBox(height: 24),
+          Text(
+            'Tampilan Kartu Samping TV',
+            style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Kartu samping bergantian tampil: Kas -> Petugas Jumat -> Gambar Khusus.',
+            style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+          ),
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: const Text('Tampilkan Kas Masjid'),
+            subtitle:
+                const Text('Matikan bila kartu kas tidak perlu tampil di TV'),
+            value: showKas,
+            onChanged: onShowKasChanged,
+          ),
           const SizedBox(height: 16),
           Text(
             'Siklus Hari Jumat & Petugas',
             style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+          ),
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: const Text('Ada Shalat Jumat (Jumatan)'),
+            subtitle: const Text(
+              'Matikan untuk musholla: kartu Petugas Jumat, label "Jumat", '
+              'dan fase khutbah tidak ditampilkan',
+            ),
+            value: hasFridayPrayer,
+            onChanged: onHasFridayPrayerChanged,
           ),
           const SizedBox(height: 12),
           Row(
@@ -222,6 +265,7 @@ class SettingsTab extends StatelessWidget {
               Expanded(
                 child: TextFormField(
                   controller: khutbahController,
+                  enabled: hasFridayPrayer,
                   keyboardType: TextInputType.number,
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   decoration: const InputDecoration(
@@ -234,6 +278,7 @@ class SettingsTab extends StatelessWidget {
               Expanded(
                 child: TextFormField(
                   controller: fridayKhatibController,
+                  enabled: hasFridayPrayer,
                   decoration: const InputDecoration(
                     labelText: 'Nama Khatib',
                     prefixIcon: Icon(Icons.person),
@@ -244,6 +289,7 @@ class SettingsTab extends StatelessWidget {
               Expanded(
                 child: TextFormField(
                   controller: fridayMuadzinController,
+                  enabled: hasFridayPrayer,
                   decoration: const InputDecoration(
                     labelText: 'Nama Muadzin',
                     prefixIcon: Icon(Icons.campaign),
@@ -264,12 +310,21 @@ class SettingsTab extends StatelessWidget {
                       final curr = MosqueConfig(
                         name: nameController.text.trim(),
                         address: addressController.text.trim(),
-                        latitude: double.tryParse(latitudeController.text.trim()) ?? config.latitude,
-                        longitude: double.tryParse(longitudeController.text.trim()) ?? config.longitude,
+                        latitude:
+                            double.tryParse(latitudeController.text.trim()) ??
+                                config.latitude,
+                        longitude:
+                            double.tryParse(longitudeController.text.trim()) ??
+                                config.longitude,
                         prayerOffsets: {
                           for (final type in kAllPrayerTypes)
-                            type: int.tryParse(prayerOffsetControllers[type]!.text.trim()) ?? 0,
+                            type: int.tryParse(prayerOffsetControllers[type]!
+                                    .text
+                                    .trim()) ??
+                                0,
                         },
+                        showKas: showKas,
+                        hasFridayPrayer: hasFridayPrayer,
                       );
                       onShowSimulation(curr);
                     },

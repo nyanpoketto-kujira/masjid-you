@@ -17,6 +17,7 @@ import 'screens/settings/settings_tab.dart';
 import 'screens/content/running_text_subtab.dart';
 import 'screens/content/banners_subtab.dart';
 import 'screens/content/kas_subtab.dart';
+import 'screens/content/special_images_subtab.dart';
 import 'screens/connection/connection_gateway_screen.dart';
 import 'screens/simulation/simulation_tab.dart';
 
@@ -200,6 +201,11 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
   final _khutbahController = TextEditingController();
   final _fridayKhatibController = TextEditingController();
   final _fridayMuadzinController = TextEditingController();
+
+  /// Nilai form toggle tampilan kartu samping TV (sumber kebenaran akhirnya
+  /// di [_config]; field ini mengikuti `_syncConfigControllers`).
+  bool _showKas = true;
+  bool _hasFridayPrayer = true;
   bool _isFetchingLocation = false;
   final _runningTextController = TextEditingController();
   String _runningCategory = _runningCategories.first;
@@ -265,11 +271,14 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
     ),
   ];
 
+  /// Kartu gambar khusus slot samping TV (urutan daftar = urutan rotasi).
+  final List<SpecialImage> _sideImages = [];
+
   @override
   void initState() {
     super.initState();
-    _mainTabController = TabController(length: 5, vsync: this);
-    _subTabController = TabController(length: 3, vsync: this);
+    _mainTabController = TabController(length: 6, vsync: this);
+    _subTabController = TabController(length: 4, vsync: this);
     _mainTabController.addListener(_handleMainTabChange);
     _subTabController.addListener(_handleSubTabChange);
     _syncConfigControllers();
@@ -372,12 +381,12 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
 
   /// Sinkronkan dua `TabController` agar swipe antar halaman menyatu.
   ///
-  /// `_mainTabController` (5 halaman) menggerakkan seluruh aplikasi, sedangkan
-  /// `_subTabController` (3 sub-tab Konten) hanya menggerakkan indikator
+  /// `_mainTabController` (6 halaman) menggerakkan seluruh aplikasi, sedangkan
+  /// `_subTabController` (4 sub-tab Konten) hanya menggerakkan indikator
   /// Top Tab Bar. `_syncingControllers` memutus loop antar-listener.
   int _bottomNavIndexForPage(int page) {
-    if (page >= 1 && page <= 3) return 1; // Konten
-    if (page == 4) return 2; // Tes
+    if (page >= 1 && page <= 4) return 1; // Konten
+    if (page == 5) return 2; // Tes
     return 0; // Pengaturan
   }
 
@@ -386,7 +395,7 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
       case 1:
         return currentSub + 1; // Konten -> sub-tab terakhir dilihat
       case 2:
-        return 4;
+        return 5;
       default:
         return 0;
     }
@@ -396,7 +405,7 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
     if (_syncingControllers) return;
     _syncingControllers = true;
     final main = _mainTabController.index;
-    if (main >= 1 && main <= 3) {
+    if (main >= 1 && main <= 4) {
       _subTabController.index = main - 1;
     }
     if (mounted) {
@@ -432,6 +441,8 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
     _khutbahController.text = _config.khutbahMinutes.toString();
     _fridayKhatibController.text = _config.fridayKhatib;
     _fridayMuadzinController.text = _config.fridayMuadzin;
+    _showKas = _config.showKas;
+    _hasFridayPrayer = _config.hasFridayPrayer;
   }
 
   /// Nilai awal form saat startup.
@@ -461,6 +472,9 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
     _kasTransactions
       ..clear()
       ..addAll(snapshot.kasTransactions);
+    _sideImages
+      ..clear()
+      ..addAll(snapshot.sideImages);
     _syncConfigControllers();
   }
 
@@ -583,7 +597,12 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
     try {
       final prefs = await SharedPreferences.getInstance();
       final saved = prefs.getInt('preAdhanMinutes');
-      if (saved == null || !mounted) return;
+      final savedShowKas = prefs.getBool('showKas');
+      final savedHasFriday = prefs.getBool('hasFridayPrayer');
+      if ((saved == null && savedShowKas == null && savedHasFriday == null) ||
+          !mounted) {
+        return;
+      }
       setState(() {
         _config = _config.copyWith(
           preAdhanMinutes:
@@ -599,6 +618,8 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
               prefs.getString('fridayKhatib') ?? _config.fridayKhatib,
           fridayMuadzin:
               prefs.getString('fridayMuadzin') ?? _config.fridayMuadzin,
+          showKas: savedShowKas ?? _config.showKas,
+          hasFridayPrayer: savedHasFriday ?? _config.hasFridayPrayer,
         );
         _preAdhanController.text = _config.preAdhanMinutes.toString();
         _adhanController.text = _config.adhanMinutes.toString();
@@ -607,6 +628,8 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
         _khutbahController.text = _config.khutbahMinutes.toString();
         _fridayKhatibController.text = _config.fridayKhatib;
         _fridayMuadzinController.text = _config.fridayMuadzin;
+        _showKas = _config.showKas;
+        _hasFridayPrayer = _config.hasFridayPrayer;
       });
     } catch (_) {
       // Plugin tidak tersedia (mis. test) -> gunakan default.
@@ -624,6 +647,8 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
       await prefs.setInt('khutbahMinutes', config.khutbahMinutes);
       await prefs.setString('fridayKhatib', config.fridayKhatib);
       await prefs.setString('fridayMuadzin', config.fridayMuadzin);
+      await prefs.setBool('showKas', config.showKas);
+      await prefs.setBool('hasFridayPrayer', config.hasFridayPrayer);
     } catch (_) {
       // Plugin tidak tersedia (mis. test) -> abaikan.
     }
@@ -687,6 +712,7 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
     _client.sendRunningTextsUpdate(_runningTexts);
     _client.sendBannersUpdate(_banners);
     _client.sendKasUpdate(_kasTransactions);
+    _client.sendSideImagesUpdate(_sideImages);
   }
 
   /// Export snapshot keadaan saat ini ke file backup JSON.
@@ -696,6 +722,7 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
       runningTexts: List.of(_runningTexts),
       banners: List.of(_banners),
       kasTransactions: List.of(_kasTransactions),
+      sideImages: List.of(_sideImages),
       hasData: true,
     );
     final savedPath = await _backupService.exportToFile(
@@ -737,6 +764,7 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
               Text('Running Text: ${snapshot.runningTexts.length}'),
               Text('Banner: ${snapshot.banners.length}'),
               Text('Transaksi Kas: ${snapshot.kasTransactions.length}'),
+              Text('Gambar Khusus: ${snapshot.sideImages.length}'),
               const SizedBox(height: 12),
               const Text('Sure ingin terapkan backup ini?'),
             ],
@@ -772,6 +800,7 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
       runningTexts: List.of(_runningTexts),
       banners: List.of(_banners),
       kasTransactions: List.of(_kasTransactions),
+      sideImages: List.of(_sideImages),
       hasData: true,
     );
     await _cacheStore.save(oldSnapshot);
@@ -942,6 +971,8 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
       fridayMuadzin: _fridayMuadzinController.text.trim().isEmpty
           ? _config.fridayMuadzin
           : _fridayMuadzinController.text.trim(),
+      showKas: _showKas,
+      hasFridayPrayer: _hasFridayPrayer,
     );
   }
 
@@ -960,6 +991,7 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
     _client.sendRunningTextsUpdate(_runningTexts);
     _client.sendBannersUpdate(_banners);
     _client.sendKasUpdate(_kasTransactions);
+    _client.sendSideImagesUpdate(_sideImages);
   }
 
   void _pushAllToTv() {
@@ -1260,6 +1292,63 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
     }
   }
 
+  /// Pola kirim gambar khusus sama seperti banner: ubah state lokal, lalu
+  /// kirim daftar terbaru ke TV bila terhubung (kalau tidak, tandai belum
+  /// tersinkron agar bisa dikirim lewat banner "Kirim ke TV").
+  void _sendSideImagesIfConnected() {
+    if (_isConnected) {
+      _client.sendSideImagesUpdate(_sideImages);
+      setState(() {
+        _hasUnsyncedChanges = false;
+      });
+    }
+  }
+
+  void _addSideImage(String caption, String base64Image) {
+    if (base64Image.isEmpty) return;
+    setState(() {
+      _sideImages.add(SpecialImage(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        caption: caption,
+        base64Image: base64Image,
+      ));
+      _hasUnsyncedChanges = true;
+    });
+    _sendSideImagesIfConnected();
+  }
+
+  void _removeSideImage(String id) {
+    setState(() {
+      _sideImages.removeWhere((i) => i.id == id);
+      _hasUnsyncedChanges = true;
+    });
+    _sendSideImagesIfConnected();
+  }
+
+  void _toggleSideImage(String id, bool val) {
+    setState(() {
+      final index = _sideImages.indexWhere((i) => i.id == id);
+      if (index >= 0) {
+        _sideImages[index] = _sideImages[index].copyWith(isActive: val);
+      }
+      _hasUnsyncedChanges = true;
+    });
+    _sendSideImagesIfConnected();
+  }
+
+  void _moveSideImage(String id, int delta) {
+    setState(() {
+      final index = _sideImages.indexWhere((i) => i.id == id);
+      if (index < 0) return;
+      final target = index + delta;
+      if (target < 0 || target >= _sideImages.length) return;
+      final item = _sideImages.removeAt(index);
+      _sideImages.insert(target, item);
+      _hasUnsyncedChanges = true;
+    });
+    _sendSideImagesIfConnected();
+  }
+
   void _editBanner(MediaBanner banner) {
     final headerController = TextEditingController(text: banner.header);
     final titleController = TextEditingController(text: banner.title);
@@ -1541,7 +1630,10 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
               : null,
         ),
         title: Text(
-          item.type.displayNameForDate(item.time),
+          item.type.displayNameForDate(
+            item.time,
+            hasFridayPrayer: _hasFridayPrayer,
+          ),
           style: isNext
               ? const TextStyle(fontWeight: FontWeight.bold)
               : null,
@@ -1632,10 +1724,10 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
               double factor;
               if (val < 1) {
                 factor = val;
-              } else if (val <= 3) {
+              } else if (val <= 4) {
                 factor = 1;
-              } else if (val < 4) {
-                factor = 4 - val;
+              } else if (val < 5) {
+                factor = 5 - val;
               } else {
                 factor = 0;
               }
@@ -1671,6 +1763,18 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
                   khutbahController: _khutbahController,
                   fridayKhatibController: _fridayKhatibController,
                   fridayMuadzinController: _fridayMuadzinController,
+                  showKas: _showKas,
+                  hasFridayPrayer: _hasFridayPrayer,
+                  onShowKasChanged: (val) {
+                    setState(() {
+                      _showKas = val;
+                    });
+                  },
+                  onHasFridayPrayerChanged: (val) {
+                    setState(() {
+                      _hasFridayPrayer = val;
+                    });
+                  },
                   isFetchingLocation: _isFetchingLocation,
                   isConnected: _isConnected,
                   tvPhase: _tvPhase,
@@ -1718,6 +1822,13 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
                   },
                   onAddTransaction: _addKasTransaction,
                   onRemoveTransaction: _removeKasTransaction,
+                ),
+                SpecialImagesSubtab(
+                  images: _sideImages,
+                  onAddImage: _addSideImage,
+                  onRemoveImage: _removeSideImage,
+                  onToggleImage: _toggleSideImage,
+                  onMoveImage: _moveSideImage,
                 ),
                 SimulationTab(
                   isConnected: _isConnected,
@@ -1885,6 +1996,10 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
           Tab(
             icon: Icon(Icons.account_balance_wallet),
             text: 'Kas',
+          ),
+          Tab(
+            icon: Icon(Icons.photo_library),
+            text: 'Gambar Khusus',
           ),
         ],
       ),

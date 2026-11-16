@@ -10,7 +10,7 @@
 | Dokumen | Isi | Kapan Dibaca |
 |---|---|---|
 | **[MAP.md](MAP.md)** (file ini) | Peta arsitektur umum, peta fungsi per-file, navigasi lintas dokumen | Mulai dari sini |
-| **[DECISIONS.md](DECISIONS.md)** | *Architectural Decision Records* (ADR): kenapa ditulis ulang, kenapa Flutter, kenapa WebSocket, kenapa fallback UI, kenapa `didUpdateWidget`, penanganan error P0, validasi prasyarat WiFi Direct TV & Remote, transport Bluetooth RFCOMM (ADR-016), cek lokasi discovery Bluetooth Android ≤11 (ADR-017) | Memahami alasan desain |
+| **[DECISIONS.md](DECISIONS.md)** | *Architectural Decision Records* (ADR): kenapa ditulis ulang, kenapa Flutter, kenapa WebSocket, kenapa fallback UI, kenapa `didUpdateWidget`, penanganan error P0, validasi prasyarat WiFi Direct TV & Remote, transport Bluetooth RFCOMM (ADR-016), cek lokasi discovery Bluetooth Android ≤11 (ADR-017), rotasi kartu slot samping TV + toggle kas/Jumatan (ADR-021) | Memahami alasan desain |
 | **[codebase_index.md](codebase_index.md)** | Indeks simbol otomatis (class/fungsi/enum/field) per `file:baris` — hasil `dart run tools/codebase_index.dart`; wajib regenerasi setelah ubah `lib/` | Mencari fungsi/simbol tanpa membaca semua file |
 | **[bt_rfcomm_rough_plan.md](bt_rfcomm_rough_plan.md)** | Rencana kasar perbaikan Bluetooth RFCOMM: daftar bug per prioritas + status tiap item (`[DIPATCH]` / `[SUDAH BENAR]` / `[TERBUKA]`) | Bekerja di jalur Bluetooth |
 | **[tv_display/widget_mapping.md](tv_display/widget_mapping.md)** | Bedah seluruh file `apps/tv_display/lib/`, fungsi tiap widget, state management, timer, penanganan layar TV | Bekerja di sisi TV |
@@ -74,7 +74,7 @@ flowchart LR
     A[Remote HP: Gatekeeper → 3 Tab UI] -->|SyncPacket via WS| B[TV: LocalServer :8080]
     B -->|parse action + payload| C[setState state list]
     C --> D[BannerCarousel]
-    C --> E[KasSummaryCard]
+    C --> E[SideCardRotator]
     C --> F[PrayerCardsRow]
     C --> G[RunningTextBar]
     C --> H[HeaderClock]
@@ -101,24 +101,30 @@ flowchart LR
 
 | File | Fungsi Utama | Class / Method penting |
 |---|---|---|
-| `lib/main.dart` | Entrypoint TV, state global, orkestrasi server & p2p, layout layar, driver state machine, tangkap tombol Back untuk buka Menu Admin | `MasjidYouTVApp`, `MasjidDisplayScreen` / `_MasjidDisplayScreenState` (`_initLocalServer`, `_initP2pHost`, `_initBluetoothHost`, `_toggleBluetooth`, `_recalculateSchedule`, `_fetchLocalIp`, `_clockTimer` 1 detik, `_broadcastState`, `_showAdminMenu`, root `PopScope(canPop: false)`) |
+| `lib/main.dart` | Entrypoint TV, state global, orkestrasi server & p2p, layout layar, driver state machine, tangkap tombol Back untuk buka Menu Admin | `MasjidYouTVApp`, `MasjidDisplayScreen` / `_MasjidDisplayScreenState` (`_initLocalServer`, `_initBluetoothHost`, `_toggleBluetooth`, `_recalculateSchedule`, `_clockTimer` 1 detik, `_broadcastState`, `_broadcastSnapshot`, `_showAdminMenu`, root `PopScope(canPop: false)`); state `_sideImages` untuk rotasi kartu samping |
 | `lib/widgets/admin_menu_overlay.dart` | Side panel admin slide-in dari sisi KANAN (400px full-height, scrim hitam 0.85): **kartu PIN 4 digit di PALING ATAS** (terbaca dari jarak jauh tanpa navigasi D-Pad), lalu daftar aksi D-Pad (toggle BT → kembali) dengan `Focus` autofocus di item pertama, highlight fokus border teal 2px + glow, OK/Enter memicu aksi, `PopScope` + tombol `goBack` menutup panel; status koneksi display-only; semua container `RoundedRectangleBorder` 12/16 (menimpa `cardTheme` puffy). Aksi "Salin PIN" dihapus — kartu PIN sudah di atas sehingga clipboard tidak lagi berguna di TV (ADR-020) | `AdminMenuOverlay` (`btEnabled`, `pin`, `statusText`, `isError`, `onToggleBluetooth`, `onClose`), `_FocusableAction` |
 | `lib/server/bluetooth_host_service.dart` | Host RFCOMM dengan **autentikasi PIN Challenge-Response**: generate PIN 4-digit + nonce hex 128-bit tiap koneksi, kirim `authChallenge`, verifikasi `authResponse`, tolak paket data sebelum autentikasi, kunci setelah 3x salah (`authFailure` → disconnect) | `BluetoothHostService` (`start`, `stop`, `broadcast`, `pin`, `stateStream`), `BluetoothHostStatus` (idle/listening/connected/error), `BluetoothHostState` (`authenticated`, `isAuthenticated`) |
 | `lib/theme/app_theme.dart` | Tema gelap Material You | `AppTheme.darkTheme` (seed `0xFF006A60`, `CardThemeData` puffy) |
 | `lib/theme/m3_shape_border.dart` | Wrapper polygon M3 + arch manual | `M3ShapeBorder` (`MaterialShapes.*` → `ShapeBorder`), `ArchBorder` (dome di dalam bounds) |
-| `lib/state/prayer_state_machine.dart` | Manager siklus waktu shalat otomatis `NORMAL→PRE_ADHAN→ADHAN→(KHUTBAH Jumat)→PRE_IQOMAH→SHALAT` | `PrayerStateMachine` (`tick`, `skipAdhan(now)`, `startIqomah`, `startShalat`, `finishShalat`, `updateConfig`, `progress`) |
+| `lib/state/prayer_state_machine.dart` | Manager siklus waktu shalat otomatis `NORMAL→PRE_ADHAN→ADHAN→(KHUTBAH Jumat)→PRE_IQOMAH→SHALAT`; fase khutbah hanya bila `hasFridayPrayer` aktif (musholla: Dzuhur seperti hari biasa) | `PrayerStateMachine` (`tick`, `skipAdhan(now)`, `startIqomah`, `startShalat`, `finishShalat`, `updateConfig`, `progress`) |
+| `lib/state/side_card_playlist.dart` | Susunan murni rotasi slot samping TV: `[Kas (bila showKas)] -> [Petugas Jumat (bila Jumat & hasFridayPrayer)] -> [gambar khusus aktif]` (ADR-021) | `SideCardKind`, `SideCardItem`, `buildSideCardPlaylist` |
+| `lib/state/tv_store.dart` | Persist lokal data resmi TV (trust source) per blok JSON `tv_*`, termasuk `tv_sideImages` | `TvStore` (`load`, `saveConfig`, `saveRunningTexts`, `saveBanners`, `saveKas`, `saveSideImages`) |
 | `lib/widgets/prayer_state_overlay.dart` | Overlay layar penuh + CustomPainter animasi (circular ring, wavy progress, khutbah Jumat, layar redup shalat) | `PrayerStateOverlay`, `_KhutbahOverlay`, `_StaffChip`, `_WavyProgressPainter`, `_CircularRingPainter` |
 | `lib/widgets/header_clock.dart` | Header: nama masjid 30px + alamat (chip "Remote Sync IP" & "Mode Bluetooth" dihapus, ADR-018), chip WiFi Direct, jam besar + tanggal | `HeaderClock` (stateless, format `id_ID`) |
 | `lib/widgets/banner_carousel.dart` | Carousel Info Masjid + fallback kosong + auto-scroll vertikal | `BannerCarousel` / `_BannerCarouselState`, `_BannerPage` / `_BannerPageState` (`_startTimer`, `_startAutoScroll`, `didUpdateWidget`) |
 | `lib/widgets/kas_summary_card.dart` | Ringkasan kas (saldo, pemasukan, pengeluaran) | `KasSummaryCard`, `_KasAmountRow` |
-| `lib/widgets/friday_staff_card.dart` | Kartu Petugas Hari Jumat (Khatib & Muadzin), tampil bergantian dgn Kartu Kas tiap 10 dtk di hari Jumat | `FridayStaffCard`, `_StaffRow` |
-| `lib/widgets/prayer_cards.dart` | Baris 6 kartu sholat + ring *swap* countdown/waktu pada kartu aktif (Dzuhur→"Jumat" di hari Jumat) | `PrayerCardsRow`, `_NextPrayerTimer` (`_remainingFraction`, `_formatDuration`, swap 4 dtk) |
+| `lib/widgets/friday_staff_card.dart` | Kartu Petugas Hari Jumat (Khatib & Muadzin); satu entri rotasi `SideCardRotator` khusus hari Jumat | `FridayStaffCard`, `_StaffRow` |
+| `lib/widgets/side_card_rotator.dart` | Rotator slot samping (kanan) TV: playlist `buildSideCardPlaylist` bergiliran tiap 10 dtk (AnimatedSwitcher), 1 kartu = statis, kosong = placeholder (ADR-021) | `SideCardRotator`, `_SidePlaceholderCard` |
+| `lib/widgets/special_image_card.dart` | Kartu gambar khusus penuh satu kartu + caption bawah; fallback ikon bila base64 rusak | `SpecialImageCard` |
+| `lib/widgets/prayer_cards.dart` | Baris 6 kartu sholat + ring *swap* countdown/waktu pada kartu aktif (Dzuhur→"Jumat" di hari Jumat, nonaktif bila `hasFridayPrayer` mati) | `PrayerCardsRow` (`hasFridayPrayer`), `_NextPrayerTimer` (`_remainingFraction`, `_formatDuration`, swap 4 dtk) |
 | `lib/widgets/running_text_bar.dart` | Running text full-width 44px flush dasar layar (tanpa margin/radius), badge INFORMASI menyatu, fallback kosong | `RunningTextBar` / `_RunningTextBarState` (`_startAutoScroll`, `didUpdateWidget`, `_buildEmptyState`, `_buildRunningState`) |
 | `lib/server/local_ws_server.dart` | Server WebSocket `anyIPv4:8080`, daftar client, broadcast | `LocalServer` (`start`, `broadcast`, `stop`) |
 | `lib/server/p2p_host_service.dart` | Host WiFi Direct (group + advertise) | `P2pHostService` (`start`, `stop`, `stateStream`) |
 | `test/widget_test.dart` | Smoke test + regresi overflow 960×540 | — |
 | `test/running_text_bar_test.dart` | Test kosong/terisi RunningTextBar | — |
-| `test/prayer_state_machine_test.dart` | 19 unit test: group **Hari Biasa** (16) + group **Hari Jumat** (3: khutbah di auto-cycle, `skipAdhan`/`startIqomah`, no-op) | — |
+| `test/prayer_state_machine_test.dart` | 22 unit test: group **Hari Biasa** (16) + group **Hari Jumat** (3: khutbah di auto-cycle, `skipAdhan`/`startIqomah`, no-op) + group **Musholla** (3: tanpa khutbah saat `hasFridayPrayer=false`) | — |
+| `test/side_card_playlist_test.dart` | 9 unit test susunan rotasi slot samping (kombinasi toggle × hari × gambar) | — |
+| `test/side_card_rotator_test.dart` | 6 widget test rotator (urutan Jumat, musholla, kas mati, placeholder, gambar rusak) | — |
 | `test/prayer_state_overlay_test.dart` | 5 widget test overlay (4 fase, bebas overflow 960×540) | — |
 | `test/admin_menu_overlay_test.dart` | Test side panel admin (slide-in, toggle BT, tampil PIN, tombol Back menutup) | — |
 | `test/bluetooth_host_service_test.dart` | Test autentikasi challenge-response PIN host Bluetooth | — |
@@ -136,18 +142,21 @@ flowchart LR
 | `lib/widgets/m3_pressable.dart` | Widget interaktif dengan umpan balik gerakan spring M3 Expressive | `M3Pressable` |
 | `lib/widgets/playful_nav_icon.dart` | Ikon navigasi dinamis dengan mikro-animasi lompatan elastis dan putaran | `PlayfulNavIcon` |
 | `lib/widgets/kas_stat_card.dart` | Kartu visual untuk ringkasan nominal kas masuk, keluar, dan saldo | `KasStatCard` |
-| `lib/screens/settings/settings_tab.dart` | Layar pengaturan identitas masjid, GPS, durasi siklus shalat, aksi cepat, dan tombol simulasi | `SettingsTab` |
+| `lib/screens/settings/settings_tab.dart` | Layar pengaturan identitas masjid, GPS, durasi siklus shalat, aksi cepat, tombol simulasi, dan **toggle kartu samping** (`showKas`, `hasFridayPrayer` — field Jumat non-aktif saat Jumatan mati) | `SettingsTab` |
 | `lib/screens/content/running_text_subtab.dart` | Editor pesan running text berjalan berdasarkan kategori | `RunningTextSubtab` |
 | `lib/screens/content/banners_subtab.dart` | Editor banner informasi masjid multi-bidang dengan kendali sakelar aktif | `BannersSubtab` |
 | `lib/screens/content/kas_subtab.dart` | Manajemen data kas masuk/keluar, input nominal, dan riwayat transaksi | `KasSubtab` |
+| `lib/screens/content/special_images_subtab.dart` | Editor kartu gambar khusus slot samping TV: pilih gambar + caption, sakelar aktif, urutan naik/turun, hapus (ADR-021) | `SpecialImagesSubtab` |
 | `lib/screens/connection/connection_gateway_screen.dart` | Layar sambungan awal (gatekeeper): judul selamat datang + panduan, kartu Bluetooth (scan/pairing/input PIN), kartu IP Address (input 192.168.x.x:8080 + tombol Hubungkan). Menu utama terkunci sampai koneksi terverifikasi | `ConnectionGatewayScreen` |
 | `lib/screens/simulation/simulation_tab.dart` | Menu tes simulasi untuk memicu paksa fase siklus shalat TV | `SimulationTab` |
-| `lib/services/ws_client.dart` | Client WebSocket + helper kirim per tipe data + listen paket masuk + callback koneksi (`onConnected`/`onDisconnected`) untuk gatekeeper & banner disconnect | `RemoteWsClient` (`connect`, `sendConfigUpdate`, `sendRunningTextsUpdate`, `sendBannersUpdate`, `sendKasUpdate`, `sendSkipAdhan`, `sendStartIqomah`, `sendStartShalat`, `sendFinishShalat`, `sendForcePhase`, `onPacket`, `onConnected`, `onDisconnected`, `disconnect`) |
+| `lib/services/ws_client.dart` | Client WebSocket + helper kirim per tipe data + listen paket masuk + callback koneksi (`onConnected`/`onDisconnected`) untuk gatekeeper & banner disconnect | `RemoteWsClient` (`connect`, `sendConfigUpdate`, `sendRunningTextsUpdate`, `sendBannersUpdate`, `sendKasUpdate`, `sendSideImagesUpdate`, `sendSkipAdhan`, `sendStartIqomah`, `sendStartShalat`, `sendFinishShalat`, `sendForcePhase`, `onPacket`, `onConnected`, `onDisconnected`, `disconnect`) |
 | `lib/services/bluetooth_client_service.dart` | Client Bluetooth Classic (RFCOMM): discovery, `connecting` state, dedupe device per alamat, auto-reconnect, tukar `SyncPacket` dengan TV (ADR-016), validasi Location Services Android ≤11 (ADR-017), handler autentikasi challenge-response. Event `connected` **tidak** membuang `_pendingNonce` — challenge bisa diproses sebelum event `connected` tiba, sehingga PIN tetap terkirim (ADR-020). `cancelAuth()` membuang challenge **dan** memutus socket (sesi unverified tidak boleh menggantung) | `BluetoothClientService` (`startDiscovery`, `stopDiscovery`, `connectTo`, `disconnect`, `sendPacket`, `respondWithPin`, `cancelAuth`, `stateStream`, field `onAuthChallenge`/`onAuthSuccess`/`onAuthFailure`), `BluetoothClientState` (`needsLocation`), `BluetoothClientStatus` |
 | `test/widget_test.dart` | Smoke test gatekeeper + stabilitas transisi pohon widget | — |
 | `test/bluetooth_client_service_test.dart` | Unit test transisi state client Bluetooth (mock MethodChannel + EventChannel) | — |
 | `test/pin_dialog_bluetooth_flow_test.dart` | Regresi crash Red Screen `_dependents.isEmpty`: alur penuh BT (discovery → connect → `authChallenge` → dialog PIN → `authFailure` → Batal) tanpa crash framework dan kembali ke layar sambungan; **plus** regresi urutan nonce (challenge diproses SEBELUM event `connected`, lalu `authResponse` tetap terkirim dengan `pin` + `nonce` challenge yang sama) | — |
 | `test/pin_dialog_cxl_test.dart` | Regresi stabilitas navigator/messenger saat rebuild berulang | — |
+| `test/special_images_subtab_test.dart` | 6 widget test editor gambar khusus (daftar, sakelar, hapus, urutan tepi/tengah, tombol simpan non-aktif) | — |
+| `test/settings_toggles_test.dart` | 4 widget test toggle `showKas`/`hasFridayPrayer` di Pengaturan (nilai awal, callback, field Jumat non-aktif) | — |
 
 > **Detail tema/shape Remote** (revert M3 Expressive → square): → [`mobile_remote/theme_shapes.md`](mobile_remote/theme_shapes.md)
 
@@ -157,16 +166,18 @@ flowchart LR
 
 | File | Fungsi Utama | Class / enum |
 |---|---|---|
-| `lib/src/sync_packet.dart` | Protokol sinkronisasi + auth Bluetooth Challenge-Response | `SyncAction` (enum: `...`, `skipAdhan`, `startIqomah`, `startShalat`, `finishShalat`, `forcePhase`, `authChallenge`, `authResponse`, `authSuccess`, `authFailure`), `SyncPacket` |
+| `lib/src/sync_packet.dart` | Protokol sinkronisasi + auth Bluetooth Challenge-Response | `SyncAction` (enum: `...`, `updateSideImages`, `skipAdhan`, `startIqomah`, `startShalat`, `finishShalat`, `forcePhase`, `authChallenge`, `authResponse`, `authSuccess`, `authFailure`), `SyncPacket` |
 | `lib/src/prayer_phase.dart` | Fase siklus waktu shalat (protokol `stateUpdate`) | `PrayerPhase` (enum: normal/preAdhan/adhan/**khutbah**/preIqomah/shalat), `PrayerPhaseX` (`label`, `durationFor`) |
-| `lib/src/mosque_config.dart` | Konfigurasi masjid + offset per sholat + durasi siklus + **petugas Jumat** (`khutbahMinutes`, `fridayKhatib`, `fridayMuadzin`) | `MosqueConfig`, `IqamahDuration` |
-| `lib/src/prayer_type.dart` | Enum sholat + label Indonesia + `displayNameForDate` (Dzuhur→"Jumat" di hari Jumat) | `PrayerType`, `PrayerTypeX`, `kAllPrayerTypes` |
+| `lib/src/mosque_config.dart` | Konfigurasi masjid + offset per sholat + durasi siklus + **petugas Jumat** (`khutbahMinutes`, `fridayKhatib`, `fridayMuadzin`) + **toggle tampilan** `showKas` & `hasFridayPrayer` (default `true`, payload lama tanpa kunci terbaca `true`) | `MosqueConfig`, `IqamahDuration` |
+| `lib/src/prayer_type.dart` | Enum sholat + label Indonesia + `displayNameForDate` (Dzuhur→"Jumat" di hari Jumat; parameter `hasFridayPrayer` menonaktifkannya untuk musholla) | `PrayerType`, `PrayerTypeX`, `kAllPrayerTypes` |
+| `lib/src/special_image.dart` | Kartu gambar khusus slot samping TV (gambar base64 + caption + `isActive`); ikut `StateSnapshot`/`BackupBundle` sebagai `sideImages` | `SpecialImage` |
 | `lib/src/prayer_schedule.dart` | Hitung jadwal sholat (adhan, offline) | `PrayerSchedule`, `PrayerScheduleItem`, `PrayerSchedule.calculate` |
 | `lib/src/media_banner.dart` | Banner Info Masjid 4 bidang | `MediaBanner` (header/title/content/footer, `copyWith(clearBase64Image:)`) |
 | `lib/src/running_text.dart` | Teks berjalan | `RunningTextMessage` |
 | `lib/src/kas_transaction.dart` | Transaksi kas + agregasi | `KasTransaction`, `KasType`, `KasSummary` |
 | `lib/shared_models.dart` | Barrel export | — |
 | `test/shared_models_test.dart` | 41 unit test (round-trip, fallback payload, equality, unmodifiable offsets) | — |
+| `test/side_rotation_test.dart` | 20 unit test fitur rotasi samping: toggle config (termasuk payload lama), label Jumat, `SpecialImage`, `sideImages` di snapshot/backup, `updateSideImages` | — |
 
 ---
 
@@ -179,7 +190,7 @@ flowchart LR
 │  ├─ Overlay hitam alpha 0.85                                  │
 │  └─ SafeArea + Padding(10) ─ Column ────────────────────────  │
 │      ├─ HeaderClock (jam, tanggal, nama masjid, P2P chip)    │
-│      ├─ Expanded(Row: BannerCarousel flex3 | KasSummary flex2)│
+│      ├─ Expanded(Row: BannerCarousel flex3 | SideCardRotator flex2)│
 │      ├─ PrayerCardsRow (6 kartu)                              │
 │      └─ RunningTextBar (full-width 44px flush dasar)          │
 │  ├─ AdminMenuOverlay (slide-in kanan, saat _showAdminMenu)   │
@@ -207,6 +218,7 @@ Detail payload per aksi:
 | `updateRunningText` | `{'messages': [RunningTextMessage.toMap()...]}` |
 | `updateBanners` | `{'banners': [MediaBanner.toMap()...]}` |
 | `updateKas` | `{'transactions': [KasTransaction.toMap()...]}` |
+| `updateSideImages` | `{'images': [SpecialImage.toMap()...]}` — daftar gambar khusus slot samping TV (ADR-021) |
 | `skipAdhan` | `{}` — Remote meminta TV loncat `ADHAN → PRE_IQOMAH` |
 | `startShalat` | `{}` — Remote meminta TV loncat `PRE_IQOMAH → SHALAT` |
 | `finishShalat` | `{}` — Remote meminta TV loncat `SHALAT → NORMAL` |

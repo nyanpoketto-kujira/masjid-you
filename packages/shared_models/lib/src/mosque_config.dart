@@ -9,6 +9,11 @@ int _intOf(Object? raw, int fallback) => raw is num ? raw.toInt() : fallback;
 double _doubleOf(Object? raw, double fallback) =>
     raw is num ? raw.toDouble() : fallback;
 
+/// Helper aman parsing bool: [fallback] bila [raw] bukan bool (mis. payload
+/// lama yang belum mengenal kunci ini), sehingga toggle baru selalu punya
+/// nilai default yang aman.
+bool _boolOf(Object? raw, bool fallback) => raw is bool ? raw : fallback;
+
 class IqamahDuration {
   final int fajr;
   final int dhuhr;
@@ -98,6 +103,19 @@ class MosqueConfig {
   /// Nama Muadzin shalat Jumat (ditampilkan di TV).
   final String fridayMuadzin;
 
+  /// Tampilkan kartu Kas Masjid di slot samping TV (rotasi kartu kanan).
+  ///
+  /// `false` = kartu kas dilewati dari rotasi slot samping; data transaksi
+  /// kas sendiri tetap disimpan & disinkronkan seperti biasa.
+  final bool showKas;
+
+  /// Masjid/musholla ini menyelenggarakan shalat Jumat (Jumatan).
+  ///
+  /// `false` (umumnya musholla) = tidak ada perlakuan khusus hari Jumat:
+  /// kartu Petugas Jumat tidak masuk rotasi slot samping, Dzuhur tetap
+  /// berlabel "Dzuhur" (bukan "Jumat"), dan fase khutbah tidak dijalankan.
+  final bool hasFridayPrayer;
+
   const MosqueConfig({
     this.name = 'Masjid Al-Ikhlas',
     this.address = 'Jl. Raya Masjid No. 123',
@@ -113,6 +131,8 @@ class MosqueConfig {
     this.khutbahMinutes = 20,
     this.fridayKhatib = 'Ustadz Khatib',
     this.fridayMuadzin = 'Ustadz Bilal',
+    this.showKas = true,
+    this.hasFridayPrayer = true,
   });
 
   /// Konstruktor internal: selalu membungkus [prayerOffsets] menjadi
@@ -132,6 +152,8 @@ class MosqueConfig {
     required this.khutbahMinutes,
     required this.fridayKhatib,
     required this.fridayMuadzin,
+    required this.showKas,
+    required this.hasFridayPrayer,
   }) : prayerOffsets = Map.unmodifiable(prayerOffsets);
 
   int offsetFor(PrayerType type) => prayerOffsets[type] ?? 0;
@@ -144,7 +166,8 @@ class MosqueConfig {
         'utcOffsetHours': utcOffsetHours,
         'iqamahDuration': iqamahDuration.toMap(),
         'prayerOffsets': {
-          for (final type in kAllPrayerTypes) type.name: prayerOffsets[type] ?? 0,
+          for (final type in kAllPrayerTypes)
+            type.name: prayerOffsets[type] ?? 0,
         },
         'preAdhanMinutes': preAdhanMinutes,
         'adhanMinutes': adhanMinutes,
@@ -153,6 +176,8 @@ class MosqueConfig {
         'khutbahMinutes': khutbahMinutes,
         'fridayKhatib': fridayKhatib,
         'fridayMuadzin': fridayMuadzin,
+        'showKas': showKas,
+        'hasFridayPrayer': hasFridayPrayer,
       };
 
   factory MosqueConfig.fromMap(Map<String, dynamic> map) {
@@ -161,9 +186,8 @@ class MosqueConfig {
       final raw = map['prayerOffsets'];
       if (raw is Map) {
         for (final entry in raw.entries) {
-          final type = PrayerType.values
-              .where((t) => t.name == entry.key)
-              .firstOrNull;
+          final type =
+              PrayerType.values.where((t) => t.name == entry.key).firstOrNull;
           if (type != null) {
             result[type] = _intOf(entry.value, 0);
           }
@@ -203,6 +227,10 @@ class MosqueConfig {
       khutbahMinutes: _intOf(map['khutbahMinutes'], 20),
       fridayKhatib: rawKhatib is String ? rawKhatib : 'Ustadz Khatib',
       fridayMuadzin: rawMuadzin is String ? rawMuadzin : 'Ustadz Bilal',
+      // Payload lama belum punya kedua kunci ini -> default `true`
+      // (perilaku lama: kas tampil & Jumatan ada).
+      showKas: _boolOf(map['showKas'], true),
+      hasFridayPrayer: _boolOf(map['hasFridayPrayer'], true),
     );
   }
 
@@ -226,6 +254,8 @@ class MosqueConfig {
     int? khutbahMinutes,
     String? fridayKhatib,
     String? fridayMuadzin,
+    bool? showKas,
+    bool? hasFridayPrayer,
   }) {
     return MosqueConfig._internal(
       name: name ?? this.name,
@@ -245,6 +275,8 @@ class MosqueConfig {
       khutbahMinutes: khutbahMinutes ?? this.khutbahMinutes,
       fridayKhatib: fridayKhatib ?? this.fridayKhatib,
       fridayMuadzin: fridayMuadzin ?? this.fridayMuadzin,
+      showKas: showKas ?? this.showKas,
+      hasFridayPrayer: hasFridayPrayer ?? this.hasFridayPrayer,
     );
   }
 
@@ -274,7 +306,9 @@ class MosqueConfig {
           other.shalatMinutes == shalatMinutes &&
           other.khutbahMinutes == khutbahMinutes &&
           other.fridayKhatib == fridayKhatib &&
-          other.fridayMuadzin == fridayMuadzin;
+          other.fridayMuadzin == fridayMuadzin &&
+          other.showKas == showKas &&
+          other.hasFridayPrayer == hasFridayPrayer;
 
   @override
   int get hashCode => Object.hash(
@@ -292,6 +326,8 @@ class MosqueConfig {
         khutbahMinutes,
         fridayKhatib,
         fridayMuadzin,
+        showKas,
+        hasFridayPrayer,
       );
 
   @override
@@ -302,5 +338,6 @@ class MosqueConfig {
       'preAdhanMinutes: $preAdhanMinutes, adhanMinutes: $adhanMinutes, '
       'preIqomahMinutes: $preIqomahMinutes, shalatMinutes: $shalatMinutes, '
       'khutbahMinutes: $khutbahMinutes, fridayKhatib: $fridayKhatib, '
-      'fridayMuadzin: $fridayMuadzin)';
+      'fridayMuadzin: $fridayMuadzin, showKas: $showKas, '
+      'hasFridayPrayer: $hasFridayPrayer)';
 }

@@ -5,6 +5,9 @@ enum SyncAction {
   updateRunningText,
   updateBanners,
   updateKas,
+  /// Remote -> TV: daftar kartu gambar khusus slot samping TV
+  /// (payload: `images`, lihat `SpecialImage`).
+  updateSideImages,
   triggerBeep,
   getInitialState,
   stateUpdate,

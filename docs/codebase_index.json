@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-13T21:12:14.632398",
+  "generatedAt": "2026-11-16T19:00:29.054371",
   "roots": [
     "apps/tv_display/lib",
     "apps/mobile_remote/lib",
@@ -7,20 +7,20 @@
     "packages/bluetooth_sync/lib",
     "packages/flutter_p2p_connection/lib"
   ],
-  "symbolCount": 1036,
+  "symbolCount": 898,
   "symbols": [
     {
       "kind": "class",
       "name": "RemoteHomeScreen",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 35,
+      "line": 36,
       "signature": "class RemoteHomeScreen extends StatefulWidget {"
     },
     {
       "kind": "method",
       "name": "createState",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 39,
+      "line": 40,
       "parent": "RemoteHomeScreen",
       "signature": "  State<RemoteHomeScreen> createState() => _RemoteHomeScreenState();"
     },
@@ -28,14 +28,14 @@
       "kind": "class",
       "name": "_PinDialog",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 61,
+      "line": 62,
       "signature": "class _PinDialog extends StatefulWidget {"
     },
     {
       "kind": "field",
       "name": "onSubmit",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 62,
+      "line": 63,
       "parent": "_PinDialog",
       "signature": "  final ValueChanged<String> onSubmit;"
     },
@@ -43,7 +43,7 @@
       "kind": "field",
       "name": "onCancel",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 63,
+      "line": 64,
       "parent": "_PinDialog",
       "signature": "  final VoidCallback onCancel;"
     },
@@ -51,7 +51,7 @@
       "kind": "method",
       "name": "createState",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 68,
+      "line": 69,
       "parent": "_PinDialog",
       "signature": "  State<_PinDialog> createState() => _PinDialogState();"
     },
@@ -59,14 +59,14 @@
       "kind": "class",
       "name": "_PinDialogState",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 71,
+      "line": 72,
       "signature": "class _PinDialogState extends State<_PinDialog> {"
     },
     {
       "kind": "field",
       "name": "_pinController",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 72,
+      "line": 73,
       "parent": "_PinDialogState",
       "signature": "  final _pinController = TextEditingController();"
     },
@@ -74,7 +74,7 @@
       "kind": "method",
       "name": "dispose",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 75,
+      "line": 76,
       "parent": "_PinDialogState",
       "signature": "  void dispose() {"
     },
@@ -82,7 +82,7 @@
       "kind": "method",
       "name": "_submit",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 80,
+      "line": 81,
       "parent": "_PinDialogState",
       "signature": "  void _submit() {"
     },
@@ -90,7 +90,7 @@
       "kind": "method",
       "name": "build",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 87,
+      "line": 88,
       "parent": "_PinDialogState",
       "signature": "  Widget build(BuildContext context) {"
     },
@@ -98,14 +98,14 @@
       "kind": "class",
       "name": "_RemoteHomeScreenState",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 137,
+      "line": 138,
       "signature": "class _RemoteHomeScreenState extends State<RemoteHomeScreen>"
     },
     {
       "kind": "field",
       "name": "_tabIndex",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 139,
+      "line": 140,
       "parent": "_RemoteHomeScreenState",
       "signature": "  int _tabIndex = 0;"
     },
@@ -113,7 +113,7 @@
       "kind": "field",
       "name": "_mainTabController",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 141,
+      "line": 142,
       "parent": "_RemoteHomeScreenState",
       "signature": "  late final TabController _mainTabController;"
     },
@@ -121,7 +121,7 @@
       "kind": "field",
       "name": "_subTabController",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 142,
+      "line": 143,
       "parent": "_RemoteHomeScreenState",
       "signature": "  late final TabController _subTabController;"
     },
@@ -129,7 +129,7 @@
       "kind": "field",
       "name": "_syncingControllers",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 143,
+      "line": 144,
       "parent": "_RemoteHomeScreenState",
       "signature": "  bool _syncingControllers = false;"
     },
@@ -137,7 +137,7 @@
       "kind": "field",
       "name": "_ipController",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 145,
+      "line": 146,
       "parent": "_RemoteHomeScreenState",
       "signature": "  final _ipController = TextEditingController(text: '192.168.1.');"
     },
@@ -145,7 +145,7 @@
       "kind": "field",
       "name": "_client",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 146,
+      "line": 147,
       "parent": "_RemoteHomeScreenState",
       "signature": "  final _client = RemoteWsClient();"
     },
@@ -153,7 +153,7 @@
       "kind": "field",
       "name": "_btClient",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 147,
+      "line": 148,
       "parent": "_RemoteHomeScreenState",
       "signature": "  final _btClient = BluetoothClientService();"
     },
@@ -161,7 +161,7 @@
       "kind": "field",
       "name": "_isConnecting",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 148,
+      "line": 149,
       "parent": "_RemoteHomeScreenState",
       "signature": "  bool _isConnecting = false;"
     },
@@ -169,7 +169,7 @@
       "kind": "field",
       "name": "_isConnected",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 149,
+      "line": 150,
       "parent": "_RemoteHomeScreenState",
       "signature": "  bool _isConnected = false;"
     },
@@ -177,7 +177,7 @@
       "kind": "field",
       "name": "_wasConnected",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 150,
+      "line": 151,
       "parent": "_RemoteHomeScreenState",
       "signature": "  bool _wasConnected = false;"
     },
@@ -185,7 +185,7 @@
       "kind": "field",
       "name": "_showDisconnectedNotice",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 151,
+      "line": 152,
       "parent": "_RemoteHomeScreenState",
       "signature": "  bool _showDisconnectedNotice = false;"
     },
@@ -193,7 +193,7 @@
       "kind": "field",
       "name": "_syncDialogOpen",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 152,
+      "line": 153,
       "parent": "_RemoteHomeScreenState",
       "signature": "  bool _syncDialogOpen = false;"
     },
@@ -201,7 +201,7 @@
       "kind": "field",
       "name": "_lastConnectionKind",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 153,
+      "line": 154,
       "parent": "_RemoteHomeScreenState",
       "signature": "  String? _lastConnectionKind;"
     },
@@ -209,7 +209,7 @@
       "kind": "field",
       "name": "_lastBtDevice",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 154,
+      "line": 155,
       "parent": "_RemoteHomeScreenState",
       "signature": "  BluetoothDeviceInfo? _lastBtDevice;"
     },
@@ -217,7 +217,7 @@
       "kind": "field",
       "name": "_btIsScanning",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 157,
+      "line": 158,
       "parent": "_RemoteHomeScreenState",
       "signature": "  bool _btIsScanning = false;"
     },
@@ -225,7 +225,7 @@
       "kind": "field",
       "name": "_btConnected",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 158,
+      "line": 159,
       "parent": "_RemoteHomeScreenState",
       "signature": "  bool _btConnected = false;"
     },
@@ -233,7 +233,7 @@
       "kind": "field",
       "name": "_btDevices",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 159,
+      "line": 160,
       "parent": "_RemoteHomeScreenState",
       "signature": "  List<BluetoothDeviceInfo> _btDevices = [];"
     },
@@ -241,7 +241,7 @@
       "kind": "field",
       "name": "_btStatus",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 160,
+      "line": 161,
       "parent": "_RemoteHomeScreenState",
       "signature": "  String _btStatus = 'Bluetooth: Stanby';"
     },
@@ -249,7 +249,7 @@
       "kind": "field",
       "name": "_btStateSub",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 161,
+      "line": 162,
       "parent": "_RemoteHomeScreenState",
       "signature": "  StreamSubscription<BluetoothClientState>? _btStateSub;"
     },
@@ -257,7 +257,7 @@
       "kind": "field",
       "name": "_hasUnsyncedChanges",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 163,
+      "line": 164,
       "parent": "_RemoteHomeScreenState",
       "signature": "  bool _hasUnsyncedChanges = false;"
     },
@@ -265,7 +265,7 @@
       "kind": "field",
       "name": "_pinDialogOpen",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 166,
+      "line": 167,
       "parent": "_RemoteHomeScreenState",
       "signature": "  bool _pinDialogOpen = false;"
     },
@@ -273,7 +273,7 @@
       "kind": "field",
       "name": "_pendingBtState",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 170,
+      "line": 171,
       "parent": "_RemoteHomeScreenState",
       "signature": "  BluetoothClientState? _pendingBtState;"
     },
@@ -281,7 +281,7 @@
       "kind": "field",
       "name": "_cacheStore",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 173,
+      "line": 174,
       "parent": "_RemoteHomeScreenState",
       "signature": "  final RemoteCacheStore _cacheStore = RemoteCacheStore();"
     },
@@ -289,7 +289,7 @@
       "kind": "field",
       "name": "_backupService",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 176,
+      "line": 177,
       "parent": "_RemoteHomeScreenState",
       "signature": "  final BackupService _backupService = BackupService();"
     },
@@ -297,7 +297,7 @@
       "kind": "field",
       "name": "_didBootstrapPush",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 180,
+      "line": 181,
       "parent": "_RemoteHomeScreenState",
       "signature": "  bool _didBootstrapPush = false;"
     },
@@ -305,7 +305,7 @@
       "kind": "field",
       "name": "_config",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 182,
+      "line": 183,
       "parent": "_RemoteHomeScreenState",
       "signature": "  MosqueConfig _config = const MosqueConfig("
     },
@@ -313,7 +313,7 @@
       "kind": "field",
       "name": "_nameController",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 189,
+      "line": 190,
       "parent": "_RemoteHomeScreenState",
       "signature": "  final _nameController = TextEditingController();"
     },
@@ -321,7 +321,7 @@
       "kind": "field",
       "name": "_addressController",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 190,
+      "line": 191,
       "parent": "_RemoteHomeScreenState",
       "signature": "  final _addressController = TextEditingController();"
     },
@@ -329,7 +329,7 @@
       "kind": "field",
       "name": "_latitudeController",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 191,
+      "line": 192,
       "parent": "_RemoteHomeScreenState",
       "signature": "  final _latitudeController = TextEditingController();"
     },
@@ -337,7 +337,7 @@
       "kind": "field",
       "name": "_longitudeController",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 192,
+      "line": 193,
       "parent": "_RemoteHomeScreenState",
       "signature": "  final _longitudeController = TextEditingController();"
     },
@@ -345,7 +345,7 @@
       "kind": "field",
       "name": "_prayerOffsetControllers",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 193,
+      "line": 194,
       "parent": "_RemoteHomeScreenState",
       "signature": "  final Map<PrayerType, TextEditingController> _prayerOffsetControllers = {"
     },
@@ -353,7 +353,7 @@
       "kind": "field",
       "name": "_preAdhanController",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 196,
+      "line": 197,
       "parent": "_RemoteHomeScreenState",
       "signature": "  final _preAdhanController = TextEditingController();"
     },
@@ -361,7 +361,7 @@
       "kind": "field",
       "name": "_adhanController",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 197,
+      "line": 198,
       "parent": "_RemoteHomeScreenState",
       "signature": "  final _adhanController = TextEditingController();"
     },
@@ -369,7 +369,7 @@
       "kind": "field",
       "name": "_preIqomahController",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 198,
+      "line": 199,
       "parent": "_RemoteHomeScreenState",
       "signature": "  final _preIqomahController = TextEditingController();"
     },
@@ -377,7 +377,7 @@
       "kind": "field",
       "name": "_shalatController",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 199,
+      "line": 200,
       "parent": "_RemoteHomeScreenState",
       "signature": "  final _shalatController = TextEditingController();"
     },
@@ -385,7 +385,7 @@
       "kind": "field",
       "name": "_khutbahController",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 200,
+      "line": 201,
       "parent": "_RemoteHomeScreenState",
       "signature": "  final _khutbahController = TextEditingController();"
     },
@@ -393,7 +393,7 @@
       "kind": "field",
       "name": "_fridayKhatibController",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 201,
+      "line": 202,
       "parent": "_RemoteHomeScreenState",
       "signature": "  final _fridayKhatibController = TextEditingController();"
     },
@@ -401,15 +401,31 @@
       "kind": "field",
       "name": "_fridayMuadzinController",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 202,
+      "line": 203,
       "parent": "_RemoteHomeScreenState",
       "signature": "  final _fridayMuadzinController = TextEditingController();"
     },
     {
       "kind": "field",
+      "name": "_showKas",
+      "file": "apps/mobile_remote/lib/main.dart",
+      "line": 207,
+      "parent": "_RemoteHomeScreenState",
+      "signature": "  bool _showKas = true;"
+    },
+    {
+      "kind": "field",
+      "name": "_hasFridayPrayer",
+      "file": "apps/mobile_remote/lib/main.dart",
+      "line": 208,
+      "parent": "_RemoteHomeScreenState",
+      "signature": "  bool _hasFridayPrayer = true;"
+    },
+    {
+      "kind": "field",
       "name": "_isFetchingLocation",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 203,
+      "line": 209,
       "parent": "_RemoteHomeScreenState",
       "signature": "  bool _isFetchingLocation = false;"
     },
@@ -417,7 +433,7 @@
       "kind": "field",
       "name": "_runningTextController",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 204,
+      "line": 210,
       "parent": "_RemoteHomeScreenState",
       "signature": "  final _runningTextController = TextEditingController();"
     },
@@ -425,7 +441,7 @@
       "kind": "field",
       "name": "_runningCategory",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 205,
+      "line": 211,
       "parent": "_RemoteHomeScreenState",
       "signature": "  String _runningCategory = _runningCategories.first;"
     },
@@ -433,7 +449,7 @@
       "kind": "field",
       "name": "_bannerHeaderController",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 207,
+      "line": 213,
       "parent": "_RemoteHomeScreenState",
       "signature": "  final _bannerHeaderController = TextEditingController();"
     },
@@ -441,7 +457,7 @@
       "kind": "field",
       "name": "_bannerTitleController",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 208,
+      "line": 214,
       "parent": "_RemoteHomeScreenState",
       "signature": "  final _bannerTitleController = TextEditingController();"
     },
@@ -449,7 +465,7 @@
       "kind": "field",
       "name": "_bannerContentController",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 209,
+      "line": 215,
       "parent": "_RemoteHomeScreenState",
       "signature": "  final _bannerContentController = TextEditingController();"
     },
@@ -457,7 +473,7 @@
       "kind": "field",
       "name": "_bannerFooterController",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 210,
+      "line": 216,
       "parent": "_RemoteHomeScreenState",
       "signature": "  final _bannerFooterController = TextEditingController();"
     },
@@ -465,7 +481,7 @@
       "kind": "field",
       "name": "_kasAmountController",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 212,
+      "line": 218,
       "parent": "_RemoteHomeScreenState",
       "signature": "  final _kasAmountController = TextEditingController();"
     },
@@ -473,7 +489,7 @@
       "kind": "field",
       "name": "_kasDescriptionController",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 213,
+      "line": 219,
       "parent": "_RemoteHomeScreenState",
       "signature": "  final _kasDescriptionController = TextEditingController();"
     },
@@ -481,7 +497,7 @@
       "kind": "field",
       "name": "_kasType",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 214,
+      "line": 220,
       "parent": "_RemoteHomeScreenState",
       "signature": "  KasType _kasType = KasType.masuk;"
     },
@@ -489,7 +505,7 @@
       "kind": "field",
       "name": "_tvPhase",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 217,
+      "line": 223,
       "parent": "_RemoteHomeScreenState",
       "signature": "  PrayerPhase _tvPhase = PrayerPhase.normal;"
     },
@@ -497,7 +513,7 @@
       "kind": "field",
       "name": "_kasTransactions",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 219,
+      "line": 225,
       "parent": "_RemoteHomeScreenState",
       "signature": "  final List<KasTransaction> _kasTransactions = ["
     },
@@ -505,7 +521,7 @@
       "kind": "field",
       "name": "_runningTexts",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 236,
+      "line": 242,
       "parent": "_RemoteHomeScreenState",
       "signature": "  final List<RunningTextMessage> _runningTexts = ["
     },
@@ -513,15 +529,23 @@
       "kind": "field",
       "name": "_banners",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 251,
+      "line": 257,
       "parent": "_RemoteHomeScreenState",
       "signature": "  final List<MediaBanner> _banners = ["
+    },
+    {
+      "kind": "field",
+      "name": "_sideImages",
+      "file": "apps/mobile_remote/lib/main.dart",
+      "line": 275,
+      "parent": "_RemoteHomeScreenState",
+      "signature": "  final List<SpecialImage> _sideImages = [];"
     },
     {
       "kind": "method",
       "name": "initState",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 269,
+      "line": 278,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void initState() {"
     },
@@ -529,7 +553,7 @@
       "kind": "method",
       "name": "didChangeAppLifecycleState",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 355,
+      "line": 364,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void didChangeAppLifecycleState(AppLifecycleState state) {"
     },
@@ -537,7 +561,7 @@
       "kind": "method",
       "name": "_bottomNavIndexForPage",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 378,
+      "line": 387,
       "parent": "_RemoteHomeScreenState",
       "signature": "  int _bottomNavIndexForPage(int page) {"
     },
@@ -545,7 +569,7 @@
       "kind": "method",
       "name": "_mainPageForBottomNav",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 384,
+      "line": 393,
       "parent": "_RemoteHomeScreenState",
       "signature": "  int _mainPageForBottomNav(int bottom, int currentSub) {"
     },
@@ -553,7 +577,7 @@
       "kind": "method",
       "name": "_handleMainTabChange",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 395,
+      "line": 404,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _handleMainTabChange() {"
     },
@@ -561,7 +585,7 @@
       "kind": "method",
       "name": "_handleSubTabChange",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 410,
+      "line": 419,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _handleSubTabChange() {"
     },
@@ -569,7 +593,7 @@
       "kind": "method",
       "name": "_syncConfigControllers",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 420,
+      "line": 429,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _syncConfigControllers() {"
     },
@@ -577,7 +601,7 @@
       "kind": "method",
       "name": "_loadStartupData",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 441,
+      "line": 452,
       "parent": "_RemoteHomeScreenState",
       "signature": "  Future<void> _loadStartupData() async {"
     },
@@ -585,7 +609,7 @@
       "kind": "method",
       "name": "_applySnapshot",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 453,
+      "line": 464,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _applySnapshot(StateSnapshot snapshot) {"
     },
@@ -593,7 +617,7 @@
       "kind": "method",
       "name": "_requestTvState",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 468,
+      "line": 482,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _requestTvState() {"
     },
@@ -601,7 +625,7 @@
       "kind": "method",
       "name": "_showPinDialog",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 497,
+      "line": 511,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _showPinDialog() {"
     },
@@ -609,7 +633,7 @@
       "kind": "method",
       "name": "_closePinDialog",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 533,
+      "line": 547,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _closePinDialog() {"
     },
@@ -617,7 +641,7 @@
       "kind": "method",
       "name": "_drainPendingBtState",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 541,
+      "line": 555,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _drainPendingBtState() {"
     },
@@ -625,7 +649,7 @@
       "kind": "method",
       "name": "_loadSavedDurations",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 582,
+      "line": 596,
       "parent": "_RemoteHomeScreenState",
       "signature": "  Future<void> _loadSavedDurations() async {"
     },
@@ -633,7 +657,7 @@
       "kind": "method",
       "name": "_persistDurations",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 617,
+      "line": 640,
       "parent": "_RemoteHomeScreenState",
       "signature": "  Future<void> _persistDurations(MosqueConfig config) async {"
     },
@@ -641,7 +665,7 @@
       "kind": "method",
       "name": "_handleTvPacket",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 634,
+      "line": 659,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _handleTvPacket(SyncPacket packet) {"
     },
@@ -649,7 +673,7 @@
       "kind": "method",
       "name": "_applyTvPhase",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 648,
+      "line": 673,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _applyTvPhase(SyncPacket packet) {"
     },
@@ -657,7 +681,7 @@
       "kind": "method",
       "name": "_applyTvSnapshot",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 666,
+      "line": 691,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _applyTvSnapshot(StateSnapshot snapshot) {"
     },
@@ -665,7 +689,7 @@
       "kind": "method",
       "name": "_pushLocalDataToTv",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 685,
+      "line": 710,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _pushLocalDataToTv() {"
     },
@@ -673,7 +697,7 @@
       "kind": "method",
       "name": "_exportBackup",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 693,
+      "line": 719,
       "parent": "_RemoteHomeScreenState",
       "signature": "  Future<void> _exportBackup() async {"
     },
@@ -681,7 +705,7 @@
       "kind": "method",
       "name": "_importBackup",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 714,
+      "line": 741,
       "parent": "_RemoteHomeScreenState",
       "signature": "  Future<void> _importBackup() async {"
     },
@@ -689,7 +713,7 @@
       "kind": "method",
       "name": "_applyImportedBackup",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 768,
+      "line": 796,
       "parent": "_RemoteHomeScreenState",
       "signature": "  Future<void> _applyImportedBackup(BackupBundle bundle) async {"
     },
@@ -697,7 +721,7 @@
       "kind": "method",
       "name": "_connectToTv",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 791,
+      "line": 820,
       "parent": "_RemoteHomeScreenState",
       "signature": "  Future<void> _connectToTv() async {"
     },
@@ -705,7 +729,7 @@
       "kind": "method",
       "name": "_handleConnectionEstablished",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 822,
+      "line": 851,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _handleConnectionEstablished(String kind) {"
     },
@@ -713,7 +737,7 @@
       "kind": "method",
       "name": "_handleTransportDisconnected",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 841,
+      "line": 870,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _handleTransportDisconnected() {"
     },
@@ -721,7 +745,7 @@
       "kind": "method",
       "name": "_reconnectLast",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 850,
+      "line": 879,
       "parent": "_RemoteHomeScreenState",
       "signature": "  Future<void> _reconnectLast() async {"
     },
@@ -729,7 +753,7 @@
       "kind": "method",
       "name": "_showSyncConflictDialog",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 864,
+      "line": 893,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _showSyncConflictDialog() {"
     },
@@ -737,7 +761,7 @@
       "kind": "method",
       "name": "_disconnectFromTv",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 904,
+      "line": 933,
       "parent": "_RemoteHomeScreenState",
       "signature": "  Future<void> _disconnectFromTv() async {"
     },
@@ -745,7 +769,7 @@
       "kind": "method",
       "name": "_buildConfigFromForm",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 916,
+      "line": 945,
       "parent": "_RemoteHomeScreenState",
       "signature": "  MosqueConfig _buildConfigFromForm() {"
     },
@@ -753,7 +777,7 @@
       "kind": "method",
       "name": "_minutesFrom",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 949,
+      "line": 980,
       "parent": "_RemoteHomeScreenState",
       "signature": "  int _minutesFrom(TextEditingController controller, int fallback) {"
     },
@@ -761,7 +785,7 @@
       "kind": "method",
       "name": "_syncAllToTv",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 955,
+      "line": 986,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _syncAllToTv() {"
     },
@@ -769,7 +793,7 @@
       "kind": "method",
       "name": "_pushAllToTv",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 965,
+      "line": 997,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _pushAllToTv() {"
     },
@@ -777,7 +801,7 @@
       "kind": "method",
       "name": "_sendConfigUpdate",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 978,
+      "line": 1010,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _sendConfigUpdate() {"
     },
@@ -785,7 +809,7 @@
       "kind": "method",
       "name": "_sendQuickAction",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 998,
+      "line": 1030,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _sendQuickAction(SyncAction action) {"
     },
@@ -793,7 +817,7 @@
       "kind": "method",
       "name": "_sendForcePhase",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1018,
+      "line": 1050,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _sendForcePhase(PrayerPhase phase) {"
     },
@@ -801,7 +825,7 @@
       "kind": "method",
       "name": "_getLocationFromGps",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1026,
+      "line": 1058,
       "parent": "_RemoteHomeScreenState",
       "signature": "  Future<void> _getLocationFromGps() async {"
     },
@@ -809,7 +833,7 @@
       "kind": "method",
       "name": "_addRunningText",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1085,
+      "line": 1117,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _addRunningText() {"
     },
@@ -817,7 +841,7 @@
       "kind": "method",
       "name": "_removeRunningText",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1107,
+      "line": 1139,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _removeRunningText(String id) {"
     },
@@ -825,7 +849,7 @@
       "kind": "method",
       "name": "_editRunningText",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1120,
+      "line": 1152,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _editRunningText(RunningTextMessage item) {"
     },
@@ -833,7 +857,7 @@
       "kind": "method",
       "name": "_addBanner",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1203,
+      "line": 1235,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _addBanner(String? base64Image) {"
     },
@@ -841,7 +865,7 @@
       "kind": "method",
       "name": "_removeBanner",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1234,
+      "line": 1266,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _removeBanner(String id) {"
     },
@@ -849,15 +873,55 @@
       "kind": "method",
       "name": "_toggleBanner",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1247,
+      "line": 1279,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _toggleBanner(String id, bool val) {"
     },
     {
       "kind": "method",
+      "name": "_sendSideImagesIfConnected",
+      "file": "apps/mobile_remote/lib/main.dart",
+      "line": 1298,
+      "parent": "_RemoteHomeScreenState",
+      "signature": "  void _sendSideImagesIfConnected() {"
+    },
+    {
+      "kind": "method",
+      "name": "_addSideImage",
+      "file": "apps/mobile_remote/lib/main.dart",
+      "line": 1307,
+      "parent": "_RemoteHomeScreenState",
+      "signature": "  void _addSideImage(String caption, String base64Image) {"
+    },
+    {
+      "kind": "method",
+      "name": "_removeSideImage",
+      "file": "apps/mobile_remote/lib/main.dart",
+      "line": 1320,
+      "parent": "_RemoteHomeScreenState",
+      "signature": "  void _removeSideImage(String id) {"
+    },
+    {
+      "kind": "method",
+      "name": "_toggleSideImage",
+      "file": "apps/mobile_remote/lib/main.dart",
+      "line": 1328,
+      "parent": "_RemoteHomeScreenState",
+      "signature": "  void _toggleSideImage(String id, bool val) {"
+    },
+    {
+      "kind": "method",
+      "name": "_moveSideImage",
+      "file": "apps/mobile_remote/lib/main.dart",
+      "line": 1339,
+      "parent": "_RemoteHomeScreenState",
+      "signature": "  void _moveSideImage(String id, int delta) {"
+    },
+    {
+      "kind": "method",
       "name": "_editBanner",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1263,
+      "line": 1352,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _editBanner(MediaBanner banner) {"
     },
@@ -865,7 +929,7 @@
       "kind": "method",
       "name": "_addKasTransaction",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1341,
+      "line": 1430,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _addKasTransaction() {"
     },
@@ -873,7 +937,7 @@
       "kind": "method",
       "name": "_removeKasTransaction",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1368,
+      "line": 1457,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _removeKasTransaction(String id) {"
     },
@@ -881,7 +945,7 @@
       "kind": "method",
       "name": "_startBtScan",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1381,
+      "line": 1470,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _startBtScan() {"
     },
@@ -889,7 +953,7 @@
       "kind": "method",
       "name": "_stopBtScan",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1389,
+      "line": 1478,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _stopBtScan() {"
     },
@@ -897,7 +961,7 @@
       "kind": "method",
       "name": "_connectBt",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1397,
+      "line": 1486,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _connectBt(BluetoothDeviceInfo device) {"
     },
@@ -905,7 +969,7 @@
       "kind": "method",
       "name": "_showScheduleSimulation",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1407,
+      "line": 1496,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _showScheduleSimulation(MosqueConfig formConfig) {"
     },
@@ -913,7 +977,7 @@
       "kind": "method",
       "name": "_formatDurationShort",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1560,
+      "line": 1652,
       "parent": "_RemoteHomeScreenState",
       "signature": "  String _formatDurationShort(Duration? duration) {"
     },
@@ -921,7 +985,7 @@
       "kind": "method",
       "name": "dispose",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1568,
+      "line": 1660,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void dispose() {"
     },
@@ -929,7 +993,7 @@
       "kind": "method",
       "name": "build",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1603,
+      "line": 1695,
       "parent": "_RemoteHomeScreenState",
       "signature": "  Widget build(BuildContext context) {"
     },
@@ -937,7 +1001,7 @@
       "kind": "method",
       "name": "_buildConnectionBadge",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1793,
+      "line": 1904,
       "parent": "_RemoteHomeScreenState",
       "signature": "  Widget _buildConnectionBadge(ColorScheme colorScheme) {"
     },
@@ -945,7 +1009,7 @@
       "kind": "method",
       "name": "_buildDisconnectedBanner",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1842,
+      "line": 1953,
       "parent": "_RemoteHomeScreenState",
       "signature": "  Widget _buildDisconnectedBanner(ThemeData theme, ColorScheme colorScheme) {"
     },
@@ -953,7 +1017,7 @@
       "kind": "method",
       "name": "_buildContentTabBar",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1871,
+      "line": 1982,
       "parent": "_RemoteHomeScreenState",
       "signature": "  Widget _buildContentTabBar(ThemeData theme, ColorScheme colorScheme) {"
     },
@@ -961,7 +1025,7 @@
       "kind": "method",
       "name": "_buildUnsyncedBanner",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1894,
+      "line": 2009,
       "parent": "_RemoteHomeScreenState",
       "signature": "  Widget _buildUnsyncedBanner(ThemeData theme, ColorScheme colorScheme) {"
     },
@@ -969,14 +1033,14 @@
       "kind": "class",
       "name": "MasjidYouRemoteApp",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1924,
+      "line": 2039,
       "signature": "class MasjidYouRemoteApp extends StatelessWidget {"
     },
     {
       "kind": "method",
       "name": "build",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1928,
+      "line": 2043,
       "parent": "MasjidYouRemoteApp",
       "signature": "  Widget build(BuildContext context) {"
     },
@@ -984,7 +1048,7 @@
       "kind": "function",
       "name": "main",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1943,
+      "line": 2058,
       "signature": "void main() {"
     },
     {
@@ -1358,6 +1422,178 @@
     },
     {
       "kind": "class",
+      "name": "SpecialImagesSubtab",
+      "file": "apps/mobile_remote/lib/screens/content/special_images_subtab.dart",
+      "line": 16,
+      "signature": "class SpecialImagesSubtab extends StatefulWidget {"
+    },
+    {
+      "kind": "field",
+      "name": "images",
+      "file": "apps/mobile_remote/lib/screens/content/special_images_subtab.dart",
+      "line": 17,
+      "parent": "SpecialImagesSubtab",
+      "signature": "  final List<SpecialImage> images;"
+    },
+    {
+      "kind": "method",
+      "name": "createState",
+      "file": "apps/mobile_remote/lib/screens/content/special_images_subtab.dart",
+      "line": 35,
+      "parent": "SpecialImagesSubtab",
+      "signature": "  State<SpecialImagesSubtab> createState() => _SpecialImagesSubtabState();"
+    },
+    {
+      "kind": "class",
+      "name": "_SpecialImagesSubtabState",
+      "file": "apps/mobile_remote/lib/screens/content/special_images_subtab.dart",
+      "line": 38,
+      "signature": "class _SpecialImagesSubtabState extends State<SpecialImagesSubtab> {"
+    },
+    {
+      "kind": "field",
+      "name": "_captionController",
+      "file": "apps/mobile_remote/lib/screens/content/special_images_subtab.dart",
+      "line": 39,
+      "parent": "_SpecialImagesSubtabState",
+      "signature": "  final _captionController = TextEditingController();"
+    },
+    {
+      "kind": "field",
+      "name": "_selectedBase64Image",
+      "file": "apps/mobile_remote/lib/screens/content/special_images_subtab.dart",
+      "line": 40,
+      "parent": "_SpecialImagesSubtabState",
+      "signature": "  String? _selectedBase64Image;"
+    },
+    {
+      "kind": "field",
+      "name": "_imagePreviewFile",
+      "file": "apps/mobile_remote/lib/screens/content/special_images_subtab.dart",
+      "line": 41,
+      "parent": "_SpecialImagesSubtabState",
+      "signature": "  File? _imagePreviewFile;"
+    },
+    {
+      "kind": "field",
+      "name": "_picker",
+      "file": "apps/mobile_remote/lib/screens/content/special_images_subtab.dart",
+      "line": 42,
+      "parent": "_SpecialImagesSubtabState",
+      "signature": "  final ImagePicker _picker = ImagePicker();"
+    },
+    {
+      "kind": "method",
+      "name": "dispose",
+      "file": "apps/mobile_remote/lib/screens/content/special_images_subtab.dart",
+      "line": 45,
+      "parent": "_SpecialImagesSubtabState",
+      "signature": "  void dispose() {"
+    },
+    {
+      "kind": "method",
+      "name": "_pickImage",
+      "file": "apps/mobile_remote/lib/screens/content/special_images_subtab.dart",
+      "line": 50,
+      "parent": "_SpecialImagesSubtabState",
+      "signature": "  Future<void> _pickImage() async {"
+    },
+    {
+      "kind": "method",
+      "name": "_clearImage",
+      "file": "apps/mobile_remote/lib/screens/content/special_images_subtab.dart",
+      "line": 70,
+      "parent": "_SpecialImagesSubtabState",
+      "signature": "  void _clearImage() {"
+    },
+    {
+      "kind": "method",
+      "name": "_submit",
+      "file": "apps/mobile_remote/lib/screens/content/special_images_subtab.dart",
+      "line": 77,
+      "parent": "_SpecialImagesSubtabState",
+      "signature": "  void _submit() {"
+    },
+    {
+      "kind": "method",
+      "name": "build",
+      "file": "apps/mobile_remote/lib/screens/content/special_images_subtab.dart",
+      "line": 86,
+      "parent": "_SpecialImagesSubtabState",
+      "signature": "  Widget build(BuildContext context) {"
+    },
+    {
+      "kind": "class",
+      "name": "_SpecialImageThumbnail",
+      "file": "apps/mobile_remote/lib/screens/content/special_images_subtab.dart",
+      "line": 278,
+      "signature": "class _SpecialImageThumbnail extends StatefulWidget {"
+    },
+    {
+      "kind": "field",
+      "name": "base64Image",
+      "file": "apps/mobile_remote/lib/screens/content/special_images_subtab.dart",
+      "line": 279,
+      "parent": "_SpecialImageThumbnail",
+      "signature": "  final String base64Image;"
+    },
+    {
+      "kind": "method",
+      "name": "createState",
+      "file": "apps/mobile_remote/lib/screens/content/special_images_subtab.dart",
+      "line": 284,
+      "parent": "_SpecialImageThumbnail",
+      "signature": "  State<_SpecialImageThumbnail> createState() => _SpecialImageThumbnailState();"
+    },
+    {
+      "kind": "class",
+      "name": "_SpecialImageThumbnailState",
+      "file": "apps/mobile_remote/lib/screens/content/special_images_subtab.dart",
+      "line": 287,
+      "signature": "class _SpecialImageThumbnailState extends State<_SpecialImageThumbnail> {"
+    },
+    {
+      "kind": "field",
+      "name": "_cachedImageBytes",
+      "file": "apps/mobile_remote/lib/screens/content/special_images_subtab.dart",
+      "line": 288,
+      "parent": "_SpecialImageThumbnailState",
+      "signature": "  Uint8List? _cachedImageBytes;"
+    },
+    {
+      "kind": "method",
+      "name": "initState",
+      "file": "apps/mobile_remote/lib/screens/content/special_images_subtab.dart",
+      "line": 291,
+      "parent": "_SpecialImageThumbnailState",
+      "signature": "  void initState() {"
+    },
+    {
+      "kind": "method",
+      "name": "didUpdateWidget",
+      "file": "apps/mobile_remote/lib/screens/content/special_images_subtab.dart",
+      "line": 297,
+      "parent": "_SpecialImageThumbnailState",
+      "signature": "  void didUpdateWidget(covariant _SpecialImageThumbnail oldWidget) {"
+    },
+    {
+      "kind": "method",
+      "name": "_decode",
+      "file": "apps/mobile_remote/lib/screens/content/special_images_subtab.dart",
+      "line": 304,
+      "parent": "_SpecialImageThumbnailState",
+      "signature": "  void _decode() {"
+    },
+    {
+      "kind": "method",
+      "name": "build",
+      "file": "apps/mobile_remote/lib/screens/content/special_images_subtab.dart",
+      "line": 313,
+      "parent": "_SpecialImageThumbnailState",
+      "signature": "  Widget build(BuildContext context) {"
+    },
+    {
+      "kind": "class",
       "name": "SettingsTab",
       "file": "apps/mobile_remote/lib/screens/settings/settings_tab.dart",
       "line": 6,
@@ -1469,9 +1705,41 @@
     },
     {
       "kind": "field",
+      "name": "showKas",
+      "file": "apps/mobile_remote/lib/screens/settings/settings_tab.dart",
+      "line": 22,
+      "parent": "SettingsTab",
+      "signature": "  final bool showKas;"
+    },
+    {
+      "kind": "field",
+      "name": "hasFridayPrayer",
+      "file": "apps/mobile_remote/lib/screens/settings/settings_tab.dart",
+      "line": 25,
+      "parent": "SettingsTab",
+      "signature": "  final bool hasFridayPrayer;"
+    },
+    {
+      "kind": "field",
+      "name": "onShowKasChanged",
+      "file": "apps/mobile_remote/lib/screens/settings/settings_tab.dart",
+      "line": 26,
+      "parent": "SettingsTab",
+      "signature": "  final ValueChanged<bool> onShowKasChanged;"
+    },
+    {
+      "kind": "field",
+      "name": "onHasFridayPrayerChanged",
+      "file": "apps/mobile_remote/lib/screens/settings/settings_tab.dart",
+      "line": 27,
+      "parent": "SettingsTab",
+      "signature": "  final ValueChanged<bool> onHasFridayPrayerChanged;"
+    },
+    {
+      "kind": "field",
       "name": "isFetchingLocation",
       "file": "apps/mobile_remote/lib/screens/settings/settings_tab.dart",
-      "line": 20,
+      "line": 28,
       "parent": "SettingsTab",
       "signature": "  final bool isFetchingLocation;"
     },
@@ -1479,7 +1747,7 @@
       "kind": "field",
       "name": "isConnected",
       "file": "apps/mobile_remote/lib/screens/settings/settings_tab.dart",
-      "line": 21,
+      "line": 29,
       "parent": "SettingsTab",
       "signature": "  final bool isConnected;"
     },
@@ -1487,7 +1755,7 @@
       "kind": "field",
       "name": "tvPhase",
       "file": "apps/mobile_remote/lib/screens/settings/settings_tab.dart",
-      "line": 22,
+      "line": 30,
       "parent": "SettingsTab",
       "signature": "  final PrayerPhase tvPhase;"
     },
@@ -1495,7 +1763,7 @@
       "kind": "field",
       "name": "onFetchLocation",
       "file": "apps/mobile_remote/lib/screens/settings/settings_tab.dart",
-      "line": 23,
+      "line": 31,
       "parent": "SettingsTab",
       "signature": "  final VoidRefCallback onFetchLocation;"
     },
@@ -1503,7 +1771,7 @@
       "kind": "field",
       "name": "onSaveConfig",
       "file": "apps/mobile_remote/lib/screens/settings/settings_tab.dart",
-      "line": 24,
+      "line": 32,
       "parent": "SettingsTab",
       "signature": "  final VoidRefCallback onSaveConfig;"
     },
@@ -1511,7 +1779,7 @@
       "kind": "field",
       "name": "onExportBackup",
       "file": "apps/mobile_remote/lib/screens/settings/settings_tab.dart",
-      "line": 27,
+      "line": 35,
       "parent": "SettingsTab",
       "signature": "  final VoidRefCallback onExportBackup;"
     },
@@ -1519,7 +1787,7 @@
       "kind": "field",
       "name": "onImportBackup",
       "file": "apps/mobile_remote/lib/screens/settings/settings_tab.dart",
-      "line": 28,
+      "line": 36,
       "parent": "SettingsTab",
       "signature": "  final VoidRefCallback onImportBackup;"
     },
@@ -1527,7 +1795,7 @@
       "kind": "method",
       "name": "build",
       "file": "apps/mobile_remote/lib/screens/settings/settings_tab.dart",
-      "line": 57,
+      "line": 69,
       "parent": "SettingsTab",
       "signature": "  Widget build(BuildContext context) {"
     },
@@ -1535,7 +1803,7 @@
       "kind": "method",
       "name": "_buildQuickActionsCard",
       "file": "apps/mobile_remote/lib/screens/settings/settings_tab.dart",
-      "line": 322,
+      "line": 377,
       "parent": "SettingsTab",
       "signature": "  Widget _buildQuickActionsCard(ThemeData theme, ColorScheme colorScheme) {"
     },
@@ -1543,7 +1811,7 @@
       "kind": "typedef",
       "name": "VoidRefCallback",
       "file": "apps/mobile_remote/lib/screens/settings/settings_tab.dart",
-      "line": 393,
+      "line": 448,
       "signature": "typedef VoidRefCallback = void Function();"
     },
     {
@@ -2156,9 +2424,17 @@
     },
     {
       "kind": "method",
-      "name": "sendKasUpdate",
+      "name": "sendSideImagesUpdate",
       "file": "apps/mobile_remote/lib/services/ws_client.dart",
       "line": 118,
+      "parent": "RemoteWsClient",
+      "signature": "  void sendSideImagesUpdate(List<SpecialImage> images) {"
+    },
+    {
+      "kind": "method",
+      "name": "sendKasUpdate",
+      "file": "apps/mobile_remote/lib/services/ws_client.dart",
+      "line": 127,
       "parent": "RemoteWsClient",
       "signature": "  void sendKasUpdate(List<KasTransaction> transactions) {"
     },
@@ -2166,7 +2442,7 @@
       "kind": "method",
       "name": "sendSkipAdhan",
       "file": "apps/mobile_remote/lib/services/ws_client.dart",
-      "line": 128,
+      "line": 137,
       "parent": "RemoteWsClient",
       "signature": "  void sendSkipAdhan() {"
     },
@@ -2174,7 +2450,7 @@
       "kind": "method",
       "name": "sendStartShalat",
       "file": "apps/mobile_remote/lib/services/ws_client.dart",
-      "line": 133,
+      "line": 142,
       "parent": "RemoteWsClient",
       "signature": "  void sendStartShalat() {"
     },
@@ -2182,7 +2458,7 @@
       "kind": "method",
       "name": "sendStartIqomah",
       "file": "apps/mobile_remote/lib/services/ws_client.dart",
-      "line": 138,
+      "line": 147,
       "parent": "RemoteWsClient",
       "signature": "  void sendStartIqomah() {"
     },
@@ -2190,7 +2466,7 @@
       "kind": "method",
       "name": "sendFinishShalat",
       "file": "apps/mobile_remote/lib/services/ws_client.dart",
-      "line": 143,
+      "line": 152,
       "parent": "RemoteWsClient",
       "signature": "  void sendFinishShalat() {"
     },
@@ -2198,7 +2474,7 @@
       "kind": "method",
       "name": "sendForcePhase",
       "file": "apps/mobile_remote/lib/services/ws_client.dart",
-      "line": 148,
+      "line": 157,
       "parent": "RemoteWsClient",
       "signature": "  void sendForcePhase(PrayerPhase phase) {"
     },
@@ -2206,7 +2482,7 @@
       "kind": "method",
       "name": "disconnect",
       "file": "apps/mobile_remote/lib/services/ws_client.dart",
-      "line": 155,
+      "line": 164,
       "parent": "RemoteWsClient",
       "signature": "  void disconnect() {"
     },
@@ -2472,21 +2748,21 @@
       "kind": "function",
       "name": "main",
       "file": "apps/tv_display/lib/main.dart",
-      "line": 26,
+      "line": 23,
       "signature": "void main() async {"
     },
     {
       "kind": "class",
       "name": "MasjidYouTVApp",
       "file": "apps/tv_display/lib/main.dart",
-      "line": 42,
+      "line": 39,
       "signature": "class MasjidYouTVApp extends StatelessWidget {"
     },
     {
       "kind": "method",
       "name": "build",
       "file": "apps/tv_display/lib/main.dart",
-      "line": 46,
+      "line": 43,
       "parent": "MasjidYouTVApp",
       "signature": "  Widget build(BuildContext context) {"
     },
@@ -2494,14 +2770,14 @@
       "kind": "class",
       "name": "MasjidDisplayScreen",
       "file": "apps/tv_display/lib/main.dart",
-      "line": 56,
+      "line": 53,
       "signature": "class MasjidDisplayScreen extends StatefulWidget {"
     },
     {
       "kind": "field",
       "name": "initialConfig",
       "file": "apps/tv_display/lib/main.dart",
-      "line": 64,
+      "line": 61,
       "parent": "MasjidDisplayScreen",
       "signature": "  final MosqueConfig? initialConfig;"
     },
@@ -2509,7 +2785,7 @@
       "kind": "field",
       "name": "autoPrayerCycle",
       "file": "apps/tv_display/lib/main.dart",
-      "line": 67,
+      "line": 64,
       "parent": "MasjidDisplayScreen",
       "signature": "  final bool autoPrayerCycle;"
     },
@@ -2517,29 +2793,22 @@
       "kind": "method",
       "name": "createState",
       "file": "apps/tv_display/lib/main.dart",
-      "line": 70,
+      "line": 67,
       "parent": "MasjidDisplayScreen",
       "signature": "  State<MasjidDisplayScreen> createState() => _MasjidDisplayScreenState();"
-    },
-    {
-      "kind": "enum",
-      "name": "P2pMode",
-      "file": "apps/tv_display/lib/main.dart",
-      "line": 73,
-      "signature": "enum P2pMode { pending, directFull, directIpOnly }"
     },
     {
       "kind": "class",
       "name": "_MasjidDisplayScreenState",
       "file": "apps/tv_display/lib/main.dart",
-      "line": 75,
+      "line": 70,
       "signature": "class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {"
     },
     {
       "kind": "field",
       "name": "_now",
       "file": "apps/tv_display/lib/main.dart",
-      "line": 76,
+      "line": 71,
       "parent": "_MasjidDisplayScreenState",
       "signature": "  DateTime _now = DateTime.now();"
     },
@@ -2547,7 +2816,7 @@
       "kind": "field",
       "name": "_clockTimer",
       "file": "apps/tv_display/lib/main.dart",
-      "line": 77,
+      "line": 72,
       "parent": "_MasjidDisplayScreenState",
       "signature": "  Timer? _clockTimer;"
     },
@@ -2555,39 +2824,15 @@
       "kind": "field",
       "name": "_localServer",
       "file": "apps/tv_display/lib/main.dart",
-      "line": 78,
+      "line": 73,
       "parent": "_MasjidDisplayScreenState",
       "signature": "  LocalServer? _localServer;"
     },
     {
       "kind": "field",
-      "name": "_p2pHost",
-      "file": "apps/tv_display/lib/main.dart",
-      "line": 79,
-      "parent": "_MasjidDisplayScreenState",
-      "signature": "  final P2pHostService _p2pHost = P2pHostService();"
-    },
-    {
-      "kind": "field",
-      "name": "_p2pState",
-      "file": "apps/tv_display/lib/main.dart",
-      "line": 80,
-      "parent": "_MasjidDisplayScreenState",
-      "signature": "  HotspotHostState? _p2pState;"
-    },
-    {
-      "kind": "field",
-      "name": "_p2pMode",
-      "file": "apps/tv_display/lib/main.dart",
-      "line": 81,
-      "parent": "_MasjidDisplayScreenState",
-      "signature": "  P2pMode _p2pMode = P2pMode.pending;"
-    },
-    {
-      "kind": "field",
       "name": "_btHost",
       "file": "apps/tv_display/lib/main.dart",
-      "line": 84,
+      "line": 75,
       "parent": "_MasjidDisplayScreenState",
       "signature": "  BluetoothHostService? _btHost;"
     },
@@ -2595,7 +2840,7 @@
       "kind": "field",
       "name": "_btState",
       "file": "apps/tv_display/lib/main.dart",
-      "line": 85,
+      "line": 76,
       "parent": "_MasjidDisplayScreenState",
       "signature": "  BluetoothHostState? _btState;"
     },
@@ -2603,7 +2848,7 @@
       "kind": "field",
       "name": "_btEnabled",
       "file": "apps/tv_display/lib/main.dart",
-      "line": 89,
+      "line": 80,
       "parent": "_MasjidDisplayScreenState",
       "signature": "  bool _btEnabled = false;"
     },
@@ -2611,7 +2856,7 @@
       "kind": "field",
       "name": "_showAdminMenu",
       "file": "apps/tv_display/lib/main.dart",
-      "line": 92,
+      "line": 83,
       "parent": "_MasjidDisplayScreenState",
       "signature": "  bool _showAdminMenu = false;"
     },
@@ -2619,7 +2864,7 @@
       "kind": "field",
       "name": "_config",
       "file": "apps/tv_display/lib/main.dart",
-      "line": 94,
+      "line": 85,
       "parent": "_MasjidDisplayScreenState",
       "signature": "  MosqueConfig _config = const MosqueConfig("
     },
@@ -2627,23 +2872,23 @@
       "kind": "field",
       "name": "_prayerStateMachine",
       "file": "apps/tv_display/lib/main.dart",
-      "line": 101,
+      "line": 92,
       "parent": "_MasjidDisplayScreenState",
       "signature": "  final PrayerStateMachine _prayerStateMachine = PrayerStateMachine();"
     },
     {
       "kind": "field",
-      "name": "_showKasCard",
+      "name": "_sideImages",
       "file": "apps/tv_display/lib/main.dart",
-      "line": 104,
+      "line": 95,
       "parent": "_MasjidDisplayScreenState",
-      "signature": "  bool _showKasCard = true;"
+      "signature": "  List<SpecialImage> _sideImages = const [];"
     },
     {
       "kind": "field",
       "name": "_runningTexts",
       "file": "apps/tv_display/lib/main.dart",
-      "line": 106,
+      "line": 97,
       "parent": "_MasjidDisplayScreenState",
       "signature": "  List<RunningTextMessage> _runningTexts = const ["
     },
@@ -2651,7 +2896,7 @@
       "kind": "field",
       "name": "_banners",
       "file": "apps/tv_display/lib/main.dart",
-      "line": 121,
+      "line": 112,
       "parent": "_MasjidDisplayScreenState",
       "signature": "  List<MediaBanner> _banners = const ["
     },
@@ -2659,7 +2904,7 @@
       "kind": "field",
       "name": "_kasTransactions",
       "file": "apps/tv_display/lib/main.dart",
-      "line": 138,
+      "line": 129,
       "parent": "_MasjidDisplayScreenState",
       "signature": "  List<KasTransaction> _kasTransactions = ["
     },
@@ -2667,7 +2912,7 @@
       "kind": "field",
       "name": "_prayerSchedule",
       "file": "apps/tv_display/lib/main.dart",
-      "line": 162,
+      "line": 153,
       "parent": "_MasjidDisplayScreenState",
       "signature": "  late PrayerSchedule _prayerSchedule;"
     },
@@ -2675,7 +2920,7 @@
       "kind": "field",
       "name": "_store",
       "file": "apps/tv_display/lib/main.dart",
-      "line": 165,
+      "line": 156,
       "parent": "_MasjidDisplayScreenState",
       "signature": "  final TvStore _store = TvStore();"
     },
@@ -2683,7 +2928,7 @@
       "kind": "field",
       "name": "_hasStoredData",
       "file": "apps/tv_display/lib/main.dart",
-      "line": 169,
+      "line": 160,
       "parent": "_MasjidDisplayScreenState",
       "signature": "  bool _hasStoredData = false;"
     },
@@ -2691,7 +2936,7 @@
       "kind": "method",
       "name": "initState",
       "file": "apps/tv_display/lib/main.dart",
-      "line": 172,
+      "line": 163,
       "parent": "_MasjidDisplayScreenState",
       "signature": "  void initState() {"
     },
@@ -2699,55 +2944,15 @@
       "kind": "method",
       "name": "_initFromStore",
       "file": "apps/tv_display/lib/main.dart",
-      "line": 202,
+      "line": 189,
       "parent": "_MasjidDisplayScreenState",
       "signature": "  Future<void> _initFromStore() async {"
     },
     {
       "kind": "method",
-      "name": "_androidSdkVersion",
-      "file": "apps/tv_display/lib/main.dart",
-      "line": 234,
-      "parent": "_MasjidDisplayScreenState",
-      "signature": "  int _androidSdkVersion() {"
-    },
-    {
-      "kind": "method",
-      "name": "_initP2pHost",
-      "file": "apps/tv_display/lib/main.dart",
-      "line": 247,
-      "parent": "_MasjidDisplayScreenState",
-      "signature": "  Future<void> _initP2pHost() async {"
-    },
-    {
-      "kind": "method",
-      "name": "_showP2pPrereqDialog",
-      "file": "apps/tv_display/lib/main.dart",
-      "line": 290,
-      "parent": "_MasjidDisplayScreenState",
-      "signature": "  void _showP2pPrereqDialog(P2pPrerequisites reqs) {"
-    },
-    {
-      "kind": "method",
-      "name": "_prereqRow",
-      "file": "apps/tv_display/lib/main.dart",
-      "line": 333,
-      "parent": "_MasjidDisplayScreenState",
-      "signature": "  Widget _prereqRow(String label, bool enabled) {"
-    },
-    {
-      "kind": "method",
-      "name": "_enableAllP2pServices",
-      "file": "apps/tv_display/lib/main.dart",
-      "line": 350,
-      "parent": "_MasjidDisplayScreenState",
-      "signature": "  Future<void> _enableAllP2pServices() async {"
-    },
-    {
-      "kind": "method",
       "name": "_recalculateSchedule",
       "file": "apps/tv_display/lib/main.dart",
-      "line": 413,
+      "line": 217,
       "parent": "_MasjidDisplayScreenState",
       "signature": "  void _recalculateSchedule() {"
     },
@@ -2755,7 +2960,7 @@
       "kind": "method",
       "name": "_initLocalServer",
       "file": "apps/tv_display/lib/main.dart",
-      "line": 417,
+      "line": 221,
       "parent": "_MasjidDisplayScreenState",
       "signature": "  Future<void> _initLocalServer() async {"
     },
@@ -2763,7 +2968,7 @@
       "kind": "method",
       "name": "_handleSyncPacket",
       "file": "apps/tv_display/lib/main.dart",
-      "line": 430,
+      "line": 234,
       "parent": "_MasjidDisplayScreenState",
       "signature": "  void _handleSyncPacket(SyncPacket packet) {"
     },
@@ -2771,7 +2976,7 @@
       "kind": "field",
       "name": "_btStateSub",
       "file": "apps/tv_display/lib/main.dart",
-      "line": 518,
+      "line": 338,
       "parent": "_MasjidDisplayScreenState",
       "signature": "  StreamSubscription<BluetoothHostState>? _btStateSub;"
     },
@@ -2779,7 +2984,7 @@
       "kind": "method",
       "name": "_initBluetoothHost",
       "file": "apps/tv_display/lib/main.dart",
-      "line": 520,
+      "line": 340,
       "parent": "_MasjidDisplayScreenState",
       "signature": "  Future<void> _initBluetoothHost() async {"
     },
@@ -2787,7 +2992,7 @@
       "kind": "method",
       "name": "_toggleBluetooth",
       "file": "apps/tv_display/lib/main.dart",
-      "line": 551,
+      "line": 371,
       "parent": "_MasjidDisplayScreenState",
       "signature": "  Future<void> _toggleBluetooth(bool enable) async {"
     },
@@ -2795,7 +3000,7 @@
       "kind": "method",
       "name": "_broadcastSnapshot",
       "file": "apps/tv_display/lib/main.dart",
-      "line": 580,
+      "line": 400,
       "parent": "_MasjidDisplayScreenState",
       "signature": "  void _broadcastSnapshot() {"
     },
@@ -2803,7 +3008,7 @@
       "kind": "method",
       "name": "_broadcastState",
       "file": "apps/tv_display/lib/main.dart",
-      "line": 596,
+      "line": 417,
       "parent": "_MasjidDisplayScreenState",
       "signature": "  void _broadcastState() {"
     },
@@ -2811,7 +3016,7 @@
       "kind": "method",
       "name": "_onStateMachineChanged",
       "file": "apps/tv_display/lib/main.dart",
-      "line": 610,
+      "line": 431,
       "parent": "_MasjidDisplayScreenState",
       "signature": "  void _onStateMachineChanged() {"
     },
@@ -2819,7 +3024,7 @@
       "kind": "method",
       "name": "dispose",
       "file": "apps/tv_display/lib/main.dart",
-      "line": 616,
+      "line": 437,
       "parent": "_MasjidDisplayScreenState",
       "signature": "  void dispose() {"
     },
@@ -2827,7 +3032,7 @@
       "kind": "method",
       "name": "build",
       "file": "apps/tv_display/lib/main.dart",
-      "line": 629,
+      "line": 449,
       "parent": "_MasjidDisplayScreenState",
       "signature": "  Widget build(BuildContext context) {"
     },
@@ -3253,206 +3458,16 @@
     },
     {
       "kind": "class",
-      "name": "P2pPrerequisites",
-      "file": "apps/tv_display/lib/server/p2p_host_service.dart",
-      "line": 6,
-      "signature": "class P2pPrerequisites {"
-    },
-    {
-      "kind": "field",
-      "name": "wifiEnabled",
-      "file": "apps/tv_display/lib/server/p2p_host_service.dart",
-      "line": 7,
-      "parent": "P2pPrerequisites",
-      "signature": "  final bool wifiEnabled;"
-    },
-    {
-      "kind": "field",
-      "name": "bluetoothEnabled",
-      "file": "apps/tv_display/lib/server/p2p_host_service.dart",
-      "line": 8,
-      "parent": "P2pPrerequisites",
-      "signature": "  final bool bluetoothEnabled;"
-    },
-    {
-      "kind": "field",
-      "name": "locationEnabled",
-      "file": "apps/tv_display/lib/server/p2p_host_service.dart",
-      "line": 9,
-      "parent": "P2pPrerequisites",
-      "signature": "  final bool locationEnabled;"
-    },
-    {
-      "kind": "field",
-      "name": "p2pPermissionsGranted",
-      "file": "apps/tv_display/lib/server/p2p_host_service.dart",
-      "line": 10,
-      "parent": "P2pPrerequisites",
-      "signature": "  final bool p2pPermissionsGranted;"
-    },
-    {
-      "kind": "field",
-      "name": "bluetoothPermissionsGranted",
-      "file": "apps/tv_display/lib/server/p2p_host_service.dart",
-      "line": 11,
-      "parent": "P2pPrerequisites",
-      "signature": "  final bool bluetoothPermissionsGranted;"
-    },
-    {
-      "kind": "getter",
-      "name": "allPermissionsGranted",
-      "file": "apps/tv_display/lib/server/p2p_host_service.dart",
-      "line": 21,
-      "parent": "P2pPrerequisites",
-      "signature": "  bool get allPermissionsGranted =>"
-    },
-    {
-      "kind": "class",
-      "name": "P2pHostService",
-      "file": "apps/tv_display/lib/server/p2p_host_service.dart",
-      "line": 32,
-      "signature": "class P2pHostService {"
-    },
-    {
-      "kind": "field",
-      "name": "_host",
-      "file": "apps/tv_display/lib/server/p2p_host_service.dart",
-      "line": 33,
-      "parent": "P2pHostService",
-      "signature": "  FlutterP2pHost? _host;"
-    },
-    {
-      "kind": "field",
-      "name": "_stateController",
-      "file": "apps/tv_display/lib/server/p2p_host_service.dart",
-      "line": 34,
-      "parent": "P2pHostService",
-      "signature": "  final _stateController = StreamController<HotspotHostState?>.broadcast();"
-    },
-    {
-      "kind": "field",
-      "name": "_subscription",
-      "file": "apps/tv_display/lib/server/p2p_host_service.dart",
-      "line": 35,
-      "parent": "P2pHostService",
-      "signature": "  StreamSubscription<HotspotHostState?>? _subscription;"
-    },
-    {
-      "kind": "field",
-      "name": "_started",
-      "file": "apps/tv_display/lib/server/p2p_host_service.dart",
-      "line": 36,
-      "parent": "P2pHostService",
-      "signature": "  bool _started = false;"
-    },
-    {
-      "kind": "field",
-      "name": "_currentState",
-      "file": "apps/tv_display/lib/server/p2p_host_service.dart",
-      "line": 38,
-      "parent": "P2pHostService",
-      "signature": "  HotspotHostState? _currentState;"
-    },
-    {
-      "kind": "getter",
-      "name": "currentState",
-      "file": "apps/tv_display/lib/server/p2p_host_service.dart",
-      "line": 39,
-      "parent": "P2pHostService",
-      "signature": "  HotspotHostState? get currentState => _currentState;"
-    },
-    {
-      "kind": "getter",
-      "name": "stateStream",
-      "file": "apps/tv_display/lib/server/p2p_host_service.dart",
-      "line": 41,
-      "parent": "P2pHostService",
-      "signature": "  Stream<HotspotHostState?> get stateStream => _stateController.stream;"
-    },
-    {
-      "kind": "getter",
-      "name": "isRunning",
-      "file": "apps/tv_display/lib/server/p2p_host_service.dart",
-      "line": 43,
-      "parent": "P2pHostService",
-      "signature": "  bool get isRunning => _started;"
-    },
-    {
-      "kind": "method",
-      "name": "_androidSdkVersion",
-      "file": "apps/tv_display/lib/server/p2p_host_service.dart",
-      "line": 45,
-      "parent": "P2pHostService",
-      "signature": "  int _androidSdkVersion() {"
-    },
-    {
-      "kind": "method",
-      "name": "checkPrerequisites",
-      "file": "apps/tv_display/lib/server/p2p_host_service.dart",
-      "line": 55,
-      "parent": "P2pHostService",
-      "signature": "  Future<P2pPrerequisites> checkPrerequisites() async {"
-    },
-    {
-      "kind": "method",
-      "name": "enableWifiIfNeeded",
-      "file": "apps/tv_display/lib/server/p2p_host_service.dart",
-      "line": 79,
-      "parent": "P2pHostService",
-      "signature": "  Future<void> enableWifiIfNeeded() async {"
-    },
-    {
-      "kind": "method",
-      "name": "enableBluetoothIfNeeded",
-      "file": "apps/tv_display/lib/server/p2p_host_service.dart",
-      "line": 86,
-      "parent": "P2pHostService",
-      "signature": "  Future<void> enableBluetoothIfNeeded() async {"
-    },
-    {
-      "kind": "method",
-      "name": "enableLocationIfNeeded",
-      "file": "apps/tv_display/lib/server/p2p_host_service.dart",
-      "line": 93,
-      "parent": "P2pHostService",
-      "signature": "  Future<void> enableLocationIfNeeded() async {"
-    },
-    {
-      "kind": "method",
-      "name": "askPermissionsIfNeeded",
-      "file": "apps/tv_display/lib/server/p2p_host_service.dart",
-      "line": 100,
-      "parent": "P2pHostService",
-      "signature": "  Future<void> askPermissionsIfNeeded() async {"
-    },
-    {
-      "kind": "method",
-      "name": "start",
-      "file": "apps/tv_display/lib/server/p2p_host_service.dart",
-      "line": 112,
-      "parent": "P2pHostService",
-      "signature": "  Future<void> start() async {"
-    },
-    {
-      "kind": "method",
-      "name": "stop",
-      "file": "apps/tv_display/lib/server/p2p_host_service.dart",
-      "line": 144,
-      "parent": "P2pHostService",
-      "signature": "  Future<void> stop() async {"
-    },
-    {
-      "kind": "class",
       "name": "PrayerStateMachine",
       "file": "apps/tv_display/lib/state/prayer_state_machine.dart",
-      "line": 15,
+      "line": 17,
       "signature": "class PrayerStateMachine extends ChangeNotifier {"
     },
     {
       "kind": "field",
       "name": "_config",
       "file": "apps/tv_display/lib/state/prayer_state_machine.dart",
-      "line": 16,
+      "line": 18,
       "parent": "PrayerStateMachine",
       "signature": "  MosqueConfig _config = const MosqueConfig();"
     },
@@ -3460,7 +3475,7 @@
       "kind": "field",
       "name": "_phase",
       "file": "apps/tv_display/lib/state/prayer_state_machine.dart",
-      "line": 17,
+      "line": 19,
       "parent": "PrayerStateMachine",
       "signature": "  PrayerPhase _phase = PrayerPhase.normal;"
     },
@@ -3468,7 +3483,7 @@
       "kind": "field",
       "name": "_prayer",
       "file": "apps/tv_display/lib/state/prayer_state_machine.dart",
-      "line": 18,
+      "line": 20,
       "parent": "PrayerStateMachine",
       "signature": "  PrayerType? _prayer;"
     },
@@ -3476,7 +3491,7 @@
       "kind": "field",
       "name": "_deadline",
       "file": "apps/tv_display/lib/state/prayer_state_machine.dart",
-      "line": 19,
+      "line": 21,
       "parent": "PrayerStateMachine",
       "signature": "  DateTime _deadline = DateTime.now();"
     },
@@ -3484,7 +3499,7 @@
       "kind": "field",
       "name": "_remaining",
       "file": "apps/tv_display/lib/state/prayer_state_machine.dart",
-      "line": 20,
+      "line": 22,
       "parent": "PrayerStateMachine",
       "signature": "  Duration _remaining = Duration.zero;"
     },
@@ -3492,7 +3507,7 @@
       "kind": "field",
       "name": "_total",
       "file": "apps/tv_display/lib/state/prayer_state_machine.dart",
-      "line": 21,
+      "line": 23,
       "parent": "PrayerStateMachine",
       "signature": "  Duration _total = Duration.zero;"
     },
@@ -3500,7 +3515,7 @@
       "kind": "field",
       "name": "_autoCycle",
       "file": "apps/tv_display/lib/state/prayer_state_machine.dart",
-      "line": 22,
+      "line": 24,
       "parent": "PrayerStateMachine",
       "signature": "  bool _autoCycle = true;"
     },
@@ -3508,7 +3523,7 @@
       "kind": "getter",
       "name": "phase",
       "file": "apps/tv_display/lib/state/prayer_state_machine.dart",
-      "line": 24,
+      "line": 26,
       "parent": "PrayerStateMachine",
       "signature": "  PrayerPhase get phase => _phase;"
     },
@@ -3516,7 +3531,7 @@
       "kind": "getter",
       "name": "prayer",
       "file": "apps/tv_display/lib/state/prayer_state_machine.dart",
-      "line": 25,
+      "line": 27,
       "parent": "PrayerStateMachine",
       "signature": "  PrayerType? get prayer => _prayer;"
     },
@@ -3524,7 +3539,7 @@
       "kind": "getter",
       "name": "remaining",
       "file": "apps/tv_display/lib/state/prayer_state_machine.dart",
-      "line": 26,
+      "line": 28,
       "parent": "PrayerStateMachine",
       "signature": "  Duration get remaining => _remaining;"
     },
@@ -3532,7 +3547,7 @@
       "kind": "getter",
       "name": "total",
       "file": "apps/tv_display/lib/state/prayer_state_machine.dart",
-      "line": 27,
+      "line": 29,
       "parent": "PrayerStateMachine",
       "signature": "  Duration get total => _total;"
     },
@@ -3540,7 +3555,7 @@
       "kind": "getter",
       "name": "autoCycle",
       "file": "apps/tv_display/lib/state/prayer_state_machine.dart",
-      "line": 28,
+      "line": 30,
       "parent": "PrayerStateMachine",
       "signature": "  bool get autoCycle => _autoCycle;"
     },
@@ -3548,7 +3563,7 @@
       "kind": "getter",
       "name": "deadline",
       "file": "apps/tv_display/lib/state/prayer_state_machine.dart",
-      "line": 34,
+      "line": 36,
       "parent": "PrayerStateMachine",
       "signature": "  DateTime get deadline => _deadline;"
     },
@@ -3556,7 +3571,7 @@
       "kind": "getter",
       "name": "progress",
       "file": "apps/tv_display/lib/state/prayer_state_machine.dart",
-      "line": 36,
+      "line": 38,
       "parent": "PrayerStateMachine",
       "signature": "  double get progress {"
     },
@@ -3564,7 +3579,7 @@
       "kind": "method",
       "name": "updateConfig",
       "file": "apps/tv_display/lib/state/prayer_state_machine.dart",
-      "line": 49,
+      "line": 51,
       "parent": "PrayerStateMachine",
       "signature": "  void updateConfig(MosqueConfig config, DateTime now) {"
     },
@@ -3572,7 +3587,7 @@
       "kind": "method",
       "name": "tick",
       "file": "apps/tv_display/lib/state/prayer_state_machine.dart",
-      "line": 63,
+      "line": 65,
       "parent": "PrayerStateMachine",
       "signature": "  void tick(DateTime now, PrayerSchedule schedule) {"
     },
@@ -3580,7 +3595,7 @@
       "kind": "method",
       "name": "startIqomah",
       "file": "apps/tv_display/lib/state/prayer_state_machine.dart",
-      "line": 105,
+      "line": 107,
       "parent": "PrayerStateMachine",
       "signature": "  void startIqomah() {"
     },
@@ -3588,7 +3603,7 @@
       "kind": "method",
       "name": "startShalat",
       "file": "apps/tv_display/lib/state/prayer_state_machine.dart",
-      "line": 112,
+      "line": 114,
       "parent": "PrayerStateMachine",
       "signature": "  void startShalat() {"
     },
@@ -3596,7 +3611,7 @@
       "kind": "method",
       "name": "finishShalat",
       "file": "apps/tv_display/lib/state/prayer_state_machine.dart",
-      "line": 119,
+      "line": 121,
       "parent": "PrayerStateMachine",
       "signature": "  void finishShalat() {"
     },
@@ -3604,25 +3619,87 @@
       "kind": "method",
       "name": "_advance",
       "file": "apps/tv_display/lib/state/prayer_state_machine.dart",
-      "line": 155,
+      "line": 157,
       "parent": "PrayerStateMachine",
       "signature": "  void _advance(DateTime now) {"
     },
     {
       "kind": "method",
-      "name": "_isFriday",
+      "name": "_isFridayPrayerDay",
       "file": "apps/tv_display/lib/state/prayer_state_machine.dart",
-      "line": 177,
+      "line": 182,
       "parent": "PrayerStateMachine",
-      "signature": "  bool _isFriday(DateTime date) => date.weekday == DateTime.friday;"
+      "signature": "  bool _isFridayPrayerDay(DateTime date) =>"
     },
     {
       "kind": "method",
       "name": "_enter",
       "file": "apps/tv_display/lib/state/prayer_state_machine.dart",
-      "line": 179,
+      "line": 185,
       "parent": "PrayerStateMachine",
       "signature": "  void _enter(PrayerPhase phase, PrayerType? prayer, DateTime now) {"
+    },
+    {
+      "kind": "enum",
+      "name": "SideCardKind",
+      "file": "apps/tv_display/lib/state/side_card_playlist.dart",
+      "line": 4,
+      "signature": "enum SideCardKind {"
+    },
+    {
+      "kind": "class",
+      "name": "SideCardItem",
+      "file": "apps/tv_display/lib/state/side_card_playlist.dart",
+      "line": 19,
+      "signature": "class SideCardItem {"
+    },
+    {
+      "kind": "field",
+      "name": "kind",
+      "file": "apps/tv_display/lib/state/side_card_playlist.dart",
+      "line": 20,
+      "parent": "SideCardItem",
+      "signature": "  final SideCardKind kind;"
+    },
+    {
+      "kind": "field",
+      "name": "image",
+      "file": "apps/tv_display/lib/state/side_card_playlist.dart",
+      "line": 21,
+      "parent": "SideCardItem",
+      "signature": "  final SpecialImage? image;"
+    },
+    {
+      "kind": "getter",
+      "name": "key",
+      "file": "apps/tv_display/lib/state/side_card_playlist.dart",
+      "line": 27,
+      "parent": "SideCardItem",
+      "signature": "  String get key => switch (kind) {"
+    },
+    {
+      "kind": "operator",
+      "name": "operator ==",
+      "file": "apps/tv_display/lib/state/side_card_playlist.dart",
+      "line": 34,
+      "parent": "SideCardItem",
+      "signature": "  bool operator ==(Object other) =>"
+    },
+    {
+      "kind": "getter",
+      "name": "hashCode",
+      "file": "apps/tv_display/lib/state/side_card_playlist.dart",
+      "line": 39,
+      "parent": "SideCardItem",
+      "signature": "  int get hashCode => Object.hash(kind, image);"
+    },
+    {
+      "kind": "method",
+      "name": "toString",
+      "file": "apps/tv_display/lib/state/side_card_playlist.dart",
+      "line": 42,
+      "parent": "SideCardItem",
+      "signature": "  String toString() => 'SideCardItem($key)';"
     },
     {
       "kind": "class",
@@ -3665,9 +3742,17 @@
     },
     {
       "kind": "field",
-      "name": "hasDataKey",
+      "name": "sideImagesKey",
       "file": "apps/tv_display/lib/state/tv_store.dart",
       "line": 18,
+      "parent": "TvStore",
+      "signature": "  static const String sideImagesKey = 'tv_sideImages';"
+    },
+    {
+      "kind": "field",
+      "name": "hasDataKey",
+      "file": "apps/tv_display/lib/state/tv_store.dart",
+      "line": 19,
       "parent": "TvStore",
       "signature": "  static const String hasDataKey = 'tv_hasData';"
     },
@@ -3675,7 +3760,7 @@
       "kind": "method",
       "name": "load",
       "file": "apps/tv_display/lib/state/tv_store.dart",
-      "line": 21,
+      "line": 22,
       "parent": "TvStore",
       "signature": "  Future<StateSnapshot?> load() async {"
     },
@@ -3683,7 +3768,7 @@
       "kind": "method",
       "name": "saveConfig",
       "file": "apps/tv_display/lib/state/tv_store.dart",
-      "line": 48,
+      "line": 54,
       "parent": "TvStore",
       "signature": "  Future<void> saveConfig(MosqueConfig config) =>"
     },
@@ -3691,7 +3776,7 @@
       "kind": "method",
       "name": "saveRunningTexts",
       "file": "apps/tv_display/lib/state/tv_store.dart",
-      "line": 51,
+      "line": 57,
       "parent": "TvStore",
       "signature": "  Future<void> saveRunningTexts(List<RunningTextMessage> messages) =>"
     },
@@ -3699,7 +3784,7 @@
       "kind": "method",
       "name": "saveBanners",
       "file": "apps/tv_display/lib/state/tv_store.dart",
-      "line": 54,
+      "line": 60,
       "parent": "TvStore",
       "signature": "  Future<void> saveBanners(List<MediaBanner> banners) =>"
     },
@@ -3707,15 +3792,23 @@
       "kind": "method",
       "name": "saveKas",
       "file": "apps/tv_display/lib/state/tv_store.dart",
-      "line": 57,
+      "line": 63,
       "parent": "TvStore",
       "signature": "  Future<void> saveKas(List<KasTransaction> transactions) =>"
     },
     {
       "kind": "method",
+      "name": "saveSideImages",
+      "file": "apps/tv_display/lib/state/tv_store.dart",
+      "line": 66,
+      "parent": "TvStore",
+      "signature": "  Future<void> saveSideImages(List<SpecialImage> images) =>"
+    },
+    {
+      "kind": "method",
       "name": "_save",
       "file": "apps/tv_display/lib/state/tv_store.dart",
-      "line": 60,
+      "line": 69,
       "parent": "TvStore",
       "signature": "  Future<void> _save(String key, Object value) async {"
     },
@@ -3723,7 +3816,7 @@
       "kind": "method",
       "name": "_decodeMap",
       "file": "apps/tv_display/lib/state/tv_store.dart",
-      "line": 72,
+      "line": 81,
       "parent": "TvStore",
       "signature": "  static Map<String, dynamic>? _decodeMap(String source) {"
     },
@@ -4369,50 +4462,10 @@
       "signature": "  final DateTime currentTime;"
     },
     {
-      "kind": "field",
-      "name": "p2pActive",
-      "file": "apps/tv_display/lib/widgets/header_clock.dart",
-      "line": 12,
-      "parent": "HeaderClock",
-      "signature": "  final bool p2pActive;"
-    },
-    {
-      "kind": "field",
-      "name": "p2pError",
-      "file": "apps/tv_display/lib/widgets/header_clock.dart",
-      "line": 16,
-      "parent": "HeaderClock",
-      "signature": "  final bool p2pError;"
-    },
-    {
-      "kind": "field",
-      "name": "p2pSsid",
-      "file": "apps/tv_display/lib/widgets/header_clock.dart",
-      "line": 17,
-      "parent": "HeaderClock",
-      "signature": "  final String? p2pSsid;"
-    },
-    {
-      "kind": "field",
-      "name": "p2pIp",
-      "file": "apps/tv_display/lib/widgets/header_clock.dart",
-      "line": 18,
-      "parent": "HeaderClock",
-      "signature": "  final String? p2pIp;"
-    },
-    {
-      "kind": "field",
-      "name": "p2pStatus",
-      "file": "apps/tv_display/lib/widgets/header_clock.dart",
-      "line": 23,
-      "parent": "HeaderClock",
-      "signature": "  final String? p2pStatus;"
-    },
-    {
       "kind": "method",
       "name": "build",
       "file": "apps/tv_display/lib/widgets/header_clock.dart",
-      "line": 37,
+      "line": 18,
       "parent": "HeaderClock",
       "signature": "  Widget build(BuildContext context) {"
     },
@@ -4690,10 +4743,18 @@
       "signature": "  final PrayerSchedule schedule;"
     },
     {
+      "kind": "field",
+      "name": "hasFridayPrayer",
+      "file": "apps/tv_display/lib/widgets/prayer_cards.dart",
+      "line": 13,
+      "parent": "PrayerCardsRow",
+      "signature": "  final bool hasFridayPrayer;"
+    },
+    {
       "kind": "method",
       "name": "build",
       "file": "apps/tv_display/lib/widgets/prayer_cards.dart",
-      "line": 17,
+      "line": 22,
       "parent": "PrayerCardsRow",
       "signature": "  Widget build(BuildContext context) {"
     },
@@ -4701,7 +4762,7 @@
       "kind": "method",
       "name": "_remainingFraction",
       "file": "apps/tv_display/lib/widgets/prayer_cards.dart",
-      "line": 91,
+      "line": 103,
       "parent": "PrayerCardsRow",
       "signature": "  double _remainingFraction(PrayerSchedule schedule) {"
     },
@@ -4709,14 +4770,14 @@
       "kind": "class",
       "name": "_NextPrayerTimer",
       "file": "apps/tv_display/lib/widgets/prayer_cards.dart",
-      "line": 113,
+      "line": 125,
       "signature": "class _NextPrayerTimer extends StatefulWidget {"
     },
     {
       "kind": "field",
       "name": "formattedTime",
       "file": "apps/tv_display/lib/widgets/prayer_cards.dart",
-      "line": 114,
+      "line": 126,
       "parent": "_NextPrayerTimer",
       "signature": "  final String formattedTime;"
     },
@@ -4724,7 +4785,7 @@
       "kind": "field",
       "name": "remaining",
       "file": "apps/tv_display/lib/widgets/prayer_cards.dart",
-      "line": 115,
+      "line": 127,
       "parent": "_NextPrayerTimer",
       "signature": "  final Duration remaining;"
     },
@@ -4732,7 +4793,7 @@
       "kind": "field",
       "name": "progress",
       "file": "apps/tv_display/lib/widgets/prayer_cards.dart",
-      "line": 116,
+      "line": 128,
       "parent": "_NextPrayerTimer",
       "signature": "  final double progress;"
     },
@@ -4740,7 +4801,7 @@
       "kind": "method",
       "name": "createState",
       "file": "apps/tv_display/lib/widgets/prayer_cards.dart",
-      "line": 125,
+      "line": 137,
       "parent": "_NextPrayerTimer",
       "signature": "  State<_NextPrayerTimer> createState() => _NextPrayerTimerState();"
     },
@@ -4748,14 +4809,14 @@
       "kind": "class",
       "name": "_NextPrayerTimerState",
       "file": "apps/tv_display/lib/widgets/prayer_cards.dart",
-      "line": 128,
+      "line": 140,
       "signature": "class _NextPrayerTimerState extends State<_NextPrayerTimer> {"
     },
     {
       "kind": "field",
       "name": "_showCountdown",
       "file": "apps/tv_display/lib/widgets/prayer_cards.dart",
-      "line": 129,
+      "line": 141,
       "parent": "_NextPrayerTimerState",
       "signature": "  bool _showCountdown = true;"
     },
@@ -4763,7 +4824,7 @@
       "kind": "field",
       "name": "_timer",
       "file": "apps/tv_display/lib/widgets/prayer_cards.dart",
-      "line": 130,
+      "line": 142,
       "parent": "_NextPrayerTimerState",
       "signature": "  Timer? _timer;"
     },
@@ -4771,7 +4832,7 @@
       "kind": "method",
       "name": "initState",
       "file": "apps/tv_display/lib/widgets/prayer_cards.dart",
-      "line": 133,
+      "line": 145,
       "parent": "_NextPrayerTimerState",
       "signature": "  void initState() {"
     },
@@ -4779,7 +4840,7 @@
       "kind": "method",
       "name": "dispose",
       "file": "apps/tv_display/lib/widgets/prayer_cards.dart",
-      "line": 145,
+      "line": 157,
       "parent": "_NextPrayerTimerState",
       "signature": "  void dispose() {"
     },
@@ -4787,7 +4848,7 @@
       "kind": "method",
       "name": "build",
       "file": "apps/tv_display/lib/widgets/prayer_cards.dart",
-      "line": 151,
+      "line": 163,
       "parent": "_NextPrayerTimerState",
       "signature": "  Widget build(BuildContext context) {"
     },
@@ -4795,7 +4856,7 @@
       "kind": "method",
       "name": "_formatDuration",
       "file": "apps/tv_display/lib/widgets/prayer_cards.dart",
-      "line": 211,
+      "line": 223,
       "parent": "_NextPrayerTimerState",
       "signature": "  String _formatDuration(Duration duration) {"
     },
@@ -5467,6 +5528,194 @@
     },
     {
       "kind": "class",
+      "name": "SideCardRotator",
+      "file": "apps/tv_display/lib/widgets/side_card_rotator.dart",
+      "line": 22,
+      "signature": "class SideCardRotator extends StatefulWidget {"
+    },
+    {
+      "kind": "field",
+      "name": "config",
+      "file": "apps/tv_display/lib/widgets/side_card_rotator.dart",
+      "line": 23,
+      "parent": "SideCardRotator",
+      "signature": "  final MosqueConfig config;"
+    },
+    {
+      "kind": "field",
+      "name": "transactions",
+      "file": "apps/tv_display/lib/widgets/side_card_rotator.dart",
+      "line": 24,
+      "parent": "SideCardRotator",
+      "signature": "  final List<KasTransaction> transactions;"
+    },
+    {
+      "kind": "field",
+      "name": "images",
+      "file": "apps/tv_display/lib/widgets/side_card_rotator.dart",
+      "line": 25,
+      "parent": "SideCardRotator",
+      "signature": "  final List<SpecialImage> images;"
+    },
+    {
+      "kind": "field",
+      "name": "date",
+      "file": "apps/tv_display/lib/widgets/side_card_rotator.dart",
+      "line": 28,
+      "parent": "SideCardRotator",
+      "signature": "  final DateTime date;"
+    },
+    {
+      "kind": "field",
+      "name": "interval",
+      "file": "apps/tv_display/lib/widgets/side_card_rotator.dart",
+      "line": 31,
+      "parent": "SideCardRotator",
+      "signature": "  final Duration interval;"
+    },
+    {
+      "kind": "method",
+      "name": "createState",
+      "file": "apps/tv_display/lib/widgets/side_card_rotator.dart",
+      "line": 43,
+      "parent": "SideCardRotator",
+      "signature": "  State<SideCardRotator> createState() => _SideCardRotatorState();"
+    },
+    {
+      "kind": "class",
+      "name": "_SideCardRotatorState",
+      "file": "apps/tv_display/lib/widgets/side_card_rotator.dart",
+      "line": 46,
+      "signature": "class _SideCardRotatorState extends State<SideCardRotator> {"
+    },
+    {
+      "kind": "field",
+      "name": "_timer",
+      "file": "apps/tv_display/lib/widgets/side_card_rotator.dart",
+      "line": 47,
+      "parent": "_SideCardRotatorState",
+      "signature": "  Timer? _timer;"
+    },
+    {
+      "kind": "field",
+      "name": "_currentIndex",
+      "file": "apps/tv_display/lib/widgets/side_card_rotator.dart",
+      "line": 48,
+      "parent": "_SideCardRotatorState",
+      "signature": "  int _currentIndex = 0;"
+    },
+    {
+      "kind": "getter",
+      "name": "_playlist",
+      "file": "apps/tv_display/lib/widgets/side_card_rotator.dart",
+      "line": 50,
+      "parent": "_SideCardRotatorState",
+      "signature": "  List<SideCardItem> get _playlist => buildSideCardPlaylist("
+    },
+    {
+      "kind": "getter",
+      "name": "_signature",
+      "file": "apps/tv_display/lib/widgets/side_card_rotator.dart",
+      "line": 58,
+      "parent": "_SideCardRotatorState",
+      "signature": "  String get _signature => _playlist.map((item) => item.key).join('|');"
+    },
+    {
+      "kind": "method",
+      "name": "initState",
+      "file": "apps/tv_display/lib/widgets/side_card_rotator.dart",
+      "line": 61,
+      "parent": "_SideCardRotatorState",
+      "signature": "  void initState() {"
+    },
+    {
+      "kind": "method",
+      "name": "didUpdateWidget",
+      "file": "apps/tv_display/lib/widgets/side_card_rotator.dart",
+      "line": 67,
+      "parent": "_SideCardRotatorState",
+      "signature": "  void didUpdateWidget(SideCardRotator oldWidget) {"
+    },
+    {
+      "kind": "method",
+      "name": "_restartTimer",
+      "file": "apps/tv_display/lib/widgets/side_card_rotator.dart",
+      "line": 84,
+      "parent": "_SideCardRotatorState",
+      "signature": "  void _restartTimer() {"
+    },
+    {
+      "kind": "method",
+      "name": "dispose",
+      "file": "apps/tv_display/lib/widgets/side_card_rotator.dart",
+      "line": 96,
+      "parent": "_SideCardRotatorState",
+      "signature": "  void dispose() {"
+    },
+    {
+      "kind": "method",
+      "name": "build",
+      "file": "apps/tv_display/lib/widgets/side_card_rotator.dart",
+      "line": 102,
+      "parent": "_SideCardRotatorState",
+      "signature": "  Widget build(BuildContext context) {"
+    },
+    {
+      "kind": "method",
+      "name": "_buildCard",
+      "file": "apps/tv_display/lib/widgets/side_card_rotator.dart",
+      "line": 130,
+      "parent": "_SideCardRotatorState",
+      "signature": "  Widget _buildCard(SideCardItem item) {"
+    },
+    {
+      "kind": "class",
+      "name": "_SidePlaceholderCard",
+      "file": "apps/tv_display/lib/widgets/side_card_rotator.dart",
+      "line": 151,
+      "signature": "class _SidePlaceholderCard extends StatelessWidget {"
+    },
+    {
+      "kind": "method",
+      "name": "build",
+      "file": "apps/tv_display/lib/widgets/side_card_rotator.dart",
+      "line": 155,
+      "parent": "_SidePlaceholderCard",
+      "signature": "  Widget build(BuildContext context) {"
+    },
+    {
+      "kind": "class",
+      "name": "SpecialImageCard",
+      "file": "apps/tv_display/lib/widgets/special_image_card.dart",
+      "line": 12,
+      "signature": "class SpecialImageCard extends StatelessWidget {"
+    },
+    {
+      "kind": "field",
+      "name": "image",
+      "file": "apps/tv_display/lib/widgets/special_image_card.dart",
+      "line": 13,
+      "parent": "SpecialImageCard",
+      "signature": "  final SpecialImage image;"
+    },
+    {
+      "kind": "method",
+      "name": "build",
+      "file": "apps/tv_display/lib/widgets/special_image_card.dart",
+      "line": 21,
+      "parent": "SpecialImageCard",
+      "signature": "  Widget build(BuildContext context) {"
+    },
+    {
+      "kind": "method",
+      "name": "_buildFallback",
+      "file": "apps/tv_display/lib/widgets/special_image_card.dart",
+      "line": 82,
+      "parent": "SpecialImageCard",
+      "signature": "  Widget _buildFallback(BuildContext context) {"
+    },
+    {
+      "kind": "class",
       "name": "BluetoothDeviceInfo",
       "file": "packages/bluetooth_sync/lib/bluetooth_sync.dart",
       "line": 7,
@@ -5748,1462 +5997,6 @@
       "line": 224,
       "parent": "BluetoothSync",
       "signature": "  static Future<void> send(Uint8List bytes) =>"
-    },
-    {
-      "kind": "class",
-      "name": "MethodChannelFlutterP2pConnection",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_method_channel.dart",
-      "line": 9,
-      "signature": "class MethodChannelFlutterP2pConnection extends FlutterP2pConnectionPlatform {"
-    },
-    {
-      "kind": "field",
-      "name": "methodChannel",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_method_channel.dart",
-      "line": 12,
-      "parent": "MethodChannelFlutterP2pConnection",
-      "signature": "  final MethodChannel methodChannel ="
-    },
-    {
-      "kind": "method",
-      "name": "MethodChannel",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_method_channel.dart",
-      "line": 13,
-      "parent": "MethodChannelFlutterP2pConnection",
-      "signature": "      const MethodChannel('flutter_p2p_connection');"
-    },
-    {
-      "kind": "field",
-      "name": "hotspotStateEventChannel",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_method_channel.dart",
-      "line": 19,
-      "parent": "MethodChannelFlutterP2pConnection",
-      "signature": "  final EventChannel hotspotStateEventChannel ="
-    },
-    {
-      "kind": "method",
-      "name": "EventChannel",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_method_channel.dart",
-      "line": 20,
-      "parent": "MethodChannelFlutterP2pConnection",
-      "signature": "      const EventChannel('flutter_p2p_connection_hotspotState');"
-    },
-    {
-      "kind": "field",
-      "name": "clientStateEventChannel",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_method_channel.dart",
-      "line": 24,
-      "parent": "MethodChannelFlutterP2pConnection",
-      "signature": "  final EventChannel clientStateEventChannel ="
-    },
-    {
-      "kind": "field",
-      "name": "bleConnectionStateEventChannel",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_method_channel.dart",
-      "line": 29,
-      "parent": "MethodChannelFlutterP2pConnection",
-      "signature": "  final EventChannel bleConnectionStateEventChannel ="
-    },
-    {
-      "kind": "field",
-      "name": "bleScanResultEventChannel",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_method_channel.dart",
-      "line": 34,
-      "parent": "MethodChannelFlutterP2pConnection",
-      "signature": "  final EventChannel bleScanResultEventChannel ="
-    },
-    {
-      "kind": "field",
-      "name": "bleReceivedDataEventChannel",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_method_channel.dart",
-      "line": 39,
-      "parent": "MethodChannelFlutterP2pConnection",
-      "signature": "  final EventChannel bleReceivedDataEventChannel ="
-    },
-    {
-      "kind": "field",
-      "name": "_hotspotInfoStream",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_method_channel.dart",
-      "line": 44,
-      "parent": "MethodChannelFlutterP2pConnection",
-      "signature": "  Stream<HotspotHostState>? _hotspotInfoStream;"
-    },
-    {
-      "kind": "field",
-      "name": "_clientStateStream",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_method_channel.dart",
-      "line": 45,
-      "parent": "MethodChannelFlutterP2pConnection",
-      "signature": "  Stream<HotspotClientState>? _clientStateStream;"
-    },
-    {
-      "kind": "field",
-      "name": "_bleConnectionStateStream",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_method_channel.dart",
-      "line": 46,
-      "parent": "MethodChannelFlutterP2pConnection",
-      "signature": "  Stream<BleConnectionState>? _bleConnectionStateStream;"
-    },
-    {
-      "kind": "field",
-      "name": "_bleScanResultStream",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_method_channel.dart",
-      "line": 47,
-      "parent": "MethodChannelFlutterP2pConnection",
-      "signature": "  Stream<List<BleDiscoveredDevice>>? _bleScanResultStream;"
-    },
-    {
-      "kind": "field",
-      "name": "_bleReceivedDataStream",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_method_channel.dart",
-      "line": 48,
-      "parent": "MethodChannelFlutterP2pConnection",
-      "signature": "  Stream<BleReceivedData>? _bleReceivedDataStream;"
-    },
-    {
-      "kind": "method",
-      "name": "getPlatformVersion",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_method_channel.dart",
-      "line": 55,
-      "parent": "MethodChannelFlutterP2pConnection",
-      "signature": "  Future<String> getPlatformVersion() async {"
-    },
-    {
-      "kind": "method",
-      "name": "getPlatformModel",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_method_channel.dart",
-      "line": 67,
-      "parent": "MethodChannelFlutterP2pConnection",
-      "signature": "  Future<String> getPlatformModel() async {"
-    },
-    {
-      "kind": "method",
-      "name": "dispose",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_method_channel.dart",
-      "line": 96,
-      "parent": "MethodChannelFlutterP2pConnection",
-      "signature": "  Future<void> dispose() async {"
-    },
-    {
-      "kind": "method",
-      "name": "createHotspot",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_method_channel.dart",
-      "line": 111,
-      "parent": "MethodChannelFlutterP2pConnection",
-      "signature": "  Future<void> createHotspot() async {"
-    },
-    {
-      "kind": "method",
-      "name": "removeHotspot",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_method_channel.dart",
-      "line": 119,
-      "parent": "MethodChannelFlutterP2pConnection",
-      "signature": "  Future<void> removeHotspot() async {"
-    },
-    {
-      "kind": "method",
-      "name": "connectToHotspot",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_method_channel.dart",
-      "line": 130,
-      "parent": "MethodChannelFlutterP2pConnection",
-      "signature": "  Future<void> connectToHotspot(String ssid, String psk) async {"
-    },
-    {
-      "kind": "method",
-      "name": "disconnectFromHotspot",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_method_channel.dart",
-      "line": 141,
-      "parent": "MethodChannelFlutterP2pConnection",
-      "signature": "  Future<void> disconnectFromHotspot() async {"
-    },
-    {
-      "kind": "method",
-      "name": "startBleAdvertising",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_method_channel.dart",
-      "line": 153,
-      "parent": "MethodChannelFlutterP2pConnection",
-      "signature": "  Future<void> startBleAdvertising(String ssid, String psk) async {"
-    },
-    {
-      "kind": "method",
-      "name": "stopBleAdvertising",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_method_channel.dart",
-      "line": 164,
-      "parent": "MethodChannelFlutterP2pConnection",
-      "signature": "  Future<void> stopBleAdvertising() async {"
-    },
-    {
-      "kind": "method",
-      "name": "startBleScan",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_method_channel.dart",
-      "line": 174,
-      "parent": "MethodChannelFlutterP2pConnection",
-      "signature": "  Future<void> startBleScan() async {"
-    },
-    {
-      "kind": "method",
-      "name": "stopBleScan",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_method_channel.dart",
-      "line": 182,
-      "parent": "MethodChannelFlutterP2pConnection",
-      "signature": "  Future<void> stopBleScan() async {"
-    },
-    {
-      "kind": "method",
-      "name": "connectBleDevice",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_method_channel.dart",
-      "line": 193,
-      "parent": "MethodChannelFlutterP2pConnection",
-      "signature": "  Future<void> connectBleDevice(String deviceAddress) async {"
-    },
-    {
-      "kind": "method",
-      "name": "disconnectBleDevice",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_method_channel.dart",
-      "line": 205,
-      "parent": "MethodChannelFlutterP2pConnection",
-      "signature": "  Future<void> disconnectBleDevice(String deviceAddress) async {"
-    },
-    {
-      "kind": "method",
-      "name": "checkP2pPermissions",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_method_channel.dart",
-      "line": 217,
-      "parent": "MethodChannelFlutterP2pConnection",
-      "signature": "  Future<bool> checkP2pPermissions() async {"
-    },
-    {
-      "kind": "method",
-      "name": "askP2pPermissions",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_method_channel.dart",
-      "line": 229,
-      "parent": "MethodChannelFlutterP2pConnection",
-      "signature": "  Future<void> askP2pPermissions() async {"
-    },
-    {
-      "kind": "method",
-      "name": "checkLocationEnabled",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_method_channel.dart",
-      "line": 238,
-      "parent": "MethodChannelFlutterP2pConnection",
-      "signature": "  Future<bool> checkLocationEnabled() async {"
-    },
-    {
-      "kind": "method",
-      "name": "enableLocationServices",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_method_channel.dart",
-      "line": 249,
-      "parent": "MethodChannelFlutterP2pConnection",
-      "signature": "  Future<void> enableLocationServices() async {"
-    },
-    {
-      "kind": "method",
-      "name": "checkWifiEnabled",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_method_channel.dart",
-      "line": 257,
-      "parent": "MethodChannelFlutterP2pConnection",
-      "signature": "  Future<bool> checkWifiEnabled() async {"
-    },
-    {
-      "kind": "method",
-      "name": "enableWifiServices",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_method_channel.dart",
-      "line": 267,
-      "parent": "MethodChannelFlutterP2pConnection",
-      "signature": "  Future<void> enableWifiServices() async {"
-    },
-    {
-      "kind": "method",
-      "name": "checkBluetoothEnabled",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_method_channel.dart",
-      "line": 275,
-      "parent": "MethodChannelFlutterP2pConnection",
-      "signature": "  Future<bool> checkBluetoothEnabled() async {"
-    },
-    {
-      "kind": "method",
-      "name": "enableBluetoothServices",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_method_channel.dart",
-      "line": 286,
-      "parent": "MethodChannelFlutterP2pConnection",
-      "signature": "  Future<void> enableBluetoothServices() async {"
-    },
-    {
-      "kind": "method",
-      "name": "streamHotspotInfo",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_method_channel.dart",
-      "line": 299,
-      "parent": "MethodChannelFlutterP2pConnection",
-      "signature": "  Stream<HotspotHostState> streamHotspotInfo() {"
-    },
-    {
-      "kind": "method",
-      "name": "streamHotspotClientState",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_method_channel.dart",
-      "line": 337,
-      "parent": "MethodChannelFlutterP2pConnection",
-      "signature": "  Stream<HotspotClientState> streamHotspotClientState() {"
-    },
-    {
-      "kind": "method",
-      "name": "streamBleConnectionState",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_method_channel.dart",
-      "line": 366,
-      "parent": "MethodChannelFlutterP2pConnection",
-      "signature": "  Stream<BleConnectionState> streamBleConnectionState() {"
-    },
-    {
-      "kind": "method",
-      "name": "streamBleScanResult",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_method_channel.dart",
-      "line": 396,
-      "parent": "MethodChannelFlutterP2pConnection",
-      "signature": "  Stream<List<BleDiscoveredDevice>> streamBleScanResult() {"
-    },
-    {
-      "kind": "method",
-      "name": "streamBleReceivedData",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_method_channel.dart",
-      "line": 431,
-      "parent": "MethodChannelFlutterP2pConnection",
-      "signature": "  Stream<BleReceivedData> streamBleReceivedData() {"
-    },
-    {
-      "kind": "class",
-      "name": "FlutterP2pConnectionPlatform",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_platform_interface.dart",
-      "line": 6,
-      "signature": "abstract class FlutterP2pConnectionPlatform extends PlatformInterface {"
-    },
-    {
-      "kind": "constructor",
-      "name": "FlutterP2pConnectionPlatform",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_platform_interface.dart",
-      "line": 8,
-      "parent": "FlutterP2pConnectionPlatform",
-      "signature": "  FlutterP2pConnectionPlatform() : super(token: _token);"
-    },
-    {
-      "kind": "field",
-      "name": "_token",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_platform_interface.dart",
-      "line": 10,
-      "parent": "FlutterP2pConnectionPlatform",
-      "signature": "  static final Object _token = Object();"
-    },
-    {
-      "kind": "field",
-      "name": "_instance",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_platform_interface.dart",
-      "line": 12,
-      "parent": "FlutterP2pConnectionPlatform",
-      "signature": "  static FlutterP2pConnectionPlatform _instance ="
-    },
-    {
-      "kind": "method",
-      "name": "MethodChannelFlutterP2pConnection",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_platform_interface.dart",
-      "line": 13,
-      "parent": "FlutterP2pConnectionPlatform",
-      "signature": "      MethodChannelFlutterP2pConnection();"
-    },
-    {
-      "kind": "getter",
-      "name": "instance",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_platform_interface.dart",
-      "line": 18,
-      "parent": "FlutterP2pConnectionPlatform",
-      "signature": "  static FlutterP2pConnectionPlatform get instance => _instance;"
-    },
-    {
-      "kind": "setter",
-      "name": "instance",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_platform_interface.dart",
-      "line": 23,
-      "parent": "FlutterP2pConnectionPlatform",
-      "signature": "  static set instance(FlutterP2pConnectionPlatform instance) {"
-    },
-    {
-      "kind": "method",
-      "name": "getPlatformVersion",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_platform_interface.dart",
-      "line": 28,
-      "parent": "FlutterP2pConnectionPlatform",
-      "signature": "  Future<String> getPlatformVersion() async {"
-    },
-    {
-      "kind": "method",
-      "name": "getPlatformModel",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_platform_interface.dart",
-      "line": 32,
-      "parent": "FlutterP2pConnectionPlatform",
-      "signature": "  Future<String> getPlatformModel() async {"
-    },
-    {
-      "kind": "method",
-      "name": "dispose",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_platform_interface.dart",
-      "line": 44,
-      "parent": "FlutterP2pConnectionPlatform",
-      "signature": "  Future<void> dispose() async {"
-    },
-    {
-      "kind": "method",
-      "name": "createHotspot",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_platform_interface.dart",
-      "line": 48,
-      "parent": "FlutterP2pConnectionPlatform",
-      "signature": "  Future<void> createHotspot() async {"
-    },
-    {
-      "kind": "method",
-      "name": "removeHotspot",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_platform_interface.dart",
-      "line": 52,
-      "parent": "FlutterP2pConnectionPlatform",
-      "signature": "  Future<void> removeHotspot() async {"
-    },
-    {
-      "kind": "method",
-      "name": "connectToHotspot",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_platform_interface.dart",
-      "line": 56,
-      "parent": "FlutterP2pConnectionPlatform",
-      "signature": "  Future<void> connectToHotspot(String ssid, String psk) async {"
-    },
-    {
-      "kind": "method",
-      "name": "disconnectFromHotspot",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_platform_interface.dart",
-      "line": 60,
-      "parent": "FlutterP2pConnectionPlatform",
-      "signature": "  Future<void> disconnectFromHotspot() async {"
-    },
-    {
-      "kind": "method",
-      "name": "startBleAdvertising",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_platform_interface.dart",
-      "line": 65,
-      "parent": "FlutterP2pConnectionPlatform",
-      "signature": "  Future<void> startBleAdvertising(String ssid, String psk) async {"
-    },
-    {
-      "kind": "method",
-      "name": "stopBleAdvertising",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_platform_interface.dart",
-      "line": 69,
-      "parent": "FlutterP2pConnectionPlatform",
-      "signature": "  Future<void> stopBleAdvertising() async {"
-    },
-    {
-      "kind": "method",
-      "name": "startBleScan",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_platform_interface.dart",
-      "line": 73,
-      "parent": "FlutterP2pConnectionPlatform",
-      "signature": "  Future<void> startBleScan() async {"
-    },
-    {
-      "kind": "method",
-      "name": "stopBleScan",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_platform_interface.dart",
-      "line": 77,
-      "parent": "FlutterP2pConnectionPlatform",
-      "signature": "  Future<void> stopBleScan() async {"
-    },
-    {
-      "kind": "method",
-      "name": "connectBleDevice",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_platform_interface.dart",
-      "line": 81,
-      "parent": "FlutterP2pConnectionPlatform",
-      "signature": "  Future<void> connectBleDevice(String deviceAddress) async {"
-    },
-    {
-      "kind": "method",
-      "name": "disconnectBleDevice",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_platform_interface.dart",
-      "line": 85,
-      "parent": "FlutterP2pConnectionPlatform",
-      "signature": "  Future<void> disconnectBleDevice(String deviceAddress) async {"
-    },
-    {
-      "kind": "method",
-      "name": "checkP2pPermissions",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_platform_interface.dart",
-      "line": 89,
-      "parent": "FlutterP2pConnectionPlatform",
-      "signature": "  Future<bool> checkP2pPermissions() async {"
-    },
-    {
-      "kind": "method",
-      "name": "askP2pPermissions",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_platform_interface.dart",
-      "line": 93,
-      "parent": "FlutterP2pConnectionPlatform",
-      "signature": "  Future<void> askP2pPermissions() async {"
-    },
-    {
-      "kind": "method",
-      "name": "checkLocationEnabled",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_platform_interface.dart",
-      "line": 97,
-      "parent": "FlutterP2pConnectionPlatform",
-      "signature": "  Future<bool> checkLocationEnabled() async {"
-    },
-    {
-      "kind": "method",
-      "name": "enableLocationServices",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_platform_interface.dart",
-      "line": 102,
-      "parent": "FlutterP2pConnectionPlatform",
-      "signature": "  Future<void> enableLocationServices() async {"
-    },
-    {
-      "kind": "method",
-      "name": "checkWifiEnabled",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_platform_interface.dart",
-      "line": 107,
-      "parent": "FlutterP2pConnectionPlatform",
-      "signature": "  Future<bool> checkWifiEnabled() async {"
-    },
-    {
-      "kind": "method",
-      "name": "enableWifiServices",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_platform_interface.dart",
-      "line": 111,
-      "parent": "FlutterP2pConnectionPlatform",
-      "signature": "  Future<void> enableWifiServices() async {"
-    },
-    {
-      "kind": "method",
-      "name": "checkBluetoothEnabled",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_platform_interface.dart",
-      "line": 115,
-      "parent": "FlutterP2pConnectionPlatform",
-      "signature": "  Future<bool> checkBluetoothEnabled() async {"
-    },
-    {
-      "kind": "method",
-      "name": "enableBluetoothServices",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_platform_interface.dart",
-      "line": 120,
-      "parent": "FlutterP2pConnectionPlatform",
-      "signature": "  Future<void> enableBluetoothServices() async {"
-    },
-    {
-      "kind": "method",
-      "name": "streamHotspotInfo",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_platform_interface.dart",
-      "line": 125,
-      "parent": "FlutterP2pConnectionPlatform",
-      "signature": "  Stream<HotspotHostState> streamHotspotInfo() {"
-    },
-    {
-      "kind": "method",
-      "name": "streamHotspotClientState",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_platform_interface.dart",
-      "line": 129,
-      "parent": "FlutterP2pConnectionPlatform",
-      "signature": "  Stream<HotspotClientState> streamHotspotClientState() {"
-    },
-    {
-      "kind": "method",
-      "name": "streamBleConnectionState",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_platform_interface.dart",
-      "line": 134,
-      "parent": "FlutterP2pConnectionPlatform",
-      "signature": "  Stream<BleConnectionState> streamBleConnectionState() {"
-    },
-    {
-      "kind": "method",
-      "name": "streamBleScanResult",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_platform_interface.dart",
-      "line": 139,
-      "parent": "FlutterP2pConnectionPlatform",
-      "signature": "  Stream<List<BleDiscoveredDevice>> streamBleScanResult() {"
-    },
-    {
-      "kind": "method",
-      "name": "streamBleReceivedData",
-      "file": "packages/flutter_p2p_connection/lib/flutter_p2p_connection_platform_interface.dart",
-      "line": 143,
-      "parent": "FlutterP2pConnectionPlatform",
-      "signature": "  Stream<BleReceivedData> streamBleReceivedData() {"
-    },
-    {
-      "kind": "class",
-      "name": "FlutterP2pClient",
-      "file": "packages/flutter_p2p_connection/lib/src/client/p2p_client.dart",
-      "line": 23,
-      "signature": "class FlutterP2pClient extends FlutterP2pConnectionBase {"
-    },
-    {
-      "kind": "field",
-      "name": "_isScanning",
-      "file": "packages/flutter_p2p_connection/lib/src/client/p2p_client.dart",
-      "line": 24,
-      "parent": "FlutterP2pClient",
-      "signature": "  bool _isScanning = false;"
-    },
-    {
-      "kind": "field",
-      "name": "_p2pTransport",
-      "file": "packages/flutter_p2p_connection/lib/src/client/p2p_client.dart",
-      "line": 25,
-      "parent": "FlutterP2pClient",
-      "signature": "  P2pTransportClient? _p2pTransport;"
-    },
-    {
-      "kind": "field",
-      "name": "_lastKnownClientState",
-      "file": "packages/flutter_p2p_connection/lib/src/client/p2p_client.dart",
-      "line": 26,
-      "parent": "FlutterP2pClient",
-      "signature": "  HotspotClientState? _lastKnownClientState; // To store client's IP in group"
-    },
-    {
-      "kind": "field",
-      "name": "_scanStreamSub",
-      "file": "packages/flutter_p2p_connection/lib/src/client/p2p_client.dart",
-      "line": 28,
-      "parent": "FlutterP2pClient",
-      "signature": "  StreamSubscription<List<BleDiscoveredDevice>>? _scanStreamSub;"
-    },
-    {
-      "kind": "field",
-      "name": "_scanTimer",
-      "file": "packages/flutter_p2p_connection/lib/src/client/p2p_client.dart",
-      "line": 29,
-      "parent": "FlutterP2pClient",
-      "signature": "  Timer? _scanTimer;"
-    },
-    {
-      "kind": "getter",
-      "name": "isScanning",
-      "file": "packages/flutter_p2p_connection/lib/src/client/p2p_client.dart",
-      "line": 46,
-      "parent": "FlutterP2pClient",
-      "signature": "  bool get isScanning => _isScanning;"
-    },
-    {
-      "kind": "getter",
-      "name": "isConnected",
-      "file": "packages/flutter_p2p_connection/lib/src/client/p2p_client.dart",
-      "line": 49,
-      "parent": "FlutterP2pClient",
-      "signature": "  bool get isConnected => _p2pTransport?.isConnected ?? false;"
-    },
-    {
-      "kind": "getter",
-      "name": "clientList",
-      "file": "packages/flutter_p2p_connection/lib/src/client/p2p_client.dart",
-      "line": 52,
-      "parent": "FlutterP2pClient",
-      "signature": "  List<P2pClientInfo> get clientList => _p2pTransport?.clientList ?? [];"
-    },
-    {
-      "kind": "getter",
-      "name": "hostedFileInfos",
-      "file": "packages/flutter_p2p_connection/lib/src/client/p2p_client.dart",
-      "line": 55,
-      "parent": "FlutterP2pClient",
-      "signature": "  List<HostedFileInfo> get hostedFileInfos =>"
-    },
-    {
-      "kind": "class",
-      "name": "FlutterP2pConnectionBase",
-      "file": "packages/flutter_p2p_connection/lib/src/common/p2p_connection_base.dart",
-      "line": 14,
-      "signature": "class FlutterP2pConnectionBase {"
-    },
-    {
-      "kind": "field",
-      "name": "username",
-      "file": "packages/flutter_p2p_connection/lib/src/common/p2p_connection_base.dart",
-      "line": 16,
-      "parent": "FlutterP2pConnectionBase",
-      "signature": "  final String? username;"
-    },
-    {
-      "kind": "field",
-      "name": "serviceUuid",
-      "file": "packages/flutter_p2p_connection/lib/src/common/p2p_connection_base.dart",
-      "line": 19,
-      "parent": "FlutterP2pConnectionBase",
-      "signature": "  final String? serviceUuid;"
-    },
-    {
-      "kind": "field",
-      "name": "bondingRequired",
-      "file": "packages/flutter_p2p_connection/lib/src/common/p2p_connection_base.dart",
-      "line": 22,
-      "parent": "FlutterP2pConnectionBase",
-      "signature": "  final bool? bondingRequired;"
-    },
-    {
-      "kind": "field",
-      "name": "encryptionRequired",
-      "file": "packages/flutter_p2p_connection/lib/src/common/p2p_connection_base.dart",
-      "line": 25,
-      "parent": "FlutterP2pConnectionBase",
-      "signature": "  final bool? encryptionRequired;"
-    },
-    {
-      "kind": "method",
-      "name": "getDeviceModel",
-      "file": "packages/flutter_p2p_connection/lib/src/common/p2p_connection_base.dart",
-      "line": 39,
-      "parent": "FlutterP2pConnectionBase",
-      "signature": "  Future<String> getDeviceModel() =>"
-    },
-    {
-      "kind": "function",
-      "name": "getLocalIpAddress",
-      "file": "packages/flutter_p2p_connection/lib/src/common/utils.dart",
-      "line": 3,
-      "signature": "Future<String?> getLocalIpAddress() async {"
-    },
-    {
-      "kind": "class",
-      "name": "FlutterP2pHost",
-      "file": "packages/flutter_p2p_connection/lib/src/host/p2p_host.dart",
-      "line": 21,
-      "signature": "class FlutterP2pHost extends FlutterP2pConnectionBase {"
-    },
-    {
-      "kind": "field",
-      "name": "_isGroupCreated",
-      "file": "packages/flutter_p2p_connection/lib/src/host/p2p_host.dart",
-      "line": 22,
-      "parent": "FlutterP2pHost",
-      "signature": "  bool _isGroupCreated = false;"
-    },
-    {
-      "kind": "field",
-      "name": "_isBleAdvertising",
-      "file": "packages/flutter_p2p_connection/lib/src/host/p2p_host.dart",
-      "line": 23,
-      "parent": "FlutterP2pHost",
-      "signature": "  bool _isBleAdvertising = false;"
-    },
-    {
-      "kind": "field",
-      "name": "_p2pTransport",
-      "file": "packages/flutter_p2p_connection/lib/src/host/p2p_host.dart",
-      "line": 24,
-      "parent": "FlutterP2pHost",
-      "signature": "  P2pTransportHost? _p2pTransport;"
-    },
-    {
-      "kind": "field",
-      "name": "_lastKnownHotspotState",
-      "file": "packages/flutter_p2p_connection/lib/src/host/p2p_host.dart",
-      "line": 25,
-      "parent": "FlutterP2pHost",
-      "signature": "  HotspotHostState? _lastKnownHotspotState;"
-    },
-    {
-      "kind": "getter",
-      "name": "isGroupCreated",
-      "file": "packages/flutter_p2p_connection/lib/src/host/p2p_host.dart",
-      "line": 42,
-      "parent": "FlutterP2pHost",
-      "signature": "  bool get isGroupCreated => _isGroupCreated;"
-    },
-    {
-      "kind": "getter",
-      "name": "isAdvertising",
-      "file": "packages/flutter_p2p_connection/lib/src/host/p2p_host.dart",
-      "line": 45,
-      "parent": "FlutterP2pHost",
-      "signature": "  bool get isAdvertising => _isBleAdvertising;"
-    },
-    {
-      "kind": "getter",
-      "name": "clientList",
-      "file": "packages/flutter_p2p_connection/lib/src/host/p2p_host.dart",
-      "line": 48,
-      "parent": "FlutterP2pHost",
-      "signature": "  List<P2pClientInfo> get clientList => _p2pTransport?.clientList ?? [];"
-    },
-    {
-      "kind": "getter",
-      "name": "hostedFileInfos",
-      "file": "packages/flutter_p2p_connection/lib/src/host/p2p_host.dart",
-      "line": 51,
-      "parent": "FlutterP2pHost",
-      "signature": "  List<HostedFileInfo> get hostedFileInfos =>"
-    },
-    {
-      "kind": "class",
-      "name": "HotspotHostState",
-      "file": "packages/flutter_p2p_connection/lib/src/models/p2p_connection_models.dart",
-      "line": 5,
-      "signature": "class HotspotHostState {"
-    },
-    {
-      "kind": "field",
-      "name": "isActive",
-      "file": "packages/flutter_p2p_connection/lib/src/models/p2p_connection_models.dart",
-      "line": 7,
-      "parent": "HotspotHostState",
-      "signature": "  final bool isActive;"
-    },
-    {
-      "kind": "field",
-      "name": "ssid",
-      "file": "packages/flutter_p2p_connection/lib/src/models/p2p_connection_models.dart",
-      "line": 10,
-      "parent": "HotspotHostState",
-      "signature": "  final String? ssid;"
-    },
-    {
-      "kind": "field",
-      "name": "preSharedKey",
-      "file": "packages/flutter_p2p_connection/lib/src/models/p2p_connection_models.dart",
-      "line": 13,
-      "parent": "HotspotHostState",
-      "signature": "  final String? preSharedKey;"
-    },
-    {
-      "kind": "field",
-      "name": "hostIpAddress",
-      "file": "packages/flutter_p2p_connection/lib/src/models/p2p_connection_models.dart",
-      "line": 16,
-      "parent": "HotspotHostState",
-      "signature": "  final String? hostIpAddress;"
-    },
-    {
-      "kind": "field",
-      "name": "failureReason",
-      "file": "packages/flutter_p2p_connection/lib/src/models/p2p_connection_models.dart",
-      "line": 19,
-      "parent": "HotspotHostState",
-      "signature": "  final int? failureReason;"
-    },
-    {
-      "kind": "method",
-      "name": "toMap",
-      "file": "packages/flutter_p2p_connection/lib/src/models/p2p_connection_models.dart",
-      "line": 42,
-      "parent": "HotspotHostState",
-      "signature": "  Map<String, dynamic> toMap() {"
-    },
-    {
-      "kind": "method",
-      "name": "toString",
-      "file": "packages/flutter_p2p_connection/lib/src/models/p2p_connection_models.dart",
-      "line": 53,
-      "parent": "HotspotHostState",
-      "signature": "  String toString() {"
-    },
-    {
-      "kind": "operator",
-      "name": "operator ==",
-      "file": "packages/flutter_p2p_connection/lib/src/models/p2p_connection_models.dart",
-      "line": 58,
-      "parent": "HotspotHostState",
-      "signature": "  bool operator ==(Object other) {"
-    },
-    {
-      "kind": "getter",
-      "name": "hashCode",
-      "file": "packages/flutter_p2p_connection/lib/src/models/p2p_connection_models.dart",
-      "line": 69,
-      "parent": "HotspotHostState",
-      "signature": "  int get hashCode =>"
-    },
-    {
-      "kind": "class",
-      "name": "P2pTransportClient",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/client/transport_client.dart",
-      "line": 20,
-      "signature": "class P2pTransportClient with FileRequestServerMixin {"
-    },
-    {
-      "kind": "field",
-      "name": "hostIp",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/client/transport_client.dart",
-      "line": 22,
-      "parent": "P2pTransportClient",
-      "signature": "  final String hostIp;"
-    },
-    {
-      "kind": "field",
-      "name": "defaultPort",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/client/transport_client.dart",
-      "line": 25,
-      "parent": "P2pTransportClient",
-      "signature": "  final int defaultPort;"
-    },
-    {
-      "kind": "field",
-      "name": "defaultFilePort",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/client/transport_client.dart",
-      "line": 28,
-      "parent": "P2pTransportClient",
-      "signature": "  final int defaultFilePort;"
-    },
-    {
-      "kind": "field",
-      "name": "username",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/client/transport_client.dart",
-      "line": 31,
-      "parent": "P2pTransportClient",
-      "signature": "  final String username;"
-    },
-    {
-      "kind": "field",
-      "name": "clientId",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/client/transport_client.dart",
-      "line": 34,
-      "parent": "P2pTransportClient",
-      "signature": "  final String clientId = const Uuid().v4();"
-    },
-    {
-      "kind": "field",
-      "name": "_socket",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/client/transport_client.dart",
-      "line": 36,
-      "parent": "P2pTransportClient",
-      "signature": "  WebSocket? _socket;"
-    },
-    {
-      "kind": "field",
-      "name": "_isConnected",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/client/transport_client.dart",
-      "line": 37,
-      "parent": "P2pTransportClient",
-      "signature": "  bool _isConnected = false;"
-    },
-    {
-      "kind": "field",
-      "name": "_isConnecting",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/client/transport_client.dart",
-      "line": 38,
-      "parent": "P2pTransportClient",
-      "signature": "  bool _isConnecting = false;"
-    },
-    {
-      "kind": "field",
-      "name": "_socketSubscription",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/client/transport_client.dart",
-      "line": 39,
-      "parent": "P2pTransportClient",
-      "signature": "  StreamSubscription? _socketSubscription;"
-    },
-    {
-      "kind": "field",
-      "name": "_clientList",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/client/transport_client.dart",
-      "line": 40,
-      "parent": "P2pTransportClient",
-      "signature": "  List<P2pClientInfo> _clientList = [];"
-    },
-    {
-      "kind": "field",
-      "name": "_fileServer",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/client/transport_client.dart",
-      "line": 41,
-      "parent": "P2pTransportClient",
-      "signature": "  HttpServer? _fileServer;"
-    },
-    {
-      "kind": "field",
-      "name": "_fileServerPortInUse",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/client/transport_client.dart",
-      "line": 42,
-      "parent": "P2pTransportClient",
-      "signature": "  int? _fileServerPortInUse;"
-    },
-    {
-      "kind": "field",
-      "name": "_hostedFiles",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/client/transport_client.dart",
-      "line": 43,
-      "parent": "P2pTransportClient",
-      "signature": "  final Map<String, HostedFileInfo> _hostedFiles = {};"
-    },
-    {
-      "kind": "field",
-      "name": "_receivableFiles",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/client/transport_client.dart",
-      "line": 44,
-      "parent": "P2pTransportClient",
-      "signature": "  final Map<String, ReceivableFileInfo> _receivableFiles = {};"
-    },
-    {
-      "kind": "field",
-      "name": "_receivedTextController",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/client/transport_client.dart",
-      "line": 45,
-      "parent": "P2pTransportClient",
-      "signature": "  final StreamController<String> _receivedTextController ="
-    },
-    {
-      "kind": "field",
-      "name": "_logPrefix",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/client/transport_client.dart",
-      "line": 48,
-      "parent": "P2pTransportClient",
-      "signature": "  static const String _logPrefix = \"P2P Transport Client\";"
-    },
-    {
-      "kind": "field",
-      "name": "_connectionRetryAttempts",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/client/transport_client.dart",
-      "line": 51,
-      "parent": "P2pTransportClient",
-      "signature": "  int _connectionRetryAttempts = 0;"
-    },
-    {
-      "kind": "field",
-      "name": "_maxConnectionRetries",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/client/transport_client.dart",
-      "line": 52,
-      "parent": "P2pTransportClient",
-      "signature": "  static const int _maxConnectionRetries = 3;"
-    },
-    {
-      "kind": "field",
-      "name": "_isManuallyDisconnecting",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/client/transport_client.dart",
-      "line": 53,
-      "parent": "P2pTransportClient",
-      "signature": "  bool _isManuallyDisconnecting = false;"
-    },
-    {
-      "kind": "getter",
-      "name": "hostedFiles",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/client/transport_client.dart",
-      "line": 56,
-      "parent": "P2pTransportClient",
-      "signature": "  Map<String, HostedFileInfo> get hostedFiles => _hostedFiles;"
-    },
-    {
-      "kind": "getter",
-      "name": "transportUsername",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/client/transport_client.dart",
-      "line": 58,
-      "parent": "P2pTransportClient",
-      "signature": "  String get transportUsername => username;"
-    },
-    {
-      "kind": "getter",
-      "name": "isConnected",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/client/transport_client.dart",
-      "line": 61,
-      "parent": "P2pTransportClient",
-      "signature": "  bool get isConnected => _isConnected && _socket?.readyState == WebSocket.open;"
-    },
-    {
-      "kind": "getter",
-      "name": "clientList",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/client/transport_client.dart",
-      "line": 64,
-      "parent": "P2pTransportClient",
-      "signature": "  List<P2pClientInfo> get clientList => _clientList;"
-    },
-    {
-      "kind": "getter",
-      "name": "fileServerPort",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/client/transport_client.dart",
-      "line": 67,
-      "parent": "P2pTransportClient",
-      "signature": "  int? get fileServerPort => _fileServerPortInUse;"
-    },
-    {
-      "kind": "getter",
-      "name": "hostedFileInfos",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/client/transport_client.dart",
-      "line": 70,
-      "parent": "P2pTransportClient",
-      "signature": "  List<HostedFileInfo> get hostedFileInfos => _hostedFiles.values.toList();"
-    },
-    {
-      "kind": "getter",
-      "name": "receivableFileInfos",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/client/transport_client.dart",
-      "line": 73,
-      "parent": "P2pTransportClient",
-      "signature": "  List<ReceivableFileInfo> get receivableFileInfos =>"
-    },
-    {
-      "kind": "mixin",
-      "name": "FileRequestServerMixin",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/common/file_request_server_mixin.dart",
-      "line": 8,
-      "signature": "mixin FileRequestServerMixin {"
-    },
-    {
-      "kind": "getter",
-      "name": "hostedFiles",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/common/file_request_server_mixin.dart",
-      "line": 10,
-      "parent": "FileRequestServerMixin",
-      "signature": "  Map<String, HostedFileInfo> get hostedFiles;"
-    },
-    {
-      "kind": "getter",
-      "name": "transportUsername",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/common/file_request_server_mixin.dart",
-      "line": 13,
-      "parent": "FileRequestServerMixin",
-      "signature": "  String get transportUsername; // For logging prefix"
-    },
-    {
-      "kind": "field",
-      "name": "_logPrefixBase",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/common/file_request_server_mixin.dart",
-      "line": 14,
-      "parent": "FileRequestServerMixin",
-      "signature": "  static const String _logPrefixBase = \"P2P FileServer\";"
-    },
-    {
-      "kind": "method",
-      "name": "handleFileRequest",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/common/file_request_server_mixin.dart",
-      "line": 20,
-      "parent": "FileRequestServerMixin",
-      "signature": "  Future<void> handleFileRequest(HttpRequest request) async {"
-    },
-    {
-      "kind": "class",
-      "name": "P2pClientInfo",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/common/transport_data_models.dart",
-      "line": 9,
-      "signature": "class P2pClientInfo {"
-    },
-    {
-      "kind": "field",
-      "name": "id",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/common/transport_data_models.dart",
-      "line": 11,
-      "parent": "P2pClientInfo",
-      "signature": "  final String id;"
-    },
-    {
-      "kind": "field",
-      "name": "username",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/common/transport_data_models.dart",
-      "line": 14,
-      "parent": "P2pClientInfo",
-      "signature": "  final String username;"
-    },
-    {
-      "kind": "field",
-      "name": "isHost",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/common/transport_data_models.dart",
-      "line": 17,
-      "parent": "P2pClientInfo",
-      "signature": "  final bool isHost;"
-    },
-    {
-      "kind": "method",
-      "name": "toJson",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/common/transport_data_models.dart",
-      "line": 33,
-      "parent": "P2pClientInfo",
-      "signature": "  Map<String, dynamic> toJson() => {"
-    },
-    {
-      "kind": "method",
-      "name": "toString",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/common/transport_data_models.dart",
-      "line": 40,
-      "parent": "P2pClientInfo",
-      "signature": "  String toString() =>"
-    },
-    {
-      "kind": "enum",
-      "name": "P2pMessageType",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/common/transport_enums.dart",
-      "line": 2,
-      "signature": "enum P2pMessageType {"
-    },
-    {
-      "kind": "enum",
-      "name": "ReceivableFileState",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/common/transport_enums.dart",
-      "line": 17,
-      "signature": "enum ReceivableFileState {"
-    },
-    {
-      "kind": "class",
-      "name": "HostedFileInfo",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/common/transport_file_models.dart",
-      "line": 5,
-      "signature": "class HostedFileInfo {"
-    },
-    {
-      "kind": "field",
-      "name": "info",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/common/transport_file_models.dart",
-      "line": 7,
-      "parent": "HostedFileInfo",
-      "signature": "  final P2pFileInfo info;"
-    },
-    {
-      "kind": "field",
-      "name": "localPath",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/common/transport_file_models.dart",
-      "line": 10,
-      "parent": "HostedFileInfo",
-      "signature": "  final String localPath;"
-    },
-    {
-      "kind": "field",
-      "name": "_state",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/common/transport_file_models.dart",
-      "line": 12,
-      "parent": "HostedFileInfo",
-      "signature": "  ReceivableFileState _state = ReceivableFileState.idle;"
-    },
-    {
-      "kind": "field",
-      "name": "_downloadProgressBytes",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/common/transport_file_models.dart",
-      "line": 14,
-      "parent": "HostedFileInfo",
-      "signature": "  final Map<String, int> _downloadProgressBytes;"
-    },
-    {
-      "kind": "getter",
-      "name": "state",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/common/transport_file_models.dart",
-      "line": 17,
-      "parent": "HostedFileInfo",
-      "signature": "  ReceivableFileState get state => _state;"
-    },
-    {
-      "kind": "getter",
-      "name": "receiverIds",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/common/transport_file_models.dart",
-      "line": 20,
-      "parent": "HostedFileInfo",
-      "signature": "  List<String> get receiverIds => _downloadProgressBytes.keys.toList();"
-    },
-    {
-      "kind": "method",
-      "name": "getProgressPercent",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/common/transport_file_models.dart",
-      "line": 36,
-      "parent": "HostedFileInfo",
-      "signature": "  double getProgressPercent(String receiverId) {"
-    },
-    {
-      "kind": "class",
-      "name": "ReceivableFileInfo",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/common/transport_file_models.dart",
-      "line": 59,
-      "signature": "class ReceivableFileInfo {"
-    },
-    {
-      "kind": "field",
-      "name": "info",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/common/transport_file_models.dart",
-      "line": 61,
-      "parent": "ReceivableFileInfo",
-      "signature": "  final P2pFileInfo info;"
-    },
-    {
-      "kind": "field",
-      "name": "state",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/common/transport_file_models.dart",
-      "line": 64,
-      "parent": "ReceivableFileInfo",
-      "signature": "  ReceivableFileState state;"
-    },
-    {
-      "kind": "field",
-      "name": "downloadProgressPercent",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/common/transport_file_models.dart",
-      "line": 67,
-      "parent": "ReceivableFileInfo",
-      "signature": "  double downloadProgressPercent;"
-    },
-    {
-      "kind": "field",
-      "name": "savePath",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/common/transport_file_models.dart",
-      "line": 70,
-      "parent": "ReceivableFileInfo",
-      "signature": "  String? savePath;"
-    },
-    {
-      "kind": "class",
-      "name": "FileDownloadProgressUpdate",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/common/transport_file_models.dart",
-      "line": 82,
-      "signature": "class FileDownloadProgressUpdate {"
-    },
-    {
-      "kind": "field",
-      "name": "fileId",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/common/transport_file_models.dart",
-      "line": 84,
-      "parent": "FileDownloadProgressUpdate",
-      "signature": "  final String fileId;"
-    },
-    {
-      "kind": "field",
-      "name": "progressPercent",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/common/transport_file_models.dart",
-      "line": 87,
-      "parent": "FileDownloadProgressUpdate",
-      "signature": "  final double progressPercent;"
-    },
-    {
-      "kind": "field",
-      "name": "bytesDownloaded",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/common/transport_file_models.dart",
-      "line": 90,
-      "parent": "FileDownloadProgressUpdate",
-      "signature": "  final int bytesDownloaded;"
-    },
-    {
-      "kind": "field",
-      "name": "totalSize",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/common/transport_file_models.dart",
-      "line": 93,
-      "parent": "FileDownloadProgressUpdate",
-      "signature": "  final int totalSize;"
-    },
-    {
-      "kind": "field",
-      "name": "savePath",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/common/transport_file_models.dart",
-      "line": 96,
-      "parent": "FileDownloadProgressUpdate",
-      "signature": "  final String savePath;"
-    },
-    {
-      "kind": "method",
-      "name": "toString",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/common/transport_file_models.dart",
-      "line": 108,
-      "parent": "FileDownloadProgressUpdate",
-      "signature": "  String toString() =>"
-    },
-    {
-      "kind": "class",
-      "name": "P2pTransportHost",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/host/transport_host.dart",
-      "line": 20,
-      "signature": "class P2pTransportHost with FileRequestServerMixin {"
-    },
-    {
-      "kind": "field",
-      "name": "defaultPort",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/host/transport_host.dart",
-      "line": 22,
-      "parent": "P2pTransportHost",
-      "signature": "  final int defaultPort;"
-    },
-    {
-      "kind": "field",
-      "name": "username",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/host/transport_host.dart",
-      "line": 25,
-      "parent": "P2pTransportHost",
-      "signature": "  final String username;"
-    },
-    {
-      "kind": "field",
-      "name": "hostId",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/host/transport_host.dart",
-      "line": 28,
-      "parent": "P2pTransportHost",
-      "signature": "  final String hostId = const Uuid().v4();"
-    },
-    {
-      "kind": "field",
-      "name": "_server",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/host/transport_host.dart",
-      "line": 29,
-      "parent": "P2pTransportHost",
-      "signature": "  HttpServer? _server;"
-    },
-    {
-      "kind": "field",
-      "name": "_portInUse",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/host/transport_host.dart",
-      "line": 30,
-      "parent": "P2pTransportHost",
-      "signature": "  int? _portInUse;"
-    },
-    {
-      "kind": "field",
-      "name": "_hostedFiles",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/host/transport_host.dart",
-      "line": 32,
-      "parent": "P2pTransportHost",
-      "signature": "  final Map<String, HostedFileInfo> _hostedFiles = {};"
-    },
-    {
-      "kind": "field",
-      "name": "_receivableFiles",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/host/transport_host.dart",
-      "line": 33,
-      "parent": "P2pTransportHost",
-      "signature": "  final Map<String, ReceivableFileInfo> _receivableFiles = {};"
-    },
-    {
-      "kind": "field",
-      "name": "_receivedTextController",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/host/transport_host.dart",
-      "line": 34,
-      "parent": "P2pTransportHost",
-      "signature": "  final StreamController<String> _receivedTextController ="
-    },
-    {
-      "kind": "field",
-      "name": "_logPrefix",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/host/transport_host.dart",
-      "line": 37,
-      "parent": "P2pTransportHost",
-      "signature": "  static const String _logPrefix = \"P2P Transport Host\";"
-    },
-    {
-      "kind": "getter",
-      "name": "hostedFiles",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/host/transport_host.dart",
-      "line": 40,
-      "parent": "P2pTransportHost",
-      "signature": "  Map<String, HostedFileInfo> get hostedFiles => _hostedFiles;"
-    },
-    {
-      "kind": "getter",
-      "name": "transportUsername",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/host/transport_host.dart",
-      "line": 42,
-      "parent": "P2pTransportHost",
-      "signature": "  String get transportUsername => username;"
-    },
-    {
-      "kind": "getter",
-      "name": "receivedTextStream",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/host/transport_host.dart",
-      "line": 45,
-      "parent": "P2pTransportHost",
-      "signature": "  Stream<String> get receivedTextStream => _receivedTextController.stream;"
-    },
-    {
-      "kind": "getter",
-      "name": "portInUse",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/host/transport_host.dart",
-      "line": 48,
-      "parent": "P2pTransportHost",
-      "signature": "  int? get portInUse => _portInUse;"
-    },
-    {
-      "kind": "getter",
-      "name": "clientList",
-      "file": "packages/flutter_p2p_connection/lib/src/transport/host/transport_host.dart",
-      "line": 51,
-      "parent": "P2pTransportHost",
-      "signature": "  List<P2pClientInfo> get clientList =>"
     },
     {
       "kind": "function",
@@ -7558,17 +6351,24 @@
       "signature": "double _doubleOf(Object? raw, double fallback) =>"
     },
     {
+      "kind": "function",
+      "name": "_boolOf",
+      "file": "packages/shared_models/lib/src/mosque_config.dart",
+      "line": 15,
+      "signature": "bool _boolOf(Object? raw, bool fallback) => raw is bool ? raw : fallback;"
+    },
+    {
       "kind": "class",
       "name": "IqamahDuration",
       "file": "packages/shared_models/lib/src/mosque_config.dart",
-      "line": 12,
+      "line": 17,
       "signature": "class IqamahDuration {"
     },
     {
       "kind": "field",
       "name": "fajr",
       "file": "packages/shared_models/lib/src/mosque_config.dart",
-      "line": 13,
+      "line": 18,
       "parent": "IqamahDuration",
       "signature": "  final int fajr;"
     },
@@ -7576,7 +6376,7 @@
       "kind": "field",
       "name": "dhuhr",
       "file": "packages/shared_models/lib/src/mosque_config.dart",
-      "line": 14,
+      "line": 19,
       "parent": "IqamahDuration",
       "signature": "  final int dhuhr;"
     },
@@ -7584,7 +6384,7 @@
       "kind": "field",
       "name": "asr",
       "file": "packages/shared_models/lib/src/mosque_config.dart",
-      "line": 15,
+      "line": 20,
       "parent": "IqamahDuration",
       "signature": "  final int asr;"
     },
@@ -7592,7 +6392,7 @@
       "kind": "field",
       "name": "maghrib",
       "file": "packages/shared_models/lib/src/mosque_config.dart",
-      "line": 16,
+      "line": 21,
       "parent": "IqamahDuration",
       "signature": "  final int maghrib;"
     },
@@ -7600,7 +6400,7 @@
       "kind": "field",
       "name": "isha",
       "file": "packages/shared_models/lib/src/mosque_config.dart",
-      "line": 17,
+      "line": 22,
       "parent": "IqamahDuration",
       "signature": "  final int isha;"
     },
@@ -7608,7 +6408,7 @@
       "kind": "method",
       "name": "toMap",
       "file": "packages/shared_models/lib/src/mosque_config.dart",
-      "line": 27,
+      "line": 32,
       "parent": "IqamahDuration",
       "signature": "  Map<String, dynamic> toMap() => {"
     },
@@ -7616,7 +6416,7 @@
       "kind": "operator",
       "name": "operator ==",
       "file": "packages/shared_models/lib/src/mosque_config.dart",
-      "line": 46,
+      "line": 51,
       "parent": "IqamahDuration",
       "signature": "  bool operator ==(Object other) =>"
     },
@@ -7624,7 +6424,7 @@
       "kind": "getter",
       "name": "hashCode",
       "file": "packages/shared_models/lib/src/mosque_config.dart",
-      "line": 56,
+      "line": 61,
       "parent": "IqamahDuration",
       "signature": "  int get hashCode => Object.hash(fajr, dhuhr, asr, maghrib, isha);"
     },
@@ -7632,7 +6432,7 @@
       "kind": "method",
       "name": "toString",
       "file": "packages/shared_models/lib/src/mosque_config.dart",
-      "line": 59,
+      "line": 64,
       "parent": "IqamahDuration",
       "signature": "  String toString() =>"
     },
@@ -7640,14 +6440,14 @@
       "kind": "class",
       "name": "MosqueConfig",
       "file": "packages/shared_models/lib/src/mosque_config.dart",
-      "line": 71,
+      "line": 76,
       "signature": "class MosqueConfig {"
     },
     {
       "kind": "field",
       "name": "name",
       "file": "packages/shared_models/lib/src/mosque_config.dart",
-      "line": 72,
+      "line": 77,
       "parent": "MosqueConfig",
       "signature": "  final String name;"
     },
@@ -7655,7 +6455,7 @@
       "kind": "field",
       "name": "address",
       "file": "packages/shared_models/lib/src/mosque_config.dart",
-      "line": 73,
+      "line": 78,
       "parent": "MosqueConfig",
       "signature": "  final String address;"
     },
@@ -7663,7 +6463,7 @@
       "kind": "field",
       "name": "latitude",
       "file": "packages/shared_models/lib/src/mosque_config.dart",
-      "line": 74,
+      "line": 79,
       "parent": "MosqueConfig",
       "signature": "  final double latitude;"
     },
@@ -7671,7 +6471,7 @@
       "kind": "field",
       "name": "longitude",
       "file": "packages/shared_models/lib/src/mosque_config.dart",
-      "line": 75,
+      "line": 80,
       "parent": "MosqueConfig",
       "signature": "  final double longitude;"
     },
@@ -7679,7 +6479,7 @@
       "kind": "field",
       "name": "utcOffsetHours",
       "file": "packages/shared_models/lib/src/mosque_config.dart",
-      "line": 76,
+      "line": 81,
       "parent": "MosqueConfig",
       "signature": "  final int utcOffsetHours;"
     },
@@ -7687,7 +6487,7 @@
       "kind": "field",
       "name": "iqamahDuration",
       "file": "packages/shared_models/lib/src/mosque_config.dart",
-      "line": 77,
+      "line": 82,
       "parent": "MosqueConfig",
       "signature": "  final IqamahDuration iqamahDuration;"
     },
@@ -7695,7 +6495,7 @@
       "kind": "field",
       "name": "prayerOffsets",
       "file": "packages/shared_models/lib/src/mosque_config.dart",
-      "line": 78,
+      "line": 83,
       "parent": "MosqueConfig",
       "signature": "  final Map<PrayerType, int> prayerOffsets;"
     },
@@ -7703,7 +6503,7 @@
       "kind": "field",
       "name": "preAdhanMinutes",
       "file": "packages/shared_models/lib/src/mosque_config.dart",
-      "line": 81,
+      "line": 86,
       "parent": "MosqueConfig",
       "signature": "  final int preAdhanMinutes;"
     },
@@ -7711,7 +6511,7 @@
       "kind": "field",
       "name": "adhanMinutes",
       "file": "packages/shared_models/lib/src/mosque_config.dart",
-      "line": 84,
+      "line": 89,
       "parent": "MosqueConfig",
       "signature": "  final int adhanMinutes;"
     },
@@ -7719,7 +6519,7 @@
       "kind": "field",
       "name": "preIqomahMinutes",
       "file": "packages/shared_models/lib/src/mosque_config.dart",
-      "line": 87,
+      "line": 92,
       "parent": "MosqueConfig",
       "signature": "  final int preIqomahMinutes;"
     },
@@ -7727,7 +6527,7 @@
       "kind": "field",
       "name": "shalatMinutes",
       "file": "packages/shared_models/lib/src/mosque_config.dart",
-      "line": 90,
+      "line": 95,
       "parent": "MosqueConfig",
       "signature": "  final int shalatMinutes;"
     },
@@ -7735,7 +6535,7 @@
       "kind": "field",
       "name": "khutbahMinutes",
       "file": "packages/shared_models/lib/src/mosque_config.dart",
-      "line": 93,
+      "line": 98,
       "parent": "MosqueConfig",
       "signature": "  final int khutbahMinutes;"
     },
@@ -7743,7 +6543,7 @@
       "kind": "field",
       "name": "fridayKhatib",
       "file": "packages/shared_models/lib/src/mosque_config.dart",
-      "line": 96,
+      "line": 101,
       "parent": "MosqueConfig",
       "signature": "  final String fridayKhatib;"
     },
@@ -7751,15 +6551,31 @@
       "kind": "field",
       "name": "fridayMuadzin",
       "file": "packages/shared_models/lib/src/mosque_config.dart",
-      "line": 99,
+      "line": 104,
       "parent": "MosqueConfig",
       "signature": "  final String fridayMuadzin;"
+    },
+    {
+      "kind": "field",
+      "name": "showKas",
+      "file": "packages/shared_models/lib/src/mosque_config.dart",
+      "line": 110,
+      "parent": "MosqueConfig",
+      "signature": "  final bool showKas;"
+    },
+    {
+      "kind": "field",
+      "name": "hasFridayPrayer",
+      "file": "packages/shared_models/lib/src/mosque_config.dart",
+      "line": 117,
+      "parent": "MosqueConfig",
+      "signature": "  final bool hasFridayPrayer;"
     },
     {
       "kind": "method",
       "name": "offsetFor",
       "file": "packages/shared_models/lib/src/mosque_config.dart",
-      "line": 137,
+      "line": 159,
       "parent": "MosqueConfig",
       "signature": "  int offsetFor(PrayerType type) => prayerOffsets[type] ?? 0;"
     },
@@ -7767,7 +6583,7 @@
       "kind": "method",
       "name": "toMap",
       "file": "packages/shared_models/lib/src/mosque_config.dart",
-      "line": 139,
+      "line": 161,
       "parent": "MosqueConfig",
       "signature": "  Map<String, dynamic> toMap() => {"
     },
@@ -7775,7 +6591,7 @@
       "kind": "method",
       "name": "toJson",
       "file": "packages/shared_models/lib/src/mosque_config.dart",
-      "line": 209,
+      "line": 237,
       "parent": "MosqueConfig",
       "signature": "  String toJson() => json.encode(toMap());"
     },
@@ -7783,7 +6599,7 @@
       "kind": "method",
       "name": "_mapsEqual",
       "file": "packages/shared_models/lib/src/mosque_config.dart",
-      "line": 251,
+      "line": 283,
       "parent": "MosqueConfig",
       "signature": "  static bool _mapsEqual(Map<PrayerType, int> a, Map<PrayerType, int> b) {"
     },
@@ -7791,7 +6607,7 @@
       "kind": "operator",
       "name": "operator ==",
       "file": "packages/shared_models/lib/src/mosque_config.dart",
-      "line": 261,
+      "line": 293,
       "parent": "MosqueConfig",
       "signature": "  bool operator ==(Object other) =>"
     },
@@ -7799,7 +6615,7 @@
       "kind": "getter",
       "name": "hashCode",
       "file": "packages/shared_models/lib/src/mosque_config.dart",
-      "line": 280,
+      "line": 314,
       "parent": "MosqueConfig",
       "signature": "  int get hashCode => Object.hash("
     },
@@ -7807,7 +6623,7 @@
       "kind": "method",
       "name": "toString",
       "file": "packages/shared_models/lib/src/mosque_config.dart",
-      "line": 298,
+      "line": 334,
       "parent": "MosqueConfig",
       "signature": "  String toString() =>"
     },
@@ -7997,24 +6813,103 @@
       "signature": "  String toString() =>"
     },
     {
+      "kind": "class",
+      "name": "SpecialImage",
+      "file": "packages/shared_models/lib/src/special_image.dart",
+      "line": 12,
+      "signature": "class SpecialImage {"
+    },
+    {
+      "kind": "field",
+      "name": "id",
+      "file": "packages/shared_models/lib/src/special_image.dart",
+      "line": 13,
+      "parent": "SpecialImage",
+      "signature": "  final String id;"
+    },
+    {
+      "kind": "field",
+      "name": "caption",
+      "file": "packages/shared_models/lib/src/special_image.dart",
+      "line": 16,
+      "parent": "SpecialImage",
+      "signature": "  final String caption;"
+    },
+    {
+      "kind": "field",
+      "name": "base64Image",
+      "file": "packages/shared_models/lib/src/special_image.dart",
+      "line": 19,
+      "parent": "SpecialImage",
+      "signature": "  final String base64Image;"
+    },
+    {
+      "kind": "field",
+      "name": "isActive",
+      "file": "packages/shared_models/lib/src/special_image.dart",
+      "line": 21,
+      "parent": "SpecialImage",
+      "signature": "  final bool isActive;"
+    },
+    {
+      "kind": "method",
+      "name": "toMap",
+      "file": "packages/shared_models/lib/src/special_image.dart",
+      "line": 30,
+      "parent": "SpecialImage",
+      "signature": "  Map<String, dynamic> toMap() => {"
+    },
+    {
+      "kind": "method",
+      "name": "toJson",
+      "file": "packages/shared_models/lib/src/special_image.dart",
+      "line": 54,
+      "parent": "SpecialImage",
+      "signature": "  String toJson() => json.encode(toMap());"
+    },
+    {
+      "kind": "operator",
+      "name": "operator ==",
+      "file": "packages/shared_models/lib/src/special_image.dart",
+      "line": 74,
+      "parent": "SpecialImage",
+      "signature": "  bool operator ==(Object other) =>"
+    },
+    {
+      "kind": "getter",
+      "name": "hashCode",
+      "file": "packages/shared_models/lib/src/special_image.dart",
+      "line": 83,
+      "parent": "SpecialImage",
+      "signature": "  int get hashCode => Object.hash(id, caption, base64Image, isActive);"
+    },
+    {
+      "kind": "method",
+      "name": "toString",
+      "file": "packages/shared_models/lib/src/special_image.dart",
+      "line": 86,
+      "parent": "SpecialImage",
+      "signature": "  String toString() => 'SpecialImage(id: $id, caption: $caption, '"
+    },
+    {
       "kind": "function",
       "name": "_stringKeyed",
       "file": "packages/shared_models/lib/src/state_snapshot.dart",
-      "line": 10,
+      "line": 11,
       "signature": "Map<String, dynamic> _stringKeyed(Map raw) => {"
     },
     {
       "kind": "class",
       "name": "StateSnapshot",
       "file": "packages/shared_models/lib/src/state_snapshot.dart",
-      "line": 41,
+      "line": 43,
       "signature": "class StateSnapshot {"
     },
     {
       "kind": "field",
       "name": "config",
       "file": "packages/shared_models/lib/src/state_snapshot.dart",
-      "line": 42,
+      "line": 44,
       "parent": "StateSnapshot",
       "signature": "  final MosqueConfig config;"
     },
@@ -8022,7 +6917,7 @@
       "kind": "field",
       "name": "runningTexts",
       "file": "packages/shared_models/lib/src/state_snapshot.dart",
-      "line": 43,
+      "line": 45,
       "parent": "StateSnapshot",
       "signature": "  final List<RunningTextMessage> runningTexts;"
     },
@@ -8030,7 +6925,7 @@
       "kind": "field",
       "name": "banners",
       "file": "packages/shared_models/lib/src/state_snapshot.dart",
-      "line": 44,
+      "line": 46,
       "parent": "StateSnapshot",
       "signature": "  final List<MediaBanner> banners;"
     },
@@ -8038,15 +6933,23 @@
       "kind": "field",
       "name": "kasTransactions",
       "file": "packages/shared_models/lib/src/state_snapshot.dart",
-      "line": 45,
+      "line": 47,
       "parent": "StateSnapshot",
       "signature": "  final List<KasTransaction> kasTransactions;"
     },
     {
       "kind": "field",
+      "name": "sideImages",
+      "file": "packages/shared_models/lib/src/state_snapshot.dart",
+      "line": 50,
+      "parent": "StateSnapshot",
+      "signature": "  final List<SpecialImage> sideImages;"
+    },
+    {
+      "kind": "field",
       "name": "hasData",
       "file": "packages/shared_models/lib/src/state_snapshot.dart",
-      "line": 46,
+      "line": 51,
       "parent": "StateSnapshot",
       "signature": "  final bool hasData;"
     },
@@ -8054,7 +6957,7 @@
       "kind": "method",
       "name": "toMap",
       "file": "packages/shared_models/lib/src/state_snapshot.dart",
-      "line": 56,
+      "line": 62,
       "parent": "StateSnapshot",
       "signature": "  Map<String, dynamic> toMap() => {"
     },
@@ -8062,7 +6965,7 @@
       "kind": "operator",
       "name": "operator ==",
       "file": "packages/shared_models/lib/src/state_snapshot.dart",
-      "line": 93,
+      "line": 101,
       "parent": "StateSnapshot",
       "signature": "  bool operator ==(Object other) =>"
     },
@@ -8070,15 +6973,15 @@
       "kind": "method",
       "name": "_listsEqual",
       "file": "packages/shared_models/lib/src/state_snapshot.dart",
-      "line": 100,
+      "line": 109,
       "parent": "StateSnapshot",
-      "signature": "          _listsEqual(other.kasTransactions, kasTransactions);"
+      "signature": "          _listsEqual(other.sideImages, sideImages);"
     },
     {
       "kind": "getter",
       "name": "hashCode",
       "file": "packages/shared_models/lib/src/state_snapshot.dart",
-      "line": 103,
+      "line": 112,
       "parent": "StateSnapshot",
       "signature": "  int get hashCode => Object.hash("
     },
@@ -8086,9 +6989,9 @@
       "kind": "method",
       "name": "toString",
       "file": "packages/shared_models/lib/src/state_snapshot.dart",
-      "line": 112,
+      "line": 122,
       "parent": "StateSnapshot",
-      "signature": "  String toString() =>"
+      "signature": "  String toString() => 'StateSnapshot(hasData: $hasData, config: $config, '"
     },
     {
       "kind": "enum",
@@ -8101,14 +7004,14 @@
       "kind": "class",
       "name": "SyncPacket",
       "file": "packages/shared_models/lib/src/sync_packet.dart",
-      "line": 30,
+      "line": 33,
       "signature": "class SyncPacket {"
     },
     {
       "kind": "field",
       "name": "action",
       "file": "packages/shared_models/lib/src/sync_packet.dart",
-      "line": 31,
+      "line": 34,
       "parent": "SyncPacket",
       "signature": "  final SyncAction action;"
     },
@@ -8116,7 +7019,7 @@
       "kind": "field",
       "name": "payload",
       "file": "packages/shared_models/lib/src/sync_packet.dart",
-      "line": 32,
+      "line": 35,
       "parent": "SyncPacket",
       "signature": "  final Map<String, dynamic> payload;"
     },
@@ -8124,7 +7027,7 @@
       "kind": "method",
       "name": "toMap",
       "file": "packages/shared_models/lib/src/sync_packet.dart",
-      "line": 39,
+      "line": 42,
       "parent": "SyncPacket",
       "signature": "  Map<String, dynamic> toMap() => {"
     },
@@ -8132,7 +7035,7 @@
       "kind": "method",
       "name": "_parsePayload",
       "file": "packages/shared_models/lib/src/sync_packet.dart",
-      "line": 61,
+      "line": 64,
       "parent": "SyncPacket",
       "signature": "  static Map<String, dynamic> _parsePayload(Object? raw) {"
     },
@@ -8140,7 +7043,7 @@
       "kind": "method",
       "name": "toJson",
       "file": "packages/shared_models/lib/src/sync_packet.dart",
-      "line": 72,
+      "line": 75,
       "parent": "SyncPacket",
       "signature": "  String toJson() => json.encode(toMap());"
     },
@@ -8148,7 +7051,7 @@
       "kind": "operator",
       "name": "operator ==",
       "file": "packages/shared_models/lib/src/sync_packet.dart",
-      "line": 78,
+      "line": 81,
       "parent": "SyncPacket",
       "signature": "  bool operator ==(Object other) =>"
     },
@@ -8156,7 +7059,7 @@
       "kind": "method",
       "name": "_mapsEqual",
       "file": "packages/shared_models/lib/src/sync_packet.dart",
-      "line": 82,
+      "line": 85,
       "parent": "SyncPacket",
       "signature": "  static bool _mapsEqual(Map<String, dynamic> a, Map<String, dynamic> b) {"
     },
@@ -8164,7 +7067,7 @@
       "kind": "getter",
       "name": "hashCode",
       "file": "packages/shared_models/lib/src/sync_packet.dart",
-      "line": 91,
+      "line": 94,
       "parent": "SyncPacket",
       "signature": "  int get hashCode => Object.hash(action, Object.hashAll(payload.keys.toList()..sort()));"
     },
@@ -8172,7 +7075,7 @@
       "kind": "method",
       "name": "toString",
       "file": "packages/shared_models/lib/src/sync_packet.dart",
-      "line": 94,
+      "line": 97,
       "parent": "SyncPacket",
       "signature": "  String toString() => 'SyncPacket(action: ${action.name}, payload: $payload)';"
     }

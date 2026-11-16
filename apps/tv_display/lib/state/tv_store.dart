@@ -15,6 +15,7 @@ class TvStore {
   static const String runningTextsKey = 'tv_runningTexts';
   static const String bannersKey = 'tv_banners';
   static const String kasKey = 'tv_kas';
+  static const String sideImagesKey = 'tv_sideImages';
   static const String hasDataKey = 'tv_hasData';
 
   /// Muat data tersimpan. `null` = TV belum pernah diisi.
@@ -37,6 +38,11 @@ class TvStore {
           prefs.getString(kasKey),
           KasTransaction.fromMap,
         ),
+        // Data lama belum punya blok ini -> daftar kosong.
+        sideImages: _decodeList(
+          prefs.getString(sideImagesKey),
+          SpecialImage.fromMap,
+        ),
         hasData: true,
       );
     } catch (_) {
@@ -56,6 +62,9 @@ class TvStore {
 
   Future<void> saveKas(List<KasTransaction> transactions) =>
       _save(kasKey, [for (final t in transactions) t.toMap()]);
+
+  Future<void> saveSideImages(List<SpecialImage> images) =>
+      _save(sideImagesKey, [for (final i in images) i.toMap()]);
 
   Future<void> _save(String key, Object value) async {
     try {

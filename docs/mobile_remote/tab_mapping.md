@@ -1,7 +1,7 @@
 # mobile_remote — Tab & File Mapping
 
 > Bedah lengkap **`apps/mobile_remote/lib/`** — aplikasi kontroler Remote Masjid DKM di HP Android.
-> Navigasi 4 menu bawah (salah satunya **Konten** dengan 3 sub-tab atas) dalam **satu rangkaian 6 halaman yang bisa di-swipe**, mekanisme GPS/geolocator, offset jadwal sholat, indikator "Unsaved Changes", dan tema Material 3 standar.
+> Navigasi 4 menu bawah (salah satunya **Konten** dengan 4 sub-tab atas) dalam **satu rangkaian 6 halaman yang bisa di-swipe**, mekanisme GPS/geolocator, offset jadwal sholat, indikator "Unsaved Changes", dan tema Material 3 standar.
 
 **Navigasi:** [MAP.md](../MAP.md) · [DECISIONS.md](../DECISIONS.md) · [theme_shapes.md](theme_shapes.md) · [tv_display/widget_mapping.md](../tv_display/widget_mapping.md)
 
@@ -11,7 +11,7 @@
 
 ```
 apps/mobile_remote/lib/
-├── main.dart                  # Entry, navigasi 6 halaman swipe (4 menu bawah + 3 sub-tab Konten) + mikro-animasi PlayfulNavIcon, state global, semua handler, koneksi, durasi + aksi cepat shalat, theme M3
+├── main.dart                  # Entry, navigasi 6 halaman swipe (4 menu bawah + 4 sub-tab Konten) + mikro-animasi PlayfulNavIcon, state global, semua handler, koneksi, durasi + aksi cepat shalat, theme M3
 ├── services/
 │   ├── ws_client.dart         # Client WebSocket + helper kirim per tipe data + listen paket masuk
 │   ├── p2p_client_service.dart# Scan & konek WiFi Direct / BLE

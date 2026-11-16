@@ -5,7 +5,9 @@ import 'package:shared_models/shared_models.dart';
 ///
 /// Urutan fase: `normal` -> `preAdhan` -> `adhan` -> `preIqomah` -> `shalat` -> `normal`.
 /// Khusus hari Jumat saat shalat Dzuhur, `adhan` dilanjutkan ke `khutbah`
-/// sebelum `preIqomah` (sesuai alur shalat Jumat di Indonesia).
+/// sebelum `preIqomah` (sesuai alur shalat Jumat di Indonesia) — kecuali bila
+/// `MosqueConfig.hasFridayPrayer` mati (musholla tanpa Jumatan), Dzuhur
+/// diperlakukan seperti hari biasa.
 /// - Auto-start dari `normal` ketika waktu shalat berikutnya <= `preAdhanMinutes`.
 /// - Transisi antar fase otomatis berdasarkan durasi dari `MosqueConfig`.
 /// - Remote dapat melewati fase lewat `skipAdhan()`, `startIqomah()`, `startShalat()`, `finishShalat()`.
@@ -89,11 +91,11 @@ class PrayerStateMachine extends ChangeNotifier {
 
   /// Skip Azan: dari ADHAN.
   /// - Hari biasa: langsung ke PRE_IQOMAH.
-  /// - Hari Jumat (Dzuhur): langsung ke KHUTBAH.
+  /// - Hari Jumat (Dzuhur) & ada Jumatan: langsung ke KHUTBAH.
   void skipAdhan({DateTime? now}) {
     if (_phase == PrayerPhase.adhan) {
       final n = now ?? DateTime.now();
-      if (_isFriday(n) && _prayer == PrayerType.dhuhr) {
+      if (_isFridayPrayerDay(n) && _prayer == PrayerType.dhuhr) {
         _enter(PrayerPhase.khutbah, _prayer, n);
       } else {
         _enter(PrayerPhase.preIqomah, _prayer, n);
@@ -157,8 +159,8 @@ class PrayerStateMachine extends ChangeNotifier {
       case PrayerPhase.preAdhan:
         _enter(PrayerPhase.adhan, _prayer, now);
       case PrayerPhase.adhan:
-        // Hari Jumat (Dzuhur): azan pertama dilanjutkan ke khutbah.
-        if (_isFriday(now) && _prayer == PrayerType.dhuhr) {
+        // Hari Jumat (Dzuhur) & ada Jumatan: azan dilanjutkan ke khutbah.
+        if (_isFridayPrayerDay(now) && _prayer == PrayerType.dhuhr) {
           _enter(PrayerPhase.khutbah, _prayer, now);
         } else {
           _enter(PrayerPhase.preIqomah, _prayer, now);
@@ -174,7 +176,11 @@ class PrayerStateMachine extends ChangeNotifier {
     }
   }
 
-  bool _isFriday(DateTime date) => date.weekday == DateTime.friday;
+  /// Hari Jumat yang benar-benar ada Jumatan-nya: hari Jumat **dan**
+  /// konfigurasi menyelenggarakan shalat Jumat. Musholla dengan
+  /// `hasFridayPrayer = false` tidak pernah masuk fase khutbah.
+  bool _isFridayPrayerDay(DateTime date) =>
+      _config.hasFridayPrayer && date.weekday == DateTime.friday;
 
   void _enter(PrayerPhase phase, PrayerType? prayer, DateTime now) {
     _phase = phase;

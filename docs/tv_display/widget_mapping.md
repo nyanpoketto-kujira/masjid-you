@@ -100,7 +100,7 @@ Stack(fit: expand)
 └── SafeArea > Padding(10) > Column
     ├── HeaderClock
     ├── SizedBox(6)
-    ├── Expanded > Row [ BannerCarousel (flex 3) | KasSummaryCard (flex 2) ]
+    ├── Expanded > Row [ BannerCarousel (flex 3) | SideCardRotator (flex 2) ]
     ├── SizedBox(6)
     ├── PrayerCardsRow
     ├── SizedBox(6)

@@ -308,4 +308,74 @@ void main() {
       expect(machine.phase, PrayerPhase.preIqomah);
     });
   });
+
+  group('PrayerStateMachine — Musholla (hasFridayPrayer = false)', () {
+    const mushollaConfig = MosqueConfig(
+      preAdhanMinutes: 15,
+      adhanMinutes: 2,
+      preIqomahMinutes: 1,
+      shalatMinutes: 10,
+      hasFridayPrayer: false,
+    );
+
+    final friday = DateTime(2026, 8, 14, 12, 0); // Hari Jumat
+
+    test('auto-cycle Dzuhur hari Jumat TANPA khutbah: ADHAN -> PRE_IQOMAH',
+        () {
+      final machine = PrayerStateMachine()..initialize(mushollaConfig);
+
+      machine.tick(
+        friday,
+        _schedule(now: friday, nextPrayer: PrayerType.dhuhr, until: const Duration(minutes: 10)),
+      );
+      expect(machine.phase, PrayerPhase.preAdhan);
+
+      machine.tick(
+        friday.add(const Duration(minutes: 15)),
+        _schedule(now: friday, nextPrayer: PrayerType.dhuhr, until: Duration.zero),
+      );
+      expect(machine.phase, PrayerPhase.adhan);
+
+      // Azan selesai (2 menit): musholla langsung ke jeda ikamah,
+      // BUKAN khutbah seperti masjid dengan Jumatan.
+      machine.tick(
+        friday.add(const Duration(minutes: 17)),
+        _schedule(now: friday, nextPrayer: PrayerType.dhuhr, until: Duration.zero),
+      );
+      expect(machine.phase, PrayerPhase.preIqomah);
+      expect(machine.prayer, PrayerType.dhuhr);
+    });
+
+    test('skipAdhan hari Jumat langsung ke PRE_IQOMAH, bukan KHUTBAH', () {
+      final machine = PrayerStateMachine()..initialize(mushollaConfig);
+
+      machine.tick(
+        friday,
+        _schedule(now: friday, nextPrayer: PrayerType.dhuhr, until: Duration.zero),
+      );
+      expect(machine.phase, PrayerPhase.adhan);
+
+      machine.skipAdhan(now: friday);
+      expect(machine.phase, PrayerPhase.preIqomah);
+    });
+
+    test('updateConfig mematikan Jumatan di tengah jalan: '
+        'azan berikutnya tidak lagi masuk khutbah', () {
+      final machine = PrayerStateMachine()..initialize(config);
+
+      // TV awalnya masjid (Jumatan aktif), lalu Remote mematikan toggle-nya.
+      machine.updateConfig(mushollaConfig, friday);
+      machine.tick(
+        friday,
+        _schedule(now: friday, nextPrayer: PrayerType.dhuhr, until: Duration.zero),
+      );
+      expect(machine.phase, PrayerPhase.adhan);
+
+      machine.tick(
+        friday.add(const Duration(minutes: 2)),
+        _schedule(now: friday, nextPrayer: PrayerType.dhuhr, until: Duration.zero),
+      );
+      expect(machine.phase, PrayerPhase.preIqomah);
+    });
+  });
 }
