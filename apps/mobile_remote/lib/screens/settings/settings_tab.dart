@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_models/shared_models.dart';
+import '../../theme/theme_preferences.dart';
 import '../../widgets/m3_pressable.dart';
 
 class SettingsTab extends StatelessWidget {
@@ -35,6 +36,12 @@ class SettingsTab extends StatelessWidget {
   final VoidRefCallback onExportBackup;
   final VoidRefCallback onImportBackup;
 
+  /// Preferensi tampilan aplikasi (mode tema + sumber warna).
+  final ThemeMode themeMode;
+  final AppColorSource colorSource;
+  final ValueChanged<ThemeMode>? onThemeModeChanged;
+  final ValueChanged<AppColorSource>? onColorSourceChanged;
+
   const SettingsTab({
     super.key,
     required this.config,
@@ -63,6 +70,10 @@ class SettingsTab extends StatelessWidget {
     required this.onShowSimulation,
     required this.onExportBackup,
     required this.onImportBackup,
+    this.themeMode = ThemeMode.system,
+    this.colorSource = AppColorSource.dynamic,
+    this.onThemeModeChanged,
+    this.onColorSourceChanged,
   });
 
   @override
@@ -297,6 +308,75 @@ class SettingsTab extends StatelessWidget {
                 ),
               ),
             ],
+          ),
+          const SizedBox(height: 24),
+          Text(
+            'Tampilan Aplikasi',
+            style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Tema dan warna aplikasi remote di HP ini.',
+            style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Tema',
+            style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 8),
+          SegmentedButton<ThemeMode>(
+            segments: const [
+              ButtonSegment(
+                value: ThemeMode.system,
+                icon: Icon(Icons.brightness_auto),
+                label: Text('Sistem'),
+              ),
+              ButtonSegment(
+                value: ThemeMode.light,
+                icon: Icon(Icons.light_mode),
+                label: Text('Terang'),
+              ),
+              ButtonSegment(
+                value: ThemeMode.dark,
+                icon: Icon(Icons.dark_mode),
+                label: Text('Gelap'),
+              ),
+            ],
+            selected: {themeMode},
+            onSelectionChanged: onThemeModeChanged == null
+                ? null
+                : (selection) => onThemeModeChanged!(selection.first),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Warna',
+            style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 8),
+          SegmentedButton<AppColorSource>(
+            segments: const [
+              ButtonSegment(
+                value: AppColorSource.dynamic,
+                icon: Icon(Icons.wallpaper),
+                label: Text('Ikuti Wallpaper'),
+              ),
+              ButtonSegment(
+                value: AppColorSource.seed,
+                icon: Icon(Icons.mosque),
+                label: Text('Hijau Masjid'),
+              ),
+            ],
+            selected: {colorSource},
+            onSelectionChanged: onColorSourceChanged == null
+                ? null
+                : (selection) => onColorSourceChanged!(selection.first),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Ikuti Wallpaper hanya tersedia di Android 12 ke atas; '
+            'di perangkat lain otomatis memakai Hijau Masjid.',
+            style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
           ),
           const SizedBox(height: 24),
           _buildQuickActionsCard(theme, colorScheme),

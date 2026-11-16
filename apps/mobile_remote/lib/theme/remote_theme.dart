@@ -1,18 +1,56 @@
 import 'package:flutter/material.dart';
 
-ThemeData buildRemoteTheme(Brightness brightness, Color seedColor) {
-  final scheme = ColorScheme.fromSeed(
-    seedColor: seedColor,
+import 'theme_preferences.dart';
+
+/// Seed warna identitas aplikasi ("Hijau Masjid").
+const Color kMasjidSeedColor = Color(0xFF006A60);
+
+/// Skema warna dari seed "Hijau Masjid" untuk [brightness] tertentu.
+ColorScheme masjidSeedScheme(Brightness brightness) {
+  return ColorScheme.fromSeed(
+    seedColor: kMasjidSeedColor,
     brightness: brightness,
   );
+}
 
+/// Memilih skema warna efektif untuk [brightness].
+///
+/// Bila sumber warna [AppColorSource.dynamic] dan perangkat menyediakan
+/// skema dinamis (wallpaper, Android 12+), skema dinamis yang dipakai.
+/// Selain itu selalu jatuh ke seed "Hijau Masjid" (keputusan D1).
+ColorScheme resolveRemoteColorScheme({
+  required Brightness brightness,
+  required AppColorSource source,
+  ColorScheme? dynamicLight,
+  ColorScheme? dynamicDark,
+}) {
+  if (source == AppColorSource.dynamic) {
+    final dynamicScheme =
+        brightness == Brightness.light ? dynamicLight : dynamicDark;
+    if (dynamicScheme != null) {
+      return dynamicScheme;
+    }
+  }
+  return masjidSeedScheme(brightness);
+}
+
+/// Tema Material 3 standar untuk aplikasi remote.
+///
+/// Shape mengikuti ADR-012 (standar, bukan Expressive): kartu r16,
+/// dialog & bottom sheet r28, tombol/chip/indikator navigasi pill.
+ThemeData buildRemoteTheme(ColorScheme scheme) {
   return ThemeData(
     useMaterial3: true,
     colorScheme: scheme,
+    appBarTheme: const AppBarTheme(scrolledUnderElevation: 3),
     cardTheme: CardThemeData(
       elevation: 1,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       clipBehavior: Clip.antiAlias,
+    ),
+    listTileTheme: ListTileThemeData(
+      iconColor: scheme.onSurfaceVariant,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
     ),
     navigationBarTheme: NavigationBarThemeData(
       indicatorShape: const StadiumBorder(),
@@ -51,6 +89,16 @@ ThemeData buildRemoteTheme(Brightness brightness, Color seedColor) {
       style: TextButton.styleFrom(
         shape: const StadiumBorder(),
       ),
+    ),
+    segmentedButtonTheme: const SegmentedButtonThemeData(
+      style: ButtonStyle(shape: WidgetStatePropertyAll(StadiumBorder())),
+    ),
+    floatingActionButtonTheme: FloatingActionButtonThemeData(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+    ),
+    snackBarTheme: SnackBarThemeData(
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
     ),
     dialogTheme: DialogThemeData(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),

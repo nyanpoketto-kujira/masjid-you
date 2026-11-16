@@ -21,7 +21,7 @@ apps/mobile_remote/lib/
     └── bluetooth_client_service_test.dart # Unit test transisi state client BT
 ```
 
-**Tema Material 3 standar** (`MasjidYouRemoteApp._buildTheme`): `cardTheme` = `RoundedRectangleBorder(16)`; `dialogTheme`/`bottomSheetTheme` = `RoundedRectangleBorder(28)`; tombol (`FilledButton`/`OutlinedButton`/`TextButton`), `ChipThemeData.shape`, dan `navigationBarTheme.indicatorShape` = `StadiumBorder()`. `M3Pressable` (kelas lokal di main.dart) memberi feedback spring saat tekan — tetap dipakai, bukan shape. **Riwayat revert dari M3 Expressive (`puffy`/clover) → square:** lihat [theme_shapes.md](theme_shapes.md) & [ADR-012](../DECISIONS.md#adr-012).
+**Tema Material 3 standar** (`lib/theme/remote_theme.dart` → `buildRemoteTheme`): `cardTheme` = `RoundedRectangleBorder(16)`; `dialogTheme`/`bottomSheetTheme` = `RoundedRectangleBorder(28)`; tombol (`FilledButton`/`OutlinedButton`/`TextButton`), `ChipThemeData.shape`, dan `navigationBarTheme.indicatorShape` = `StadiumBorder()`. Skema warna sejak Fase 0 (ADR-022) berasal dari dynamic color wallpaper (Android 12+) atau seed "Hijau Masjid", dipilih `resolveRemoteColorScheme`; preferensi mode/sumber warna di `lib/theme/theme_preferences.dart`. `M3Pressable` memberi feedback spring saat tekan — tetap dipakai, bukan shape (dibuang di fase refaktor berikutnya per keputusan D4). **Riwayat revert dari M3 Expressive (`puffy`/clover) → square:** lihat [theme_shapes.md](theme_shapes.md) & [ADR-012](../DECISIONS.md#adr-012).
 
 ---
 
@@ -130,6 +130,7 @@ Seluruh navigasi adalah **satu rangkaian 6 halaman** yang digerakkan `_mainTabCo
 | Offset | 6 kolom "Subuh … Isya" (suffix `mnt`) | `_prayerOffsetControllers` per `PrayerType` |
 | Durasi Siklus Shalat | 4 kolom `Jelang Azan` (15), `Azan` (2), `Jeda Ikamah` (1), `Shalat` (10) | `_preAdhanController` dkk; angka `digitsOnly`, min 0 |
 | Aksi Cepat | kartu "Aksi Cepat Waktu Shalat": `Skip Azan`, `Skip Ikamah / Mulai Shalat`, `Selesaikan Shalat` + status "Mode TV saat ini" | `_buildQuickActionsCard`, `_sendQuickAction(action)`; tombol aktif hanya saat fase TV sesuai (`_tvPhase`) |
+| Tampilan Aplikasi | `SegmentedButton` Tema (Sistem/Terang/Gelap) + Warna (Ikuti Wallpaper/Hijau Masjid) | preferensi `ThemePreferences` (ADR-022); langsung berlaku & tersimpan di HP, tidak dikirim ke TV |
 | Aksi | "Simpan & Update Ke TV" | `_sendConfigUpdate()` — juga persist durasi ke SharedPreferences |
 | Simulasi | "Simulasi Jadwal" | `_showScheduleSimulation()` |
 
