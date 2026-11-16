@@ -240,20 +240,24 @@ class _HomeTabState extends State<HomeTab> {
                     crossAxisAlignment: CrossAxisAlignment.baseline,
                     textBaseline: TextBaseline.alphabetic,
                     children: [
-                      Text(
-                        next.type.displayNameForDate(
-                          next.time,
-                          hasFridayPrayer: widget.config.hasFridayPrayer,
+                      Flexible(
+                        child: Text(
+                          next.type.displayNameForDate(
+                            next.time,
+                            hasFridayPrayer: widget.config.hasFridayPrayer,
+                          ),
+                          style: theme.textTheme.headlineSmall
+                              ?.copyWith(fontWeight: FontWeight.bold),
                         ),
-                        style: theme.textTheme.headlineSmall
-                            ?.copyWith(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(width: 10),
-                      Text(
-                        'pukul ${next.time.hour.toString().padLeft(2, '0')}:'
-                        '${next.time.minute.toString().padLeft(2, '0')}',
-                        style: theme.textTheme.titleMedium
-                            ?.copyWith(color: colorScheme.onSurfaceVariant),
+                      Flexible(
+                        child: Text(
+                          'pukul ${next.time.hour.toString().padLeft(2, '0')}:'
+                          '${next.time.minute.toString().padLeft(2, '0')}',
+                          style: theme.textTheme.titleMedium
+                              ?.copyWith(color: colorScheme.onSurfaceVariant),
+                        ),
                       ),
                     ],
                   ),

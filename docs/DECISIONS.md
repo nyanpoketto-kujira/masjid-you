@@ -711,3 +711,23 @@ Melanjutkan ADR-024. Kondisi sebelum fase ini: tambah data lewat form inline di 
 - Regresi dikunci 16 test baru (running text/banner/kas/special-images: FAB + dialog, empty state, handle drag + `onReorder`, hapus, sakelar, kata Masuk/Keluar) dan 1 test lama disesuaikan (empty state + drag ganti tombol naik/turun). Total: mobile_remote 74 -> 90.
 
 ---
+
+## ADR-026 — Fase 4 Refaktor UI: Motion & Aksesibilitas
+
+### Konteks
+Melanjutkan ADR-025. Kondisi sebelum fase ini: pergantian gate koneksi -> menu utama terjadi instan tanpa transisi; tidak ada `pageTransitionsTheme` khusus (transisi route memakai default); skala teks besar & target sentuh belum pernah diaudit. Plan §2 prinsip 4 menuntut transisi fade-through antar destinasi dan shared-axis antar sub-tab (<=500ms, hormati `disableAnimations`).
+
+### Keputusan
+1. **Package `animations` (resmi, 2.2.0)** ditambahkan ke `mobile_remote` untuk transisi Material resmi (bukan package Expressive tidak resmi — tetap sesuai batasan ADR-022).
+2. **Transisi gate -> menu utama**: pergantian body di `RemoteHomeScreen` dibungkus `PageTransitionSwitcher` + `FadeThroughTransition` (300ms). Kedua body diberi key berbeda (`ValueKey('gate')`/`ValueKey('main')`) agar switcher mendeteksi pergantian. Bila `MediaQuery.disableAnimations` aktif, pergantian dilakukan tanpa animasi sama sekali.
+3. **`pageTransitionsTheme` di `buildRemoteTheme`**: `SharedAxisPageTransitionsBuilder` (horizontal) untuk platform Android — transisi shared-axis antar halaman sesuai panduan motion M3.
+4. **Target sentuh utama >=48dp**: `filledButtonTheme`/`outlinedButtonTheme` kini `minimumSize: Size(64, 48)`; tombol simpan sticky Pengaturan 56dp; Aksi Cepat Beranda tetap 56dp (Fase 1); `IconButton` stepper sudah 48dp bawaan.
+5. **Perbaikan overflow skala teks 200%**: baris "Sholat Berikutnya" di `HomeTab` (nama sholat + "pukul HH:mm") kini memakai `Flexible` pada kedua teks agar membungkus, bukan overflow, pada layar sempit dengan skala teks besar.
+
+### Konsekuensi
+- Transisi gate -> menu utama kini fade-through halus; route yang di-push di Android memakai shared-axis horizontal.
+- Audit font scale 200% pada viewport HP (360x800) lolos tanpa overflow/exception untuk SettingsTab & HomeTab; target sentuh utama terukur >=48dp.
+- Catatan test: `ListView` membangun anak secara malas — test target sentuh harus menggulung dulu sampai tombol terbangun sebelum `ensureVisible`/pengukuran; drag reorder `ReorderableListView` tetap memakai pola gesture bertahap (lihat ADR-025).
+- Regresi dikunci 3 test baru (`accessibility_phase4_test.dart`: SettingsTab & HomeTab pada textScaler 2.0 tanpa overflow/exception, target sentuh utama >=48dp). Total: mobile_remote 90 -> 93.
+
+---

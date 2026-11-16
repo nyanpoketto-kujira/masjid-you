@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:animations/animations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -1792,6 +1793,7 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
     // yang sama agar context & navigator tidak hancur di tengah transisi.
     final body = !_isConnected
         ? ConnectionGatewayScreen(
+            key: const ValueKey('gate'),
             ipController: _ipController,
             isConnecting: _isConnecting,
             onConnectIp: _connectToTv,
@@ -1803,6 +1805,7 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
             onBtConnect: _connectBt,
           )
         : Column(
+            key: const ValueKey('main'),
             children: [
               if (_showDisconnectedNotice)
                 _buildDisconnectedBanner(theme, colorScheme),
@@ -1941,6 +1944,22 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
             ],
           );
     final connected = _isConnected;
+    // Transisi gate -> menu utama (Fase 4): fade-through resmi dari
+    // package `animations`. Bila `MediaQuery.disableAnimations` aktif
+    // (pengguna mematikan animasi sistem), pergantian tanpa animasi.
+    final animatedBody = MediaQuery.disableAnimationsOf(context)
+        ? body
+        : PageTransitionSwitcher(
+            duration: const Duration(milliseconds: 300),
+            transitionBuilder: (child, animation, secondaryAnimation) {
+              return FadeThroughTransition(
+                animation: animation,
+                secondaryAnimation: secondaryAnimation,
+                child: child,
+              );
+            },
+            child: body,
+          );
     return Scaffold(
       appBar: connected
           ? AppBar(
@@ -1950,7 +1969,7 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
               elevation: 0,
             )
           : null,
-      body: body,
+      body: animatedBody,
       bottomNavigationBar: connected
           ? NavigationBar(
               selectedIndex: _tabIndex,

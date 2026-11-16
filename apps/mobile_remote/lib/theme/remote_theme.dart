@@ -1,3 +1,4 @@
+import 'package:animations/animations.dart';
 import 'package:flutter/material.dart';
 
 import 'theme_preferences.dart';
@@ -78,11 +79,14 @@ ThemeData buildRemoteTheme(ColorScheme scheme) {
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
         shape: const StadiumBorder(),
+        // Target sentuh utama >=48dp (Fase 4, aksesibilitas).
+        minimumSize: const Size(64, 48),
       ),
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
         shape: const StadiumBorder(),
+        minimumSize: const Size(64, 48),
       ),
     ),
     textButtonTheme: TextButtonThemeData(
@@ -105,6 +109,16 @@ ThemeData buildRemoteTheme(ColorScheme scheme) {
     ),
     bottomSheetTheme: BottomSheetThemeData(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+    ),
+    // Transisi antar halaman (Fase 4): shared-axis horizontal di Android,
+    // sesuai panduan motion M3 (fade-through dipakai untuk pergantian
+    // gate -> menu utama di RemoteHomeScreen).
+    pageTransitionsTheme: const PageTransitionsTheme(
+      builders: <TargetPlatform, PageTransitionsBuilder>{
+        TargetPlatform.android: SharedAxisPageTransitionsBuilder(
+          transitionType: SharedAxisTransitionType.horizontal,
+        ),
+      },
     ),
   );
 }

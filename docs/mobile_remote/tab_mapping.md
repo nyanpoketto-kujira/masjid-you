@@ -23,6 +23,8 @@ apps/mobile_remote/lib/
 
 **Tema Material 3 standar** (`lib/theme/remote_theme.dart` → `buildRemoteTheme`): `cardTheme` = `RoundedRectangleBorder(16)`; `dialogTheme`/`bottomSheetTheme` = `RoundedRectangleBorder(28)`; tombol (`FilledButton`/`OutlinedButton`/`TextButton`), `ChipThemeData.shape`, dan `navigationBarTheme.indicatorShape` = `StadiumBorder()`. Skema warna sejak Fase 0 (ADR-022) berasal dari dynamic color wallpaper (Android 12+) atau seed "Hijau Masjid", dipilih `resolveRemoteColorScheme`; preferensi mode/sumber warna di `lib/theme/theme_preferences.dart`. `M3Pressable` memberi feedback spring saat tekan — tetap dipakai, bukan shape (dibuang di fase refaktor berikutnya per keputusan D4). **Riwayat revert dari M3 Expressive (`puffy`/clover) → square:** lihat [theme_shapes.md](theme_shapes.md) & [ADR-012](../DECISIONS.md#adr-012).
 
+**Motion & aksesibilitas (Fase 4, ADR-026):** package resmi `animations` (2.2.0) — pergantian gate koneksi -> menu utama memakai `PageTransitionSwitcher` + `FadeThroughTransition` (300ms, dihormati `MediaQuery.disableAnimations`); `pageTransitionsTheme` = `SharedAxisPageTransitionsBuilder` (horizontal) untuk Android. Tombol utama (`FilledButton`/`OutlinedButton`) `minimumSize` 48dp; Aksi Cepat Beranda & tombol simpan sticky Pengaturan 56dp. Audit skala teks 200% di viewport HP (360x800) tanpa overflow (baris "Sholat Berikutnya" di Beranda memakai `Flexible`).
+
 ---
 
 ## 2. `main.dart` — Pusat UI Remote
