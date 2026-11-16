@@ -24,7 +24,16 @@ void main() {
         longitude: 106.8456,
       );
 
-      final schedule = PrayerSchedule.calculate(config, DateTime(2026, 8, 12, 10, 0));
+      // adhan returns prayer times in the host's local timezone (via toLocal()).
+      // A fixed local DateTime like DateTime(2026,8,12,10,0) would mean a different
+      // clock time on a UTC runner vs a WIB runner. To keep this test deterministic
+      // regardless of the host timezone, derive a probe time from today's dhuhr:
+      // one hour before dhuhr is guaranteed to be "the next prayer is dhuhr".
+      final baseline = PrayerSchedule.calculate(config, DateTime(2026, 8, 12, 12, 0));
+      final dhuhr = baseline.items.firstWhere((i) => i.type == PrayerType.dhuhr).time;
+      final now = dhuhr.subtract(const Duration(hours: 1));
+
+      final schedule = PrayerSchedule.calculate(config, now);
 
       expect(schedule.items.length, equals(6));
       expect(schedule.nextPrayer, equals(PrayerType.dhuhr));
