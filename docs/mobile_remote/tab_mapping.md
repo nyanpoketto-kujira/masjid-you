@@ -144,11 +144,13 @@ Pindah antar sub-tab: **tap Top Tab Bar** atau **swipe** kiri/kanan di dalam Kon
 
 #### 3.2.1 Sub-tab Running Text
 
+Sejak Fase 3 (ADR-025): pola editor seragam — **Extended FAB "Tambah Teks"** membuka form dalam `Dialog.fullscreen` (isi + kategori + tombol Simpan eksplisit, dipakai juga untuk edit via `RunningTextFormDialog` bersama); daftar berupa `ReorderableListView` (handle `drag_handle` + nomor urut); hapus = hilang + SnackBar "Urungkan" 5 detik; daftar kosong = empty state seragam (`EditorEmptyState`).
+
 | Elemen | Fungsi |
 |---|---|
-| TextField "Tambah Teks Berjalan" + tombol `+` | `_addRunningText()` |
+| FAB "Tambah Teks" | dialog full-screen: `TextFormField` isi + dropdown "Kategori" → `_addRunningText()` |
 | Dropdown "Kategori" | `Pengumuman`, `Kajian`, `Kas`, `Himbauan`, `Infaq`, `Umum` (`_runningCategories`) |
-| Daftar kartu | tiap item: `edit` (`_editRunningText` dialog: isi + kategori) & `delete` (`_removeRunningText`) |
+| Daftar kartu | nomor urut + handle drag (`_reorderRunningTexts`); tiap item: `edit` (`_editRunningText`) & `delete` (`_removeRunningText` + urungkan) |
 
 Semua men-set `_hasUnsyncedChanges` dan mengirim `sendRunningTextsUpdate` bila terhubung.
 
@@ -156,8 +158,10 @@ Semua men-set `_hasUnsyncedChanges` dan mengirim `sendRunningTextsUpdate` bila t
 
 Form 4 bidang: **Header/Kategori** (default `INFO MASJID`), **Judul**, **Isi** (3 baris), **Kaki/Catatan**.
 
-- Tambah: `_addBanner()` — validasi minimal judul ATAU isi.
-- Daftar: tiap banner punya **Switch** (`_toggleBanner` — on/off tampil di TV), **Edit** (`_editBanner` dialog 4 bidang), **Hapus** (`_removeBanner`).
+Sejak Fase 3 (ADR-025): pola editor seragam — **Extended FAB "Tambah Banner"** membuka form + pilih gambar dalam `Dialog.fullscreen`; daftar berupa `ReorderableListView` (handle `drag_handle` + nomor urut `Banner N · header`); edit dalam dialog full-screen (gambar dipertahankan); hapus = hilang + SnackBar "Urungkan" 5 detik; daftar kosong = empty state seragam.
+
+- Tambah: `_addBanner()` — validasi minimal judul ATAU isi ATAU gambar.
+- Daftar: tiap banner punya **Switch** (`_toggleBanner` — on/off tampil di TV), **Edit** (`_editBanner` dialog full-screen 4 bidang), **Hapus** (`_removeBanner` + urungkan).
 - Banner `isActive=false` akan disembunyikan TV (lihat `BannerCarousel._activeBanners`).
 
 #### 3.2.3 Sub-tab Kas
@@ -165,8 +169,14 @@ Form 4 bidang: **Header/Kategori** (default `INFO MASJID`), **Judul**, **Isi** (
 | Bagian | Elemen |
 |---|---|
 | Statistik | 3 kartu `_KasStatCard`: Saldo, Pemasukan, Pengeluaran (dari `KasSummary.fromTransactions`) |
-| Tambah Transaksi | `SegmentedButton` Masuk/Keluar + `Nominal (Rp)` (input digitsOnly) + `Keterangan` → `_addKasTransaction()` |
-| Riwayat | daftar transaksi: avatar arah panah, tanggal `d MMM yyyy, HH:mm`, `+/-Rp` berwarna; **long-press** untuk hapus (`_removeKasTransaction`) |
+| Tambah Transaksi | **Extended FAB "Tambah Transaksi"** → dialog full-screen: `SegmentedButton` Masuk/Keluar + `Nominal (Rp)` (input digitsOnly) + `Keterangan` → `_addKasTransaction()` |
+| Riwayat | daftar transaksi: avatar arah panah, `Masuk/Keluar • d MMM yyyy, HH:mm`, `+/-Rp` berwarna; tombol hapus di baris (`_removeKasTransaction` + SnackBar "Urungkan") |
+
+Sejak Fase 3 (ADR-025): baris menampilkan kata Masuk/Keluar selain warna; dialog konfirmasi hapus long-press dihapus; daftar kosong = empty state seragam.
+
+#### 3.2.4 Sub-tab Gambar Khusus
+
+Sejak Fase 3 (ADR-025): pola editor seragam — **Extended FAB "Tambah Gambar"** membuka form (pilih gambar + keterangan opsional) dalam `Dialog.fullscreen`; daftar berupa `ReorderableListView` (handle `drag_handle` + chip `Gambar N`, menggantikan tombol naik/turun); tiap gambar punya **Switch** (`_toggleSideImage`); hapus = hilang + SnackBar "Urungkan" 5 detik; daftar kosong = empty state seragam. Urutan daftar = urutan rotasi kartu samping TV.
 
 ### 3.3 Tab 2 — Konektivitas
 

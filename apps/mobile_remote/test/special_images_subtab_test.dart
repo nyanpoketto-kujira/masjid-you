@@ -18,7 +18,7 @@ void main() {
     List<SpecialImage> data = images,
     void Function(String, bool)? onToggle,
     void Function(String)? onRemove,
-    void Function(String, int)? onMove,
+    void Function(int, int)? onReorder,
   }) {
     return MaterialApp(
       home: Scaffold(
@@ -27,33 +27,16 @@ void main() {
           onAddImage: (_, __) {},
           onRemoveImage: onRemove ?? (_) {},
           onToggleImage: onToggle ?? (_, __) {},
-          onMoveImage: onMove ?? (_, __) {},
+          onReorder: onReorder,
         ),
       ),
     );
-  }
-
-  Future<void> revealList(WidgetTester tester) async {
-    // Seret ListView manual sampai daftar terbangun (scrollUntilVisible
-    // ambigu di halaman ini karena ada Scrollable internal TextField).
-    final target = find.text('Gambar Satu');
-    for (var i = 0; i < 30; i++) {
-      if (target.evaluate().isNotEmpty) {
-        await tester.ensureVisible(target);
-        await tester.pump();
-        return;
-      }
-      await tester.drag(find.byType(ListView), const Offset(0, -250));
-      await tester.pump();
-    }
-    fail('Daftar gambar tidak ditemukan setelah scroll');
   }
 
   testWidgets('daftar gambar tampil dengan caption & nomor urut',
       (tester) async {
     await tester.pumpWidget(harness());
     await tester.pump();
-    await revealList(tester);
 
     expect(find.text('Gambar 1'), findsOneWidget);
     expect(find.text('Gambar 2'), findsOneWidget);
@@ -61,11 +44,13 @@ void main() {
     expect(find.text('Gambar Dua'), findsOneWidget);
   });
 
-  testWidgets('daftar kosong menampilkan teks kosong', (tester) async {
+  testWidgets('daftar kosong menampilkan empty state seragam',
+      (tester) async {
     await tester.pumpWidget(harness(data: const []));
     await tester.pump();
 
-    expect(find.text('Belum ada gambar khusus.'), findsOneWidget);
+    expect(find.text('Belum ada gambar khusus'), findsOneWidget);
+    expect(find.text('Tambah Gambar'), findsWidgets);
   });
 
   testWidgets('sakelar memanggil onToggleImage dengan id & nilai baru',
@@ -77,7 +62,6 @@ void main() {
       toggledValue = val;
     }));
     await tester.pump();
-    await revealList(tester);
 
     final switches = find.byType(Switch);
     expect(switches, findsNWidgets(2));
@@ -94,7 +78,6 @@ void main() {
     String? removedId;
     await tester.pumpWidget(harness(onRemove: (id) => removedId = id));
     await tester.pump();
-    await revealList(tester);
 
     await tester.tap(find.text('Hapus').first);
     await tester.pump();
@@ -102,50 +85,42 @@ void main() {
     expect(removedId, equals('a'));
   });
 
-  testWidgets('tombol urutan: tepi daftar non-aktif, tengah memanggil callback',
+  testWidgets('handle drag terlihat di tiap item & drag memanggil onReorder',
       (tester) async {
-    String? movedId;
-    int? movedDelta;
-    await tester.pumpWidget(harness(onMove: (id, delta) {
-      movedId = id;
-      movedDelta = delta;
+    int? oldIndex;
+    int? newIndex;
+    await tester.pumpWidget(harness(onReorder: (o, n) {
+      oldIndex = o;
+      newIndex = n;
     }));
     await tester.pump();
-    await revealList(tester);
 
-    // IconButton adalah ancestor dari Tooltip yang ia buat.
-    Finder iconButtonOf(Finder tooltip) => find.ancestor(
-          of: tooltip,
-          matching: find.byType(IconButton),
-        );
-    final upButtons = find.byTooltip('Naikkan urutan');
-    final downButtons = find.byTooltip('Turunkan urutan');
-    expect(upButtons, findsNWidgets(2));
-    expect(downButtons, findsNWidgets(2));
+    expect(find.byIcon(Icons.drag_handle), findsNWidgets(2));
 
-    // Gambar pertama tidak bisa naik, gambar terakhir tidak bisa turun.
-    expect(tester.widget<IconButton>(iconButtonOf(upButtons.first)).onPressed,
-        isNull);
-    expect(tester.widget<IconButton>(iconButtonOf(downButtons.last)).onPressed,
-        isNull);
-
-    // Gambar pertama turun -> urutan bertukar.
-    await tester.ensureVisible(iconButtonOf(downButtons.first));
+    // Seret handle item pertama melewati item kedua.
+    await tester.drag(
+      find.byIcon(Icons.drag_handle).first,
+      const Offset(0, 300),
+    );
     await tester.pump();
-    await tester.tap(iconButtonOf(downButtons.first));
-    await tester.pump();
-    expect(movedId, equals('a'));
-    expect(movedDelta, equals(1));
+
+    expect(oldIndex, equals(0));
+    expect(newIndex, isNotNull);
+    expect(newIndex, greaterThan(0));
   });
 
-  testWidgets('tombol Simpan Gambar non-aktif sebelum gambar dipilih',
+  testWidgets('FAB membuka dialog tambah; Simpan non-aktif sebelum gambar dipilih',
       (tester) async {
     await tester.pumpWidget(harness());
     await tester.pump();
 
-    final button = tester.widget<FilledButton>(
-      find.widgetWithText(FilledButton, 'Simpan Gambar'),
+    await tester.tap(find.text('Tambah Gambar'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Tambah Gambar Khusus'), findsOneWidget);
+    final saveButton = tester.widget<TextButton>(
+      find.widgetWithText(TextButton, 'Simpan'),
     );
-    expect(button.onPressed, isNull);
+    expect(saveButton.onPressed, isNull);
   });
 }

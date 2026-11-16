@@ -516,6 +516,50 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
     );
   }
 
+  /// SnackBar hapus rutin (Fase 3): item hilang + aksi "Urungkan" ±5 detik
+  /// yang mengembalikan item lewat [onUndo]. Dipasang ke messenger global
+  /// agar tetap tampil walau subtree sedang bertransisi.
+  void _showUndoSnack(String message, VoidCallback onUndo) {
+    final messenger = appMessengerKey.currentState;
+    if (messenger == null) return;
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(message),
+        duration: const Duration(seconds: 5),
+        action: SnackBarAction(label: 'Urungkan', onPressed: onUndo),
+      ),
+    );
+  }
+
+  /// Pola kirim daftar ke TV bila terhubung (kalau tidak, tandai belum
+  /// tersinkron agar bisa dikirim lewat banner "Kirim ke TV").
+  void _sendRunningTextsIfConnected() {
+    if (_isConnected) {
+      _client.sendRunningTextsUpdate(_runningTexts);
+      setState(() {
+        _hasUnsyncedChanges = false;
+      });
+    }
+  }
+
+  void _sendBannersIfConnected() {
+    if (_isConnected) {
+      _client.sendBannersUpdate(_banners);
+      setState(() {
+        _hasUnsyncedChanges = false;
+      });
+    }
+  }
+
+  void _sendKasIfConnected() {
+    if (_isConnected) {
+      _client.sendKasUpdate(_kasTransactions);
+      setState(() {
+        _hasUnsyncedChanges = false;
+      });
+    }
+  }
+
   /// Tampilkan dialog input PIN 4 digit yang diminta TV. PIN dikirim via
   /// [BluetoothClientService.respondWithPin]; dialog menutup sendiri saat
   /// TV mengirim `authSuccess`.
@@ -1178,96 +1222,61 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
     }
   }
 
+  /// Hapus rutin (Fase 3): item hilang + SnackBar "Urungkan" yang
+  /// mengembalikannya di indeks semula + kirim ulang ke TV.
   void _removeRunningText(String id) {
+    final index = _runningTexts.indexWhere((t) => t.id == id);
+    if (index < 0) return;
+    final removed = _runningTexts[index];
     setState(() {
-      _runningTexts.removeWhere((t) => t.id == id);
+      _runningTexts.removeAt(index);
       _hasUnsyncedChanges = true;
     });
-    if (_isConnected) {
-      _client.sendRunningTextsUpdate(_runningTexts);
+    _sendRunningTextsIfConnected();
+    _showUndoSnack('Teks berjalan dihapus', () {
       setState(() {
-        _hasUnsyncedChanges = false;
+        _runningTexts.insert(index, removed);
+        _hasUnsyncedChanges = true;
       });
-    }
+      _sendRunningTextsIfConnected();
+    });
   }
 
+  /// Edit teks berjalan memakai dialog full-screen yang sama dengan form
+  /// tambah (Fase 3): isi + kategori + tombol Simpan eksplisit.
   void _editRunningText(RunningTextMessage item) {
     final textController = TextEditingController(text: item.content);
-    String selectedCategory = item.category;
+    var selectedCategory = item.category;
 
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (dialogContext) {
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            return AlertDialog(
-              title: const Text('Edit Teks Berjalan'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextFormField(
-                    controller: textController,
-                    decoration: const InputDecoration(labelText: 'Isi Pesan'),
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      const Text('Kategori: '),
-                      DropdownButton<String>(
-                        value: selectedCategory,
-                        items: _runningCategories.map((c) {
-                          return DropdownMenuItem(value: c, child: Text(c));
-                        }).toList(),
-                        onChanged: (v) {
-                          if (v != null) {
-                            setDialogState(() {
-                              selectedCategory = v;
-                            });
-                          }
-                        },
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(dialogContext),
-                  child: const Text('Batal'),
-                ),
-                FilledButton(
-                  onPressed: () {
-                    final newContent = textController.text.trim();
-                    if (newContent.isEmpty) return;
-                    setState(() {
-                      final index =
-                          _runningTexts.indexWhere((t) => t.id == item.id);
-                      if (index >= 0) {
-                        _runningTexts[index] = RunningTextMessage(
-                          id: item.id,
-                          content: newContent,
-                          category: selectedCategory,
-                          isActive: item.isActive,
-                        );
-                      }
-                      _hasUnsyncedChanges = true;
-                    });
-                    if (_isConnected) {
-                      _client.sendRunningTextsUpdate(_runningTexts);
-                      setState(() {
-                        _hasUnsyncedChanges = false;
-                      });
-                    }
-                    Navigator.pop(dialogContext);
-                  },
-                  child: const Text('Simpan'),
-                ),
-              ],
-            );
+        return RunningTextFormDialog(
+          title: 'Edit Teks Berjalan',
+          textController: textController,
+          category: item.category,
+          categories: _runningCategories,
+          onCategoryChanged: (cat) => selectedCategory = cat,
+          onSave: () {
+            final newContent = textController.text.trim();
+            if (newContent.isEmpty) return;
+            setState(() {
+              final index = _runningTexts.indexWhere((t) => t.id == item.id);
+              if (index >= 0) {
+                _runningTexts[index] = RunningTextMessage(
+                  id: item.id,
+                  content: newContent,
+                  category: selectedCategory,
+                  isActive: item.isActive,
+                );
+              }
+              _hasUnsyncedChanges = true;
+            });
+            _sendRunningTextsIfConnected();
           },
         );
       },
-    );
+    ).then((_) => textController.dispose());
   }
 
   void _addBanner(String? base64Image) {
@@ -1306,16 +1315,21 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
   }
 
   void _removeBanner(String id) {
+    final index = _banners.indexWhere((b) => b.id == id);
+    if (index < 0) return;
+    final removed = _banners[index];
     setState(() {
-      _banners.removeWhere((b) => b.id == id);
+      _banners.removeAt(index);
       _hasUnsyncedChanges = true;
     });
-    if (_isConnected) {
-      _client.sendBannersUpdate(_banners);
+    _sendBannersIfConnected();
+    _showUndoSnack('Banner dihapus', () {
       setState(() {
-        _hasUnsyncedChanges = false;
+        _banners.insert(index, removed);
+        _hasUnsyncedChanges = true;
       });
-    }
+      _sendBannersIfConnected();
+    });
   }
 
   void _toggleBanner(String id, bool val) {
@@ -1360,11 +1374,21 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
   }
 
   void _removeSideImage(String id) {
+    final index = _sideImages.indexWhere((i) => i.id == id);
+    if (index < 0) return;
+    final removed = _sideImages[index];
     setState(() {
-      _sideImages.removeWhere((i) => i.id == id);
+      _sideImages.removeAt(index);
       _hasUnsyncedChanges = true;
     });
     _sendSideImagesIfConnected();
+    _showUndoSnack('Gambar khusus dihapus', () {
+      setState(() {
+        _sideImages.insert(index, removed);
+        _hasUnsyncedChanges = true;
+      });
+      _sendSideImagesIfConnected();
+    });
   }
 
   void _toggleSideImage(String id, bool val) {
@@ -1378,92 +1402,126 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
     _sendSideImagesIfConnected();
   }
 
-  void _moveSideImage(String id, int delta) {
+  /// Ubah urutan putar lewat drag & drop (Fase 3): `onReorderItem` sudah
+  /// menyesuaikan `newIndex` terhadap item yang dilepas, jadi langsung
+  /// pindah; tandai belum tersinkron, lalu kirim daftar terbaru ke TV
+  /// bila terhubung.
+  void _reorderRunningTexts(int oldIndex, int newIndex) {
     setState(() {
-      final index = _sideImages.indexWhere((i) => i.id == id);
-      if (index < 0) return;
-      final target = index + delta;
-      if (target < 0 || target >= _sideImages.length) return;
-      final item = _sideImages.removeAt(index);
-      _sideImages.insert(target, item);
+      final item = _runningTexts.removeAt(oldIndex);
+      _runningTexts.insert(newIndex, item);
+      _hasUnsyncedChanges = true;
+    });
+    _sendRunningTextsIfConnected();
+  }
+
+  void _reorderBanners(int oldIndex, int newIndex) {
+    setState(() {
+      final item = _banners.removeAt(oldIndex);
+      _banners.insert(newIndex, item);
+      _hasUnsyncedChanges = true;
+    });
+    _sendBannersIfConnected();
+  }
+
+  void _reorderSideImages(int oldIndex, int newIndex) {
+    setState(() {
+      final item = _sideImages.removeAt(oldIndex);
+      _sideImages.insert(newIndex, item);
       _hasUnsyncedChanges = true;
     });
     _sendSideImagesIfConnected();
   }
 
+  /// Edit banner dalam dialog full-screen (Fase 3). Gambar banner
+  /// dipertahankan (perilaku lama: edit membuang `base64Image`).
   void _editBanner(MediaBanner banner) {
     final headerController = TextEditingController(text: banner.header);
     final titleController = TextEditingController(text: banner.title);
     final contentController = TextEditingController(text: banner.content);
     final footerController = TextEditingController(text: banner.footer);
 
-    showDialog(
+    void save() {
+      setState(() {
+        final index = _banners.indexWhere((b) => b.id == banner.id);
+        if (index >= 0) {
+          _banners[index] = MediaBanner(
+            id: banner.id,
+            header: headerController.text.trim().isEmpty
+                ? 'INFO MASJID'
+                : headerController.text.trim(),
+            title: titleController.text.trim(),
+            content: contentController.text.trim(),
+            footer: footerController.text.trim(),
+            base64Image: banner.base64Image,
+            isActive: banner.isActive,
+          );
+        }
+        _hasUnsyncedChanges = true;
+      });
+      _sendBannersIfConnected();
+    }
+
+    showDialog<void>(
       context: context,
       builder: (dialogContext) {
-        return AlertDialog(
-          title: const Text('Edit Banner Informasi'),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
+        return Dialog.fullscreen(
+          child: Scaffold(
+            appBar: AppBar(
+              leading: IconButton(
+                icon: const Icon(Icons.close),
+                tooltip: 'Tutup',
+                onPressed: () => Navigator.of(dialogContext).pop(),
+              ),
+              title: const Text('Edit Banner Informasi'),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    save();
+                    Navigator.of(dialogContext).pop();
+                  },
+                  child: const Text('Simpan'),
+                ),
+              ],
+            ),
+            body: ListView(
+              padding: const EdgeInsets.all(16.0),
               children: [
                 TextFormField(
                   controller: headerController,
                   decoration:
                       const InputDecoration(labelText: 'Header/Kategori'),
                 ),
+                const SizedBox(height: 12),
                 TextFormField(
                   controller: titleController,
-                  decoration: const InputDecoration(labelText: 'Judul Utama'),
+                  decoration:
+                      const InputDecoration(labelText: 'Judul Utama'),
                 ),
+                const SizedBox(height: 12),
                 TextFormField(
                   controller: contentController,
                   maxLines: 3,
-                  decoration: const InputDecoration(labelText: 'Konten/Isi'),
+                  decoration:
+                      const InputDecoration(labelText: 'Konten/Isi'),
                 ),
+                const SizedBox(height: 12),
                 TextFormField(
                   controller: footerController,
-                  decoration: const InputDecoration(labelText: 'Catatan Kaki'),
+                  decoration:
+                      const InputDecoration(labelText: 'Catatan Kaki'),
                 ),
               ],
             ),
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Batal'),
-            ),
-            FilledButton(
-              onPressed: () {
-                setState(() {
-                  final index = _banners.indexWhere((b) => b.id == banner.id);
-                  if (index >= 0) {
-                    _banners[index] = MediaBanner(
-                      id: banner.id,
-                      header: headerController.text.trim().isEmpty
-                          ? 'INFO MASJID'
-                          : headerController.text.trim(),
-                      title: titleController.text.trim(),
-                      content: contentController.text.trim(),
-                      footer: footerController.text.trim(),
-                      isActive: banner.isActive,
-                    );
-                  }
-                  _hasUnsyncedChanges = true;
-                });
-                if (_isConnected) {
-                  _client.sendBannersUpdate(_banners);
-                  setState(() {
-                    _hasUnsyncedChanges = false;
-                  });
-                }
-                Navigator.pop(dialogContext);
-              },
-              child: const Text('Simpan'),
-            ),
-          ],
         );
       },
-    );
+    ).then((_) {
+      headerController.dispose();
+      titleController.dispose();
+      contentController.dispose();
+      footerController.dispose();
+    });
   }
 
   void _addKasTransaction() {
@@ -1494,16 +1552,21 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
   }
 
   void _removeKasTransaction(String id) {
+    final index = _kasTransactions.indexWhere((t) => t.id == id);
+    if (index < 0) return;
+    final removed = _kasTransactions[index];
     setState(() {
-      _kasTransactions.removeWhere((t) => t.id == id);
+      _kasTransactions.removeAt(index);
       _hasUnsyncedChanges = true;
     });
-    if (_isConnected) {
-      _client.sendKasUpdate(_kasTransactions);
+    _sendKasIfConnected();
+    _showUndoSnack('Transaksi kas dihapus', () {
       setState(() {
-        _hasUnsyncedChanges = false;
+        _kasTransactions.insert(index, removed);
+        _hasUnsyncedChanges = true;
       });
-    }
+      _sendKasIfConnected();
+    });
   }
 
   void _startBtScan() {
@@ -1782,6 +1845,7 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
                                 onAddMessage: _addRunningText,
                                 onEditMessage: _editRunningText,
                                 onRemoveMessage: _removeRunningText,
+                                onReorder: _reorderRunningTexts,
                               ),
                               BannersSubtab(
                                 banners: _banners,
@@ -1793,6 +1857,7 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
                                 onEditBanner: _editBanner,
                                 onRemoveBanner: _removeBanner,
                                 onToggleBanner: _toggleBanner,
+                                onReorder: _reorderBanners,
                               ),
                               KasSubtab(
                                 transactions: _kasTransactions,
@@ -1813,7 +1878,7 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
                                 onAddImage: _addSideImage,
                                 onRemoveImage: _removeSideImage,
                                 onToggleImage: _toggleSideImage,
-                                onMoveImage: _moveSideImage,
+                                onReorder: _reorderSideImages,
                               ),
                             ],
                           ),

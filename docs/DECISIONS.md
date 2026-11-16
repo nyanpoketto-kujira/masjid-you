@@ -690,3 +690,24 @@ Melanjutkan ADR-022/ADR-023. Kondisi sebelum fase ini: tab Pengaturan adalah sat
 - Regresi dikunci 6 test baru (`settings_phase2_test.dart`: grup tampil, stepper menulis ke controller yang sama, batas min/max, sticky bar aktif/non-aktif + callback) dan 1 test lama disesuaikan minimal (stepper khutbah non-aktif saat Jumatan mati). Total: mobile_remote 68 -> 74.
 
 ---
+
+## ADR-025 — Fase 3 Refaktor UI: Editor Konten Seragam
+
+### Konteks
+Melanjutkan ADR-024. Kondisi sebelum fase ini: tambah data lewat form inline di atas daftar (running text: field + tombol `+`; banner: 4 field + picker + tombol "Simpan Banner"; kas: kartu form + "Simpan Transaksi"; gambar: picker + caption + "Simpan Gambar"); urutan hanya di Gambar Khusus lewat tombol naik/turun; hapus langsung hilang (kas: dialog konfirmasi long-press); daftar kosong hanya teks polos. Pola tidak seragam dan form inline memakan ruang daftar.
+
+### Keputusan
+1. **Extended FAB + dialog full-screen per sub-tab**: "Tambah Teks", "Tambah Banner", "Tambah Transaksi", "Tambah Gambar" membuka form dalam `Dialog.fullscreen` (Scaffold + AppBar + tombol Simpan eksplisit, non-aktif bila form belum valid). Form inline lama dipindah ke dialog itu; controller & callback yang ada dipakai ulang. Edit memakai dialog yang sama: running text memakai widget bersama `RunningTextFormDialog` (tambah & edit), banner edit pindah ke fullscreen (4 field).
+2. **ReorderableListView + handle drag + nomor urut** untuk Running Text, Banner, dan Gambar Khusus (`buildDefaultDragHandles: false` + `ReorderableDragStartListener` pada ikon `drag_handle` + nomor urut 1-based). Callback `onReorder` baru di `main.dart` (`_reorderRunningTexts`/`_reorderBanners`/`_reorderSideImages`): setState + tandai unsynced + kirim update bila terhubung. Karena Flutter 3.47 men-deprecate `ReorderableListView.onReorder`, dipakai `onReorderItem` (newIndex sudah disesuaikan terhadap item yang dilepas — tanpa penyesuaian manual). Tombol naik/turun Gambar Khusus & `_moveSideImage` dihapus.
+3. **Hapus rutin = hilang + SnackBar "Urungkan" ±5 detik** (running text, banner, kas, gambar khusus): `_remove*` menangkap item + indeks, menghapus, lalu `_showUndoSnack` (via `appMessengerKey`) menawarkan "Urungkan" yang mengembalikan item di indeks semula + kirim ulang update. Dialog konfirmasi hapus kas (long-press) dihapus; kas kini punya tombol hapus di baris.
+4. **Empty state seragam** (`lib/widgets/editor_empty_state.dart`): ikon dalam lingkaran `primaryContainer` + judul + satu kalimat + tombol aksi tambah, dipakai keempat editor.
+5. **Kas**: kartu ringkasan tetap di atas; baris transaksi menampilkan kata "Masuk"/"Keluar" di depan tanggal selain warna & tanda +/−.
+6. **Perbaikan kecil**: edit banner kini mempertahankan `base64Image` (perilaku lama: edit membuang gambar banner).
+
+### Konsekuensi
+- Pola editor kini seragam dan sesuai panduan M3 (satu aksi utama per layar, hapus bisa diurungkan, urutan putar terlihat).
+- Catatan test: drag reorder di widget test harus digerakkan bertahap dengan pump di antara langkah (`startGesture` + `moveBy` + `pump`); satu lompatan besar (`tester.drag`/`timedDrag`) tidak memicu reorder pada `ReorderableListView` — didokumentasikan di test banner.
+- Alur urungkan SnackBar di `main.dart` belum punya widget test langsung (membutuhkan `RemoteHomeScreen` dalam keadaan terhubung, yang tidak bisa dipompa tanpa koneksi); dikunci lewat test callback sub-tab + pola yang sama di keempat handler.
+- Regresi dikunci 16 test baru (running text/banner/kas/special-images: FAB + dialog, empty state, handle drag + `onReorder`, hapus, sakelar, kata Masuk/Keluar) dan 1 test lama disesuaikan (empty state + drag ganti tombol naik/turun). Total: mobile_remote 74 -> 90.
+
+---

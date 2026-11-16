@@ -2,15 +2,16 @@
 
 > Dibuat otomatis oleh `dart run tools/codebase_index.dart`. Jangan edit manual — regenerate setelah perubahan kode.
 
-Total simbol: **952**
+Total simbol: **1008**
 
 | Kategori | Jumlah |
 |---|---:|
-| `class` | 96 |
-| `field` | 453 |
-| `method` | 326 |
+| `class` | 104 |
+| `field` | 476 |
+| `method` | 350 |
 | `getter` | 39 |
 | `function` | 15 |
+| `constructor` | 1 |
 | `typedef` | 1 |
 | `enum` | 9 |
 | `operator` | 11 |
@@ -98,74 +99,80 @@ Total simbol: **952**
 - `method` **_loadStartupData (_RemoteHomeScreenState)** — baris 463 — `  Future<void> _loadStartupData() async {`
 - `method` **_applySnapshot (_RemoteHomeScreenState)** — baris 475 — `  void _applySnapshot(StateSnapshot snapshot) {`
 - `method` **_requestTvState (_RemoteHomeScreenState)** — baris 493 — `  void _requestTvState() {`
-- `method` **_showPinDialog (_RemoteHomeScreenState)** — baris 522 — `  void _showPinDialog() {`
-- `method` **_closePinDialog (_RemoteHomeScreenState)** — baris 558 — `  void _closePinDialog() {`
-- `method` **_drainPendingBtState (_RemoteHomeScreenState)** — baris 566 — `  void _drainPendingBtState() {`
-- `method` **_loadSavedDurations (_RemoteHomeScreenState)** — baris 607 — `  Future<void> _loadSavedDurations() async {`
-- `method` **_persistDurations (_RemoteHomeScreenState)** — baris 649 — `  Future<void> _persistDurations(MosqueConfig config) async {`
-- `method` **_handleTvPacket (_RemoteHomeScreenState)** — baris 668 — `  void _handleTvPacket(SyncPacket packet) {`
-- `method` **_applyTvPhase (_RemoteHomeScreenState)** — baris 684 — `  void _applyTvPhase(SyncPacket packet) {`
-- `method` **_applyTvSnapshot (_RemoteHomeScreenState)** — baris 703 — `  void _applyTvSnapshot(StateSnapshot snapshot) {`
-- `method` **_pushLocalDataToTv (_RemoteHomeScreenState)** — baris 722 — `  void _pushLocalDataToTv() {`
-- `method` **_exportBackup (_RemoteHomeScreenState)** — baris 731 — `  Future<void> _exportBackup() async {`
-- `method` **_importBackup (_RemoteHomeScreenState)** — baris 753 — `  Future<void> _importBackup() async {`
-- `method` **_applyImportedBackup (_RemoteHomeScreenState)** — baris 804 — `  Future<void> _applyImportedBackup(BackupBundle bundle) async {`
-- `method` **_connectToTv (_RemoteHomeScreenState)** — baris 828 — `  Future<void> _connectToTv() async {`
-- `method` **_handleConnectionEstablished (_RemoteHomeScreenState)** — baris 860 — `  void _handleConnectionEstablished(String kind) {`
-- `method` **_handleTransportDisconnected (_RemoteHomeScreenState)** — baris 879 — `  void _handleTransportDisconnected() {`
-- `method` **_reconnectLast (_RemoteHomeScreenState)** — baris 888 — `  Future<void> _reconnectLast() async {`
-- `method` **_showSyncConflictDialog (_RemoteHomeScreenState)** — baris 902 — `  void _showSyncConflictDialog() {`
-- `method` **_disconnectFromTv (_RemoteHomeScreenState)** — baris 942 — `  Future<void> _disconnectFromTv() async {`
-- `method` **_buildConfigFromForm (_RemoteHomeScreenState)** — baris 954 — `  MosqueConfig _buildConfigFromForm() {`
-- `method` **_minutesFrom (_RemoteHomeScreenState)** — baris 989 — `  int _minutesFrom(TextEditingController controller, int fallback) {`
-- `method` **_syncAllToTv (_RemoteHomeScreenState)** — baris 995 — `  void _syncAllToTv() {`
-- `method` **_pushAllToTv (_RemoteHomeScreenState)** — baris 1006 — `  void _pushAllToTv() {`
-- `method` **_sendConfigUpdate (_RemoteHomeScreenState)** — baris 1019 — `  void _sendConfigUpdate() {`
-- `method` **_totalKas (_RemoteHomeScreenState)** — baris 1043 — `  int _totalKas(KasType type) => _kasTransactions`
-- `method` **_toggleTvMuted (_RemoteHomeScreenState)** — baris 1049 — `  void _toggleTvMuted() {`
-- `method` **_toggleTvStandby (_RemoteHomeScreenState)** — baris 1061 — `  void _toggleTvStandby() {`
-- `method` **_sendQuickAction (_RemoteHomeScreenState)** — baris 1072 — `  void _sendQuickAction(SyncAction action) {`
-- `method` **_sendForcePhase (_RemoteHomeScreenState)** — baris 1092 — `  void _sendForcePhase(PrayerPhase phase) {`
-- `method` **_getLocationFromGps (_RemoteHomeScreenState)** — baris 1100 — `  Future<void> _getLocationFromGps() async {`
-- `method` **_addRunningText (_RemoteHomeScreenState)** — baris 1159 — `  void _addRunningText() {`
-- `method` **_removeRunningText (_RemoteHomeScreenState)** — baris 1181 — `  void _removeRunningText(String id) {`
-- `method` **_editRunningText (_RemoteHomeScreenState)** — baris 1194 — `  void _editRunningText(RunningTextMessage item) {`
-- `method` **_addBanner (_RemoteHomeScreenState)** — baris 1273 — `  void _addBanner(String? base64Image) {`
-- `method` **_removeBanner (_RemoteHomeScreenState)** — baris 1308 — `  void _removeBanner(String id) {`
-- `method` **_toggleBanner (_RemoteHomeScreenState)** — baris 1321 — `  void _toggleBanner(String id, bool val) {`
-- `method` **_sendSideImagesIfConnected (_RemoteHomeScreenState)** — baris 1340 — `  void _sendSideImagesIfConnected() {`
-- `method` **_addSideImage (_RemoteHomeScreenState)** — baris 1349 — `  void _addSideImage(String caption, String base64Image) {`
-- `method` **_removeSideImage (_RemoteHomeScreenState)** — baris 1362 — `  void _removeSideImage(String id) {`
-- `method` **_toggleSideImage (_RemoteHomeScreenState)** — baris 1370 — `  void _toggleSideImage(String id, bool val) {`
-- `method` **_moveSideImage (_RemoteHomeScreenState)** — baris 1381 — `  void _moveSideImage(String id, int delta) {`
-- `method` **_editBanner (_RemoteHomeScreenState)** — baris 1394 — `  void _editBanner(MediaBanner banner) {`
-- `method` **_addKasTransaction (_RemoteHomeScreenState)** — baris 1469 — `  void _addKasTransaction() {`
-- `method` **_removeKasTransaction (_RemoteHomeScreenState)** — baris 1496 — `  void _removeKasTransaction(String id) {`
-- `method` **_startBtScan (_RemoteHomeScreenState)** — baris 1509 — `  void _startBtScan() {`
-- `method` **_stopBtScan (_RemoteHomeScreenState)** — baris 1517 — `  void _stopBtScan() {`
-- `method` **_connectBt (_RemoteHomeScreenState)** — baris 1525 — `  void _connectBt(BluetoothDeviceInfo device) {`
-- `method` **_showScheduleSimulation (_RemoteHomeScreenState)** — baris 1535 — `  void _showScheduleSimulation(MosqueConfig formConfig) {`
-- `method` **_formatDurationShort (_RemoteHomeScreenState)** — baris 1680 — `  String _formatDurationShort(Duration? duration) {`
-- `method` **dispose (_RemoteHomeScreenState)** — baris 1688 — `  void dispose() {`
-- `method` **build (_RemoteHomeScreenState)** — baris 1722 — `  Widget build(BuildContext context) {`
-- `method` **_handleDestinationSelected (_RemoteHomeScreenState)** — baris 1924 — `  Future<void> _handleDestinationSelected(int index) async {`
-- `getter` **_transportLabel (_RemoteHomeScreenState)** — baris 1962 — `  String get _transportLabel =>`
-- `method` **_buildConnectionStatusStrip (_RemoteHomeScreenState)** — baris 1967 — `  Widget _buildConnectionStatusStrip(ThemeData theme, ColorScheme colorScheme) {`
-- `method` **_showConnectionSheet (_RemoteHomeScreenState)** — baris 2010 — `  void _showConnectionSheet() {`
-- `method` **_buildDisconnectedBanner (_RemoteHomeScreenState)** — baris 2084 — `  Widget _buildDisconnectedBanner(ThemeData theme, ColorScheme colorScheme) {`
-- `method` **_buildContentTabBar (_RemoteHomeScreenState)** — baris 2111 — `  Widget _buildContentTabBar(ThemeData theme, ColorScheme colorScheme) {`
-- `method` **_buildUnsyncedBanner (_RemoteHomeScreenState)** — baris 2138 — `  Widget _buildUnsyncedBanner(ThemeData theme, ColorScheme colorScheme) {`
-- `class` **MasjidYouRemoteApp** — baris 2166 — `class MasjidYouRemoteApp extends StatefulWidget {`
-- `method` **createState (MasjidYouRemoteApp)** — baris 2170 — `  State<MasjidYouRemoteApp> createState() => _MasjidYouRemoteAppState();`
-- `class` **_MasjidYouRemoteAppState** — baris 2173 — `class _MasjidYouRemoteAppState extends State<MasjidYouRemoteApp> {`
-- `field` **_themeMode (_MasjidYouRemoteAppState)** — baris 2174 — `  ThemeMode _themeMode = ThemeMode.system;`
-- `field` **_colorSource (_MasjidYouRemoteAppState)** — baris 2175 — `  AppColorSource _colorSource = AppColorSource.dynamic;`
-- `method` **initState (_MasjidYouRemoteAppState)** — baris 2178 — `  void initState() {`
-- `method` **_loadThemePreferences (_MasjidYouRemoteAppState)** — baris 2183 — `  Future<void> _loadThemePreferences() async {`
-- `method` **_setThemeMode (_MasjidYouRemoteAppState)** — baris 2193 — `  Future<void> _setThemeMode(ThemeMode mode) async {`
-- `method` **_setColorSource (_MasjidYouRemoteAppState)** — baris 2198 — `  Future<void> _setColorSource(AppColorSource source) async {`
-- `method` **build (_MasjidYouRemoteAppState)** — baris 2204 — `  Widget build(BuildContext context) {`
-- `function` **main** — baris 2240 — `void main() {`
+- `method` **_showUndoSnack (_RemoteHomeScreenState)** — baris 522 — `  void _showUndoSnack(String message, VoidCallback onUndo) {`
+- `method` **_sendRunningTextsIfConnected (_RemoteHomeScreenState)** — baris 536 — `  void _sendRunningTextsIfConnected() {`
+- `method` **_sendBannersIfConnected (_RemoteHomeScreenState)** — baris 545 — `  void _sendBannersIfConnected() {`
+- `method` **_sendKasIfConnected (_RemoteHomeScreenState)** — baris 554 — `  void _sendKasIfConnected() {`
+- `method` **_showPinDialog (_RemoteHomeScreenState)** — baris 566 — `  void _showPinDialog() {`
+- `method` **_closePinDialog (_RemoteHomeScreenState)** — baris 602 — `  void _closePinDialog() {`
+- `method` **_drainPendingBtState (_RemoteHomeScreenState)** — baris 610 — `  void _drainPendingBtState() {`
+- `method` **_loadSavedDurations (_RemoteHomeScreenState)** — baris 651 — `  Future<void> _loadSavedDurations() async {`
+- `method` **_persistDurations (_RemoteHomeScreenState)** — baris 693 — `  Future<void> _persistDurations(MosqueConfig config) async {`
+- `method` **_handleTvPacket (_RemoteHomeScreenState)** — baris 712 — `  void _handleTvPacket(SyncPacket packet) {`
+- `method` **_applyTvPhase (_RemoteHomeScreenState)** — baris 728 — `  void _applyTvPhase(SyncPacket packet) {`
+- `method` **_applyTvSnapshot (_RemoteHomeScreenState)** — baris 747 — `  void _applyTvSnapshot(StateSnapshot snapshot) {`
+- `method` **_pushLocalDataToTv (_RemoteHomeScreenState)** — baris 766 — `  void _pushLocalDataToTv() {`
+- `method` **_exportBackup (_RemoteHomeScreenState)** — baris 775 — `  Future<void> _exportBackup() async {`
+- `method` **_importBackup (_RemoteHomeScreenState)** — baris 797 — `  Future<void> _importBackup() async {`
+- `method` **_applyImportedBackup (_RemoteHomeScreenState)** — baris 848 — `  Future<void> _applyImportedBackup(BackupBundle bundle) async {`
+- `method` **_connectToTv (_RemoteHomeScreenState)** — baris 872 — `  Future<void> _connectToTv() async {`
+- `method` **_handleConnectionEstablished (_RemoteHomeScreenState)** — baris 904 — `  void _handleConnectionEstablished(String kind) {`
+- `method` **_handleTransportDisconnected (_RemoteHomeScreenState)** — baris 923 — `  void _handleTransportDisconnected() {`
+- `method` **_reconnectLast (_RemoteHomeScreenState)** — baris 932 — `  Future<void> _reconnectLast() async {`
+- `method` **_showSyncConflictDialog (_RemoteHomeScreenState)** — baris 946 — `  void _showSyncConflictDialog() {`
+- `method` **_disconnectFromTv (_RemoteHomeScreenState)** — baris 986 — `  Future<void> _disconnectFromTv() async {`
+- `method` **_buildConfigFromForm (_RemoteHomeScreenState)** — baris 998 — `  MosqueConfig _buildConfigFromForm() {`
+- `method` **_minutesFrom (_RemoteHomeScreenState)** — baris 1033 — `  int _minutesFrom(TextEditingController controller, int fallback) {`
+- `method` **_syncAllToTv (_RemoteHomeScreenState)** — baris 1039 — `  void _syncAllToTv() {`
+- `method` **_pushAllToTv (_RemoteHomeScreenState)** — baris 1050 — `  void _pushAllToTv() {`
+- `method` **_sendConfigUpdate (_RemoteHomeScreenState)** — baris 1063 — `  void _sendConfigUpdate() {`
+- `method` **_totalKas (_RemoteHomeScreenState)** — baris 1087 — `  int _totalKas(KasType type) => _kasTransactions`
+- `method` **_toggleTvMuted (_RemoteHomeScreenState)** — baris 1093 — `  void _toggleTvMuted() {`
+- `method` **_toggleTvStandby (_RemoteHomeScreenState)** — baris 1105 — `  void _toggleTvStandby() {`
+- `method` **_sendQuickAction (_RemoteHomeScreenState)** — baris 1116 — `  void _sendQuickAction(SyncAction action) {`
+- `method` **_sendForcePhase (_RemoteHomeScreenState)** — baris 1136 — `  void _sendForcePhase(PrayerPhase phase) {`
+- `method` **_getLocationFromGps (_RemoteHomeScreenState)** — baris 1144 — `  Future<void> _getLocationFromGps() async {`
+- `method` **_addRunningText (_RemoteHomeScreenState)** — baris 1203 — `  void _addRunningText() {`
+- `method` **_removeRunningText (_RemoteHomeScreenState)** — baris 1227 — `  void _removeRunningText(String id) {`
+- `method` **_editRunningText (_RemoteHomeScreenState)** — baris 1247 — `  void _editRunningText(RunningTextMessage item) {`
+- `method` **_addBanner (_RemoteHomeScreenState)** — baris 1282 — `  void _addBanner(String? base64Image) {`
+- `method` **_removeBanner (_RemoteHomeScreenState)** — baris 1317 — `  void _removeBanner(String id) {`
+- `method` **_toggleBanner (_RemoteHomeScreenState)** — baris 1335 — `  void _toggleBanner(String id, bool val) {`
+- `method` **_sendSideImagesIfConnected (_RemoteHomeScreenState)** — baris 1354 — `  void _sendSideImagesIfConnected() {`
+- `method` **_addSideImage (_RemoteHomeScreenState)** — baris 1363 — `  void _addSideImage(String caption, String base64Image) {`
+- `method` **_removeSideImage (_RemoteHomeScreenState)** — baris 1376 — `  void _removeSideImage(String id) {`
+- `method` **_toggleSideImage (_RemoteHomeScreenState)** — baris 1394 — `  void _toggleSideImage(String id, bool val) {`
+- `method` **_reorderRunningTexts (_RemoteHomeScreenState)** — baris 1409 — `  void _reorderRunningTexts(int oldIndex, int newIndex) {`
+- `method` **_reorderBanners (_RemoteHomeScreenState)** — baris 1418 — `  void _reorderBanners(int oldIndex, int newIndex) {`
+- `method` **_reorderSideImages (_RemoteHomeScreenState)** — baris 1427 — `  void _reorderSideImages(int oldIndex, int newIndex) {`
+- `method` **_editBanner (_RemoteHomeScreenState)** — baris 1438 — `  void _editBanner(MediaBanner banner) {`
+- `method` **_addKasTransaction (_RemoteHomeScreenState)** — baris 1527 — `  void _addKasTransaction() {`
+- `method` **_removeKasTransaction (_RemoteHomeScreenState)** — baris 1554 — `  void _removeKasTransaction(String id) {`
+- `method` **_startBtScan (_RemoteHomeScreenState)** — baris 1572 — `  void _startBtScan() {`
+- `method` **_stopBtScan (_RemoteHomeScreenState)** — baris 1580 — `  void _stopBtScan() {`
+- `method` **_connectBt (_RemoteHomeScreenState)** — baris 1588 — `  void _connectBt(BluetoothDeviceInfo device) {`
+- `method` **_showScheduleSimulation (_RemoteHomeScreenState)** — baris 1598 — `  void _showScheduleSimulation(MosqueConfig formConfig) {`
+- `method` **_formatDurationShort (_RemoteHomeScreenState)** — baris 1743 — `  String _formatDurationShort(Duration? duration) {`
+- `method` **dispose (_RemoteHomeScreenState)** — baris 1751 — `  void dispose() {`
+- `method` **build (_RemoteHomeScreenState)** — baris 1785 — `  Widget build(BuildContext context) {`
+- `method` **_handleDestinationSelected (_RemoteHomeScreenState)** — baris 1989 — `  Future<void> _handleDestinationSelected(int index) async {`
+- `getter` **_transportLabel (_RemoteHomeScreenState)** — baris 2027 — `  String get _transportLabel =>`
+- `method` **_buildConnectionStatusStrip (_RemoteHomeScreenState)** — baris 2032 — `  Widget _buildConnectionStatusStrip(ThemeData theme, ColorScheme colorScheme) {`
+- `method` **_showConnectionSheet (_RemoteHomeScreenState)** — baris 2075 — `  void _showConnectionSheet() {`
+- `method` **_buildDisconnectedBanner (_RemoteHomeScreenState)** — baris 2149 — `  Widget _buildDisconnectedBanner(ThemeData theme, ColorScheme colorScheme) {`
+- `method` **_buildContentTabBar (_RemoteHomeScreenState)** — baris 2176 — `  Widget _buildContentTabBar(ThemeData theme, ColorScheme colorScheme) {`
+- `method` **_buildUnsyncedBanner (_RemoteHomeScreenState)** — baris 2203 — `  Widget _buildUnsyncedBanner(ThemeData theme, ColorScheme colorScheme) {`
+- `class` **MasjidYouRemoteApp** — baris 2231 — `class MasjidYouRemoteApp extends StatefulWidget {`
+- `method` **createState (MasjidYouRemoteApp)** — baris 2235 — `  State<MasjidYouRemoteApp> createState() => _MasjidYouRemoteAppState();`
+- `class` **_MasjidYouRemoteAppState** — baris 2238 — `class _MasjidYouRemoteAppState extends State<MasjidYouRemoteApp> {`
+- `field` **_themeMode (_MasjidYouRemoteAppState)** — baris 2239 — `  ThemeMode _themeMode = ThemeMode.system;`
+- `field` **_colorSource (_MasjidYouRemoteAppState)** — baris 2240 — `  AppColorSource _colorSource = AppColorSource.dynamic;`
+- `method` **initState (_MasjidYouRemoteAppState)** — baris 2243 — `  void initState() {`
+- `method` **_loadThemePreferences (_MasjidYouRemoteAppState)** — baris 2248 — `  Future<void> _loadThemePreferences() async {`
+- `method` **_setThemeMode (_MasjidYouRemoteAppState)** — baris 2258 — `  Future<void> _setThemeMode(ThemeMode mode) async {`
+- `method` **_setColorSource (_MasjidYouRemoteAppState)** — baris 2263 — `  Future<void> _setColorSource(AppColorSource source) async {`
+- `method` **build (_MasjidYouRemoteAppState)** — baris 2269 — `  Widget build(BuildContext context) {`
+- `function` **main** — baris 2305 — `void main() {`
 
 ### `apps/mobile_remote/lib/screens/connection/connection_gateway_screen.dart`
 - `class` **ConnectionGatewayScreen** — baris 4 — `class ConnectionGatewayScreen extends StatelessWidget {`
@@ -181,70 +188,113 @@ Total simbol: **952**
 - `method` **build (ConnectionGatewayScreen)** — baris 30 — `  Widget build(BuildContext context) {`
 
 ### `apps/mobile_remote/lib/screens/content/banners_subtab.dart`
-- `class` **BannersSubtab** — baris 8 — `class BannersSubtab extends StatefulWidget {`
-- `field` **banners (BannersSubtab)** — baris 9 — `  final List<MediaBanner> banners;`
-- `field` **headerController (BannersSubtab)** — baris 10 — `  final TextEditingController headerController;`
-- `field` **titleController (BannersSubtab)** — baris 11 — `  final TextEditingController titleController;`
-- `field` **contentController (BannersSubtab)** — baris 12 — `  final TextEditingController contentController;`
-- `field` **footerController (BannersSubtab)** — baris 13 — `  final TextEditingController footerController;`
-- `method` **createState (BannersSubtab)** — baris 33 — `  State<BannersSubtab> createState() => _BannersSubtabState();`
-- `class` **_BannersSubtabState** — baris 36 — `class _BannersSubtabState extends State<BannersSubtab> {`
-- `field` **_selectedBase64Image (_BannersSubtabState)** — baris 37 — `  String? _selectedBase64Image;`
-- `field` **_imagePreviewFile (_BannersSubtabState)** — baris 38 — `  File? _imagePreviewFile;`
-- `field` **_picker (_BannersSubtabState)** — baris 39 — `  final ImagePicker _picker = ImagePicker();`
-- `method` **_pickImage (_BannersSubtabState)** — baris 41 — `  Future<void> _pickImage() async {`
-- `method` **_clearImage (_BannersSubtabState)** — baris 61 — `  void _clearImage() {`
-- `method` **build (_BannersSubtabState)** — baris 69 — `  Widget build(BuildContext context) {`
-- `class` **_BannerThumbnail** — baris 266 — `class _BannerThumbnail extends StatefulWidget {`
-- `field` **base64Image (_BannerThumbnail)** — baris 267 — `  final String base64Image;`
-- `method` **createState (_BannerThumbnail)** — baris 272 — `  State<_BannerThumbnail> createState() => _BannerThumbnailState();`
-- `class` **_BannerThumbnailState** — baris 275 — `class _BannerThumbnailState extends State<_BannerThumbnail> {`
-- `field` **_cachedImageBytes (_BannerThumbnailState)** — baris 276 — `  late Uint8List _cachedImageBytes;`
-- `method` **initState (_BannerThumbnailState)** — baris 279 — `  void initState() {`
-- `method` **didUpdateWidget (_BannerThumbnailState)** — baris 285 — `  void didUpdateWidget(covariant _BannerThumbnail oldWidget) {`
-- `method` **build (_BannerThumbnailState)** — baris 293 — `  Widget build(BuildContext context) {`
+- `class` **BannersSubtab** — baris 13 — `class BannersSubtab extends StatelessWidget {`
+- `field` **banners (BannersSubtab)** — baris 14 — `  final List<MediaBanner> banners;`
+- `field` **headerController (BannersSubtab)** — baris 15 — `  final TextEditingController headerController;`
+- `field` **titleController (BannersSubtab)** — baris 16 — `  final TextEditingController titleController;`
+- `field` **contentController (BannersSubtab)** — baris 17 — `  final TextEditingController contentController;`
+- `field` **footerController (BannersSubtab)** — baris 18 — `  final TextEditingController footerController;`
+- `method` **_openAddDialog (BannersSubtab)** — baris 41 — `  void _openAddDialog(BuildContext context) {`
+- `method` **build (BannersSubtab)** — baris 57 — `  Widget build(BuildContext context) {`
+- `class` **_AddBannerDialog** — baris 170 — `class _AddBannerDialog extends StatefulWidget {`
+- `field` **headerController (_AddBannerDialog)** — baris 179 — `  final TextEditingController headerController;`
+- `field` **titleController (_AddBannerDialog)** — baris 180 — `  final TextEditingController titleController;`
+- `field` **contentController (_AddBannerDialog)** — baris 181 — `  final TextEditingController contentController;`
+- `field` **footerController (_AddBannerDialog)** — baris 182 — `  final TextEditingController footerController;`
+- `method` **createState (_AddBannerDialog)** — baris 186 — `  State<_AddBannerDialog> createState() => _AddBannerDialogState();`
+- `class` **_AddBannerDialogState** — baris 189 — `class _AddBannerDialogState extends State<_AddBannerDialog> {`
+- `field` **_selectedBase64Image (_AddBannerDialogState)** — baris 190 — `  String? _selectedBase64Image;`
+- `field` **_imagePreviewFile (_AddBannerDialogState)** — baris 191 — `  File? _imagePreviewFile;`
+- `field` **_picker (_AddBannerDialogState)** — baris 192 — `  final ImagePicker _picker = ImagePicker();`
+- `method` **_pickImage (_AddBannerDialogState)** — baris 194 — `  Future<void> _pickImage() async {`
+- `method` **_clearImage (_AddBannerDialogState)** — baris 214 — `  void _clearImage() {`
+- `method` **_save (_AddBannerDialogState)** — baris 221 — `  void _save() {`
+- `method` **build (_AddBannerDialogState)** — baris 227 — `  Widget build(BuildContext context) {`
+- `class` **_BannerThumbnail** — baris 351 — `class _BannerThumbnail extends StatefulWidget {`
+- `field` **base64Image (_BannerThumbnail)** — baris 352 — `  final String base64Image;`
+- `method` **createState (_BannerThumbnail)** — baris 357 — `  State<_BannerThumbnail> createState() => _BannerThumbnailState();`
+- `class` **_BannerThumbnailState** — baris 360 — `class _BannerThumbnailState extends State<_BannerThumbnail> {`
+- `field` **_cachedImageBytes (_BannerThumbnailState)** — baris 361 — `  late Uint8List _cachedImageBytes;`
+- `method` **initState (_BannerThumbnailState)** — baris 364 — `  void initState() {`
+- `method` **didUpdateWidget (_BannerThumbnailState)** — baris 370 — `  void didUpdateWidget(covariant _BannerThumbnail oldWidget) {`
+- `method` **build (_BannerThumbnailState)** — baris 378 — `  Widget build(BuildContext context) {`
 
 ### `apps/mobile_remote/lib/screens/content/kas_subtab.dart`
-- `class` **KasSubtab** — baris 7 — `class KasSubtab extends StatelessWidget {`
-- `field` **transactions (KasSubtab)** — baris 8 — `  final List<KasTransaction> transactions;`
-- `field` **amountController (KasSubtab)** — baris 9 — `  final TextEditingController amountController;`
-- `field` **descriptionController (KasSubtab)** — baris 10 — `  final TextEditingController descriptionController;`
-- `field` **kasType (KasSubtab)** — baris 11 — `  final KasType kasType;`
-- `field` **onAddTransaction (KasSubtab)** — baris 13 — `  final VoidCallback onAddTransaction;`
-- `method` **build (KasSubtab)** — baris 28 — `  Widget build(BuildContext context) {`
+- `class` **KasSubtab** — baris 12 — `class KasSubtab extends StatelessWidget {`
+- `field` **transactions (KasSubtab)** — baris 13 — `  final List<KasTransaction> transactions;`
+- `field` **amountController (KasSubtab)** — baris 14 — `  final TextEditingController amountController;`
+- `field` **descriptionController (KasSubtab)** — baris 15 — `  final TextEditingController descriptionController;`
+- `field` **kasType (KasSubtab)** — baris 16 — `  final KasType kasType;`
+- `field` **onAddTransaction (KasSubtab)** — baris 18 — `  final VoidCallback onAddTransaction;`
+- `method` **_openAddDialog (KasSubtab)** — baris 32 — `  void _openAddDialog(BuildContext context) {`
+- `method` **build (KasSubtab)** — baris 48 — `  Widget build(BuildContext context) {`
+- `class` **_AddKasDialog** — baris 173 — `class _AddKasDialog extends StatefulWidget {`
+- `field` **amountController (_AddKasDialog)** — baris 182 — `  final TextEditingController amountController;`
+- `field` **descriptionController (_AddKasDialog)** — baris 183 — `  final TextEditingController descriptionController;`
+- `field` **kasType (_AddKasDialog)** — baris 184 — `  final KasType kasType;`
+- `field` **onTypeChanged (_AddKasDialog)** — baris 185 — `  final ValueChanged<KasType> onTypeChanged;`
+- `field` **onAddTransaction (_AddKasDialog)** — baris 186 — `  final VoidCallback onAddTransaction;`
+- `method` **createState (_AddKasDialog)** — baris 189 — `  State<_AddKasDialog> createState() => _AddKasDialogState();`
+- `class` **_AddKasDialogState** — baris 192 — `class _AddKasDialogState extends State<_AddKasDialog> {`
+- `field` **_type (_AddKasDialogState)** — baris 193 — `  late KasType _type;`
+- `method` **initState (_AddKasDialogState)** — baris 196 — `  void initState() {`
+- `method` **_canSave (_AddKasDialogState)** — baris 201 — `  bool _canSave(String amountText, String descriptionText) {`
+- `method` **_save (_AddKasDialogState)** — baris 206 — `  void _save() {`
+- `method` **build (_AddKasDialogState)** — baris 213 — `  Widget build(BuildContext context) {`
 
 ### `apps/mobile_remote/lib/screens/content/running_text_subtab.dart`
-- `class` **RunningTextSubtab** — baris 4 — `class RunningTextSubtab extends StatelessWidget {`
-- `field` **runningTexts (RunningTextSubtab)** — baris 5 — `  final List<RunningTextMessage> runningTexts;`
-- `field` **runningTextController (RunningTextSubtab)** — baris 6 — `  final TextEditingController runningTextController;`
-- `field` **selectedCategory (RunningTextSubtab)** — baris 7 — `  final String selectedCategory;`
-- `field` **categories (RunningTextSubtab)** — baris 8 — `  final List<String> categories;`
-- `field` **onAddMessage (RunningTextSubtab)** — baris 10 — `  final VoidCallback onAddMessage;`
-- `method` **build (RunningTextSubtab)** — baris 27 — `  Widget build(BuildContext context) {`
+- `class` **RunningTextSubtab** — baris 9 — `class RunningTextSubtab extends StatelessWidget {`
+- `field` **runningTexts (RunningTextSubtab)** — baris 10 — `  final List<RunningTextMessage> runningTexts;`
+- `field` **runningTextController (RunningTextSubtab)** — baris 11 — `  final TextEditingController runningTextController;`
+- `field` **selectedCategory (RunningTextSubtab)** — baris 12 — `  final String selectedCategory;`
+- `field` **categories (RunningTextSubtab)** — baris 13 — `  final List<String> categories;`
+- `field` **onAddMessage (RunningTextSubtab)** — baris 15 — `  final VoidCallback onAddMessage;`
+- `method` **_openAddDialog (RunningTextSubtab)** — baris 35 — `  void _openAddDialog(BuildContext context) {`
+- `method` **build (RunningTextSubtab)** — baris 52 — `  Widget build(BuildContext context) {`
+- `class` **_OrderNumber** — baris 110 — `class _OrderNumber extends StatelessWidget {`
+- `constructor` **_OrderNumber (_OrderNumber)** — baris 111 — `  const _OrderNumber(this.number);`
+- `field` **number (_OrderNumber)** — baris 113 — `  final int number;`
+- `method` **build (_OrderNumber)** — baris 116 — `  Widget build(BuildContext context) {`
+- `class` **RunningTextFormDialog** — baris 141 — `class RunningTextFormDialog extends StatefulWidget {`
+- `field` **title (RunningTextFormDialog)** — baris 152 — `  final String title;`
+- `field` **textController (RunningTextFormDialog)** — baris 153 — `  final TextEditingController textController;`
+- `field` **category (RunningTextFormDialog)** — baris 154 — `  final String category;`
+- `field` **categories (RunningTextFormDialog)** — baris 155 — `  final List<String> categories;`
+- `field` **onCategoryChanged (RunningTextFormDialog)** — baris 156 — `  final ValueChanged<String> onCategoryChanged;`
+- `field` **onSave (RunningTextFormDialog)** — baris 157 — `  final VoidCallback onSave;`
+- `method` **createState (RunningTextFormDialog)** — baris 160 — `  State<RunningTextFormDialog> createState() => RunningTextFormDialogState();`
+- `class` **RunningTextFormDialogState** — baris 163 — `class RunningTextFormDialogState extends State<RunningTextFormDialog> {`
+- `field` **_category (RunningTextFormDialogState)** — baris 164 — `  late String _category;`
+- `method` **initState (RunningTextFormDialogState)** — baris 167 — `  void initState() {`
+- `method` **_save (RunningTextFormDialogState)** — baris 172 — `  void _save() {`
+- `method` **build (RunningTextFormDialogState)** — baris 179 — `  Widget build(BuildContext context) {`
 
 ### `apps/mobile_remote/lib/screens/content/special_images_subtab.dart`
-- `class` **SpecialImagesSubtab** — baris 15 — `class SpecialImagesSubtab extends StatefulWidget {`
-- `field` **images (SpecialImagesSubtab)** — baris 16 — `  final List<SpecialImage> images;`
-- `method` **createState (SpecialImagesSubtab)** — baris 34 — `  State<SpecialImagesSubtab> createState() => _SpecialImagesSubtabState();`
-- `class` **_SpecialImagesSubtabState** — baris 37 — `class _SpecialImagesSubtabState extends State<SpecialImagesSubtab> {`
-- `field` **_captionController (_SpecialImagesSubtabState)** — baris 38 — `  final _captionController = TextEditingController();`
-- `field` **_selectedBase64Image (_SpecialImagesSubtabState)** — baris 39 — `  String? _selectedBase64Image;`
-- `field` **_imagePreviewFile (_SpecialImagesSubtabState)** — baris 40 — `  File? _imagePreviewFile;`
-- `field` **_picker (_SpecialImagesSubtabState)** — baris 41 — `  final ImagePicker _picker = ImagePicker();`
-- `method` **dispose (_SpecialImagesSubtabState)** — baris 44 — `  void dispose() {`
-- `method` **_pickImage (_SpecialImagesSubtabState)** — baris 49 — `  Future<void> _pickImage() async {`
-- `method` **_clearImage (_SpecialImagesSubtabState)** — baris 69 — `  void _clearImage() {`
-- `method` **_submit (_SpecialImagesSubtabState)** — baris 76 — `  void _submit() {`
-- `method` **build (_SpecialImagesSubtabState)** — baris 85 — `  Widget build(BuildContext context) {`
-- `class` **_SpecialImageThumbnail** — baris 269 — `class _SpecialImageThumbnail extends StatefulWidget {`
-- `field` **base64Image (_SpecialImageThumbnail)** — baris 270 — `  final String base64Image;`
-- `method` **createState (_SpecialImageThumbnail)** — baris 275 — `  State<_SpecialImageThumbnail> createState() => _SpecialImageThumbnailState();`
-- `class` **_SpecialImageThumbnailState** — baris 278 — `class _SpecialImageThumbnailState extends State<_SpecialImageThumbnail> {`
-- `field` **_cachedImageBytes (_SpecialImageThumbnailState)** — baris 279 — `  Uint8List? _cachedImageBytes;`
-- `method` **initState (_SpecialImageThumbnailState)** — baris 282 — `  void initState() {`
-- `method` **didUpdateWidget (_SpecialImageThumbnailState)** — baris 288 — `  void didUpdateWidget(covariant _SpecialImageThumbnail oldWidget) {`
-- `method` **_decode (_SpecialImageThumbnailState)** — baris 295 — `  void _decode() {`
-- `method` **build (_SpecialImageThumbnailState)** — baris 304 — `  Widget build(BuildContext context) {`
+- `class` **SpecialImagesSubtab** — baris 18 — `class SpecialImagesSubtab extends StatelessWidget {`
+- `field` **images (SpecialImagesSubtab)** — baris 19 — `  final List<SpecialImage> images;`
+- `method` **_openAddDialog (SpecialImagesSubtab)** — baris 36 — `  void _openAddDialog(BuildContext context) {`
+- `method` **build (SpecialImagesSubtab)** — baris 46 — `  Widget build(BuildContext context) {`
+- `class` **_AddImageDialog** — baris 150 — `class _AddImageDialog extends StatefulWidget {`
+- `method` **createState (_AddImageDialog)** — baris 156 — `  State<_AddImageDialog> createState() => _AddImageDialogState();`
+- `class` **_AddImageDialogState** — baris 159 — `class _AddImageDialogState extends State<_AddImageDialog> {`
+- `field` **_captionController (_AddImageDialogState)** — baris 160 — `  final _captionController = TextEditingController();`
+- `field` **_selectedBase64Image (_AddImageDialogState)** — baris 161 — `  String? _selectedBase64Image;`
+- `field` **_imagePreviewFile (_AddImageDialogState)** — baris 162 — `  File? _imagePreviewFile;`
+- `field` **_picker (_AddImageDialogState)** — baris 163 — `  final ImagePicker _picker = ImagePicker();`
+- `method` **dispose (_AddImageDialogState)** — baris 166 — `  void dispose() {`
+- `method` **_pickImage (_AddImageDialogState)** — baris 171 — `  Future<void> _pickImage() async {`
+- `method` **_clearImage (_AddImageDialogState)** — baris 191 — `  void _clearImage() {`
+- `method` **_save (_AddImageDialogState)** — baris 198 — `  void _save() {`
+- `method` **build (_AddImageDialogState)** — baris 206 — `  Widget build(BuildContext context) {`
+- `class` **_SpecialImageThumbnail** — baris 305 — `class _SpecialImageThumbnail extends StatefulWidget {`
+- `field` **base64Image (_SpecialImageThumbnail)** — baris 306 — `  final String base64Image;`
+- `method` **createState (_SpecialImageThumbnail)** — baris 311 — `  State<_SpecialImageThumbnail> createState() => _SpecialImageThumbnailState();`
+- `class` **_SpecialImageThumbnailState** — baris 314 — `class _SpecialImageThumbnailState extends State<_SpecialImageThumbnail> {`
+- `field` **_cachedImageBytes (_SpecialImageThumbnailState)** — baris 315 — `  Uint8List? _cachedImageBytes;`
+- `method` **initState (_SpecialImageThumbnailState)** — baris 318 — `  void initState() {`
+- `method` **didUpdateWidget (_SpecialImageThumbnailState)** — baris 324 — `  void didUpdateWidget(covariant _SpecialImageThumbnail oldWidget) {`
+- `method` **_decode (_SpecialImageThumbnailState)** — baris 331 — `  void _decode() {`
+- `method` **build (_SpecialImageThumbnailState)** — baris 340 — `  Widget build(BuildContext context) {`
 
 ### `apps/mobile_remote/lib/screens/home/home_tab.dart`
 - `function` **tvPhaseLabel** — baris 10 — `String tvPhaseLabel(PrayerPhase phase) => switch (phase) {`
@@ -424,6 +474,15 @@ Total simbol: **952**
 - `method` **loadColorSource (ThemePreferences)** — baris 34 — `  static Future<AppColorSource> loadColorSource() async {`
 - `method` **saveMode (ThemePreferences)** — baris 43 — `  static Future<void> saveMode(ThemeMode mode) async {`
 - `method` **saveColorSource (ThemePreferences)** — baris 48 — `  static Future<void> saveColorSource(AppColorSource source) async {`
+
+### `apps/mobile_remote/lib/widgets/editor_empty_state.dart`
+- `class` **EditorEmptyState** — baris 6 — `class EditorEmptyState extends StatelessWidget {`
+- `field` **icon (EditorEmptyState)** — baris 16 — `  final IconData icon;`
+- `field` **title (EditorEmptyState)** — baris 17 — `  final String title;`
+- `field` **message (EditorEmptyState)** — baris 18 — `  final String message;`
+- `field` **actionLabel (EditorEmptyState)** — baris 19 — `  final String actionLabel;`
+- `field` **onAction (EditorEmptyState)** — baris 20 — `  final VoidCallback onAction;`
+- `method` **build (EditorEmptyState)** — baris 23 — `  Widget build(BuildContext context) {`
 
 ### `apps/mobile_remote/lib/widgets/kas_stat_card.dart`
 - `class` **KasStatCard** — baris 3 — `class KasStatCard extends StatelessWidget {`
