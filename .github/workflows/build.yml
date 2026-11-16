@@ -65,6 +65,65 @@ jobs:
           path: apps/${{ matrix.app }}/build/app/outputs/flutter-apk/${{ matrix.app }}-arm64-v8a.apk
           retention-days: 14
 
+  build-android-x64:
+    name: Build ${{ matrix.app }} (x86_64)
+    # APK x86_64 hanya untuk tes di emulator Intel (PR / manual), tidak ikut release.
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [tv_display, mobile_remote]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.4'
+          channel: stable
+
+      - name: Accept Android SDK licenses
+        run: |
+          yes | sdkmanager --licenses 2>/dev/null || true
+
+      - name: Cache pub get
+        uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache
+          key: ${{ runner.os }}-flutter-pub-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-flutter-pub-
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Build ${{ matrix.app }} APK (x86_64)
+        working-directory: apps/${{ matrix.app }}
+        run: |
+          flutter build apk \
+            --release \
+            --target-platform=android-x64
+
+      - name: Rename APK for unique artifact name
+        run: |
+          mv apps/${{ matrix.app }}/build/app/outputs/flutter-apk/app-release.apk \
+             apps/${{ matrix.app }}/build/app/outputs/flutter-apk/${{ matrix.app }}-x86_64.apk
+
+      - name: Upload ${{ matrix.app }} artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.app }}-apk-x86_64
+          path: apps/${{ matrix.app }}/build/app/outputs/flutter-apk/${{ matrix.app }}-x86_64.apk
+          retention-days: 14
+
   create-release:
     name: Create GitHub Release
     needs: build-android
