@@ -22,38 +22,6 @@ Future<void> _pump(WidgetTester tester, HeaderClock header) async {
 const _config = MosqueConfig(name: 'Test Masjid', address: 'Jl. Test');
 
 void main() {
-  testWidgets('chip Mode Direct tampil dengan SSID saat hotspot aktif',
-      (tester) async {
-    await _pump(
-      tester,
-      HeaderClock(
-        config: _config,
-        currentTime: DateTime(2026, 9, 12, 19, 16),
-        p2pActive: true,
-        p2pSsid: 'AndroidAP-ABC',
-        p2pIp: '10.111.222.1',
-      ),
-    );
-    expect(find.textContaining('Mode Direct: AndroidAP-ABC'), findsOneWidget);
-    expect(find.textContaining('10.111.222.1'), findsOneWidget);
-    expect(find.byIcon(Icons.wifi_tethering), findsOneWidget);
-  });
-
-  testWidgets(
-      'saat P2P nonaktif, chip Mode Direct tidak tampil',
-      (tester) async {
-    await _pump(
-      tester,
-      HeaderClock(
-        config: _config,
-        currentTime: DateTime(2026, 9, 12, 19, 16),
-        p2pError: true,
-        p2pStatus: 'Mode Direct: nonaktif',
-      ),
-    );
-    expect(find.textContaining('Mode Direct'), findsNothing);
-  });
-
   testWidgets('nama & alamat masjid tetap tampil tanpa chip status',
       (tester) async {
     await _pump(

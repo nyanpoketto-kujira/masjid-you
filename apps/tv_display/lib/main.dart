@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:shared_models/shared_models.dart';
-import 'package:flutter_p2p_connection/flutter_p2p_connection.dart';
 
 import 'theme/app_theme.dart';
 import 'widgets/header_clock.dart';
@@ -20,7 +19,6 @@ import 'widgets/admin_menu_overlay.dart';
 import 'state/prayer_state_machine.dart';
 import 'state/tv_store.dart';
 import 'server/local_ws_server.dart';
-import 'server/p2p_host_service.dart';
 import 'server/bluetooth_host_service.dart';
 
 void main() async {
@@ -70,16 +68,10 @@ class MasjidDisplayScreen extends StatefulWidget {
   State<MasjidDisplayScreen> createState() => _MasjidDisplayScreenState();
 }
 
-enum P2pMode { pending, directFull, directIpOnly }
-
 class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
   DateTime _now = DateTime.now();
   Timer? _clockTimer;
   LocalServer? _localServer;
-  final P2pHostService _p2pHost = P2pHostService();
-  HotspotHostState? _p2pState;
-  P2pMode _p2pMode = P2pMode.pending;
-
   /// Host Bluetooth Classic (RFCOMM) — jalur sync langsung tanpa router.
   BluetoothHostService? _btHost;
   BluetoothHostState? _btState;
@@ -220,194 +212,10 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
     }
 
     await _initLocalServer();
-    // Jalur WiFi Direct mentok di beberapa perangkat Samsung Android 16
-    // (EPERM socket transport) -> dan jalur utama sync langsung ialah
-    // Bluetooth Classic. Kode `_initP2pHost` masih ada agar bisa di-siap
-    // ulang di perangkat yang mendukungnya.
-    //
     // Bluetooth HOST TIDAK dimulai di sini. Koneksi hanya aktif setelah
     // admin menyalakan toggle di menu admin (lihat `_toggleBluetooth`),
     // agar tidak ada popup discoverable sistem saat app pertama dibuka.
     await _initBluetoothHost();
-  }
-
-  int _androidSdkVersion() {
-    if (!Platform.isAndroid) return 0;
-    final match = RegExp(r'SDK\s+(\d+)').firstMatch(Platform.operatingSystemVersion);
-    if (match != null) {
-      return int.tryParse(match.group(1) ?? '') ?? 0;
-    }
-    return 0;
-  }
-
-  // Menginggi-bo untuk perangkat yang mendukung WiFi Direct
-  // (lihat catatan di initState). Di perangkat Samsung Android 16 jalur ini
-  // mentok (EPERM), jadi nonaktif secara default.
-  // ignore: unused_element
-  Future<void> _initP2pHost() async {
-    _p2pHost.stateStream.listen((state) {
-      if (mounted) {
-        setState(() {
-          _p2pState = state;
-        });
-      }
-    }, onError: (error) {
-      // Handle P2P host errors gracefully
-      debugPrint('P2P Host error: $error');
-      if (mounted) {
-        setState(() {
-          _p2pState = null;
-        });
-      }
-    });
-
-    try {
-      final reqs = await _p2pHost.checkPrerequisites();
-      if (!mounted) return;
-
-      final locationRequired = !kIsWeb && Platform.isAndroid && _androidSdkVersion() < 31;
-
-      if (reqs.isReady(locationRequired: locationRequired)) {
-        await _p2pHost.start();
-        if (mounted) {
-          setState(() {
-            _p2pMode = P2pMode.directFull;
-          });
-        }
-      } else {
-        _showP2pPrereqDialog(reqs);
-      }
-    } catch (e) {
-      debugPrint('Failed to start P2P host: $e');
-      if (mounted) {
-        setState(() {
-          _p2pMode = P2pMode.directIpOnly;
-        });
-      }
-    }
-  }
-
-  void _showP2pPrereqDialog(P2pPrerequisites reqs) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        icon: Icon(Icons.wifi_tethering,
-            size: 48, color: Theme.of(context).colorScheme.primary),
-        title: const Text('WiFi Direct Belum Siap'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Beberapa fitur belum aktif untuk menjalankan mode sync '
-              'otomatis (WiFi Direct).',
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-            const SizedBox(height: 16),
-            _prereqRow('Wi-Fi', reqs.wifiEnabled),
-            _prereqRow('Bluetooth', reqs.bluetoothEnabled),
-            _prereqRow('Lokasi (GPS)', reqs.locationEnabled),
-            _prereqRow('Izin Perangkat', reqs.allPermissionsGranted),
-          ],
-        ),
-        actions: [
-          OutlinedButton(
-            onPressed: () {
-              Navigator.of(ctx).pop();
-              setState(() { _p2pMode = P2pMode.directIpOnly; });
-            },
-            child: const Text('Mode IP Saja'),
-          ),
-          FilledButton(
-            onPressed: () async {
-              Navigator.of(ctx).pop();
-              await _enableAllP2pServices();
-            },
-            child: const Text('Aktifkan & Mulai'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _prereqRow(String label, bool enabled) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        children: [
-          Icon(
-            enabled ? Icons.check_circle : Icons.cancel,
-            color: enabled ? Colors.green : Colors.red,
-            size: 20,
-          ),
-          const SizedBox(width: 8),
-          Text(label),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _enableAllP2pServices() async {
-    // Tampilkan panduan singkat agar user tahu harus menyalakan layanan dan kembali menggunakan tombol BACK
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Row(
-            children: [
-              Icon(Icons.info_outline, color: Colors.white),
-              SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  'Membuka Pengaturan. Silakan aktifkan layanan (Wi-Fi, Bluetooth, atau Lokasi) '
-                  'yang diminta, lalu tekan tombol BACK pada remote TV Anda jika sudah selesai.',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-              ),
-            ],
-          ),
-          backgroundColor: Theme.of(context).colorScheme.primary,
-          duration: const Duration(seconds: 10),
-          behavior: SnackBarBehavior.floating,
-          margin: const EdgeInsets.all(16),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        ),
-      );
-    }
-
-    // Tunggu SnackBar muncul sebentar sebelum mengalihkan layar
-    await Future.delayed(const Duration(seconds: 2));
-
-    // Minta izin sistem (P2P + Bluetooth) dulu, baru hidupkan layanan yang mati.
-    await _p2pHost.askPermissionsIfNeeded();
-    await _p2pHost.enableWifiIfNeeded();
-    await _p2pHost.enableBluetoothIfNeeded();
-    await _p2pHost.enableLocationIfNeeded();
-
-    if (!mounted) return;
-    final reqs = await _p2pHost.checkPrerequisites();
-    final locationRequired = !kIsWeb && Platform.isAndroid && _androidSdkVersion() < 31;
-    if (reqs.isReady(locationRequired: locationRequired)) {
-      try {
-        await _p2pHost.start();
-        if (mounted) {
-          setState(() { _p2pMode = P2pMode.directFull; });
-          ScaffoldMessenger.of(context).hideCurrentSnackBar();
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('WiFi Direct berhasil aktif!'),
-              backgroundColor: Colors.green,
-            ),
-          );
-        }
-      } catch (e) {
-        debugPrint('P2P start failed after enable: $e');
-        if (mounted) {
-          setState(() { _p2pMode = P2pMode.directIpOnly; });
-        }
-      }
-    } else {
-      if (mounted) _showP2pPrereqDialog(reqs);
-    }
   }
 
   void _recalculateSchedule() {
@@ -621,7 +429,6 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
     _btStateSub?.cancel();
     _btStateSub = null;
     _btHost?.stop();
-    _p2pHost.stop();
     super.dispose();
   }
 
@@ -709,9 +516,6 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
                         HeaderClock(
                           config: _config,
                           currentTime: _now,
-                          p2pActive: _p2pMode == P2pMode.directFull && (_p2pState?.isActive ?? false),
-                          p2pSsid: _p2pMode == P2pMode.directFull ? _p2pState?.ssid : null,
-                          p2pIp: _p2pMode == P2pMode.directFull ? _p2pState?.hostIpAddress : null,
                         ),
 
                         const SizedBox(height: 6),

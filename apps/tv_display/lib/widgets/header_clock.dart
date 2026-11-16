@@ -8,29 +8,10 @@ class HeaderClock extends StatelessWidget {
   final MosqueConfig config;
   final DateTime currentTime;
 
-  /// Mode Direct (WiFi Direct) aktif — hotspot benar-benar menyala.
-  final bool p2pActive;
-
-  /// True bila Mode Direct gagal/nonaktif (P2pMode.directIpOnly) ->
-  /// chip tampil sebagai peringatan berwarna error.
-  final bool p2pError;
-  final String? p2pSsid;
-  final String? p2pIp;
-
-  /// Teks status Mode Direct saat hotspot belum aktif (menyiapkan/gagal).
-  /// Chip P2P tampil bila [p2pSsid] ATAU [p2pStatus] tidak null — sehingga
-  /// kegagalan/mode IP Saja tetap terlihat di TV, bukan hilang diam-diam.
-  final String? p2pStatus;
-
   const HeaderClock({
     super.key,
     required this.config,
     required this.currentTime,
-    this.p2pActive = false,
-    this.p2pError = false,
-    this.p2pSsid,
-    this.p2pIp,
-    this.p2pStatus,
   });
 
   @override
@@ -45,17 +26,6 @@ class HeaderClock extends StatelessWidget {
     } catch (_) {
       dateFormat = DateFormat('EEEE, d MMMM yyyy');
     }
-
-    // Chip P2P (WiFi Direct) tampil SAAT hotspot benar-benar aktif.
-    late String p2pChipLabel;
-    if (p2pActive && p2pSsid != null) {
-      p2pChipLabel = 'Mode Direct: $p2pSsid (${p2pIp ?? '-'})';
-    } else {
-      p2pChipLabel = p2pStatus ?? 'Mode Direct: menyiapkan...';
-    }
-    final p2pChipColor = p2pActive
-        ? colorScheme.tertiary
-        : (p2pError ? colorScheme.error : colorScheme.onSurfaceVariant);
 
     return Card(
       color: colorScheme.surfaceContainer,
@@ -95,27 +65,6 @@ class HeaderClock extends StatelessWidget {
                       fontSize: 18,
                     ),
                   ),
-                  if (p2pActive && p2pSsid != null) ...[
-                    const SizedBox(height: 6),
-                    SizedBox(
-                      height: 28,
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        alignment: Alignment.centerLeft,
-                        child: ActionChip(
-                          onPressed: () {}, // Display only chip
-                          label: Text(p2pChipLabel),
-                          avatar: Icon(
-                            Icons.wifi_tethering,
-                            size: 16,
-                            color: p2pChipColor,
-                          ),
-                          padding: EdgeInsets.zero,
-                          visualDensity: VisualDensity.compact,
-                        ),
-                      ),
-                    ),
-                  ]
                 ],
               ),
             ),

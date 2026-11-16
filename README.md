@@ -30,14 +30,11 @@ Sistem Tampilan Masjid (TV Kiosk) + Remote HP pendamping — monorepo Flutter, b
 | `apps/tv_display` | ✅ bersih | ✅ 43 pass | ✅ debug APK sukses |
 | `apps/mobile_remote` | ✅ bersih | ✅ 25 pass | ✅ debug APK sukses |
 
-> [!NOTE]
-> Build release memunculkan warning **Kotlin Gradle Plugin** dari `flutter_p2p_connection` (plugin belum mendukung Built-in Kotlin). Plugin ini masih terdaftar di `apps/tv_display` untuk kode WiFi Direct yang dormant (tidak aktif), jadi warning-nya masih muncul. Saat ini hanya warning — versi Flutter mendatang akan gagal build jika plugin tidak di-upgrade atau dicabut.
-
 ## Fitur Utama
 
 - Sinkronisasi lokal via **WebSocket** (`ws://<ip-TV>:8080`) — tanpa cloud.
 - Koneksi **Bluetooth Classic (RFCOMM)** via `packages/bluetooth_sync` — jalur sync utama tanpa router. Host di TV diaktifkan lewat toggle menu admin (bukan auto-start), discoverable (re-arm tiap 110 detik), dan diamankan PIN challenge-response; Remote scan lalu sambung.
-- **WiFi Direct saat ini tidak dipakai.** Jalurnya sudah tidak dibawa `mobile_remote`, dan kode host-nya di `tv_display` (`P2pHostService` / `P2pMode`) masih ada tapi dormant — tidak dimulai secara default karena mentok di beberapa perangkat (mis. Samsung Android 16). Jalur tanpa router yang aktif adalah Bluetooth Classic di atas.
+- **WiFi Direct sudah dicabut.** Jalurnya tidak dibawa `mobile_remote`, dan kode host-nya di `tv_display` (`P2pHostService` / `P2pMode`) sudah dihapus. Jalur tanpa router yang aktif adalah Bluetooth Classic di atas.
 - Jadwal sholat **offline** dari koordinat (manual / GPS), dengan offset per sholat & simulasi.
 - Indikator **Unsaved Changes** + tombol "Kirim Ke TV" di Remote.
 - Fallback UI saat konten kosong (banner "Jagalah Shaf", running text "Tidak ada informasi").
