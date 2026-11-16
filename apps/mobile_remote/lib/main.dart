@@ -1058,7 +1058,7 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
     setState(() {
       _hasUnsyncedChanges = false;
     });
-    _showSnack('Semua data berhasil dikirim ke TV!');
+    _showSnack('Tersimpan & ditampilkan di TV');
   }
 
   void _sendConfigUpdate() {
@@ -1071,12 +1071,12 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
       setState(() {
         _hasUnsyncedChanges = false;
       });
-      _showSnack('Pengaturan berhasil diperbarui di TV!');
+      _showSnack('Tersimpan & ditampilkan di TV');
     } else {
       setState(() {
         _hasUnsyncedChanges = true;
       });
-      _showSnack('Pengaturan disimpan lokal (belum dikirim).');
+      _showSnack('Tersimpan di HP — TV belum terhubung');
     }
     // Config tersimpan == isi form: tidak ada lagi perubahan tertunda.
     if (_settingsDirty) {

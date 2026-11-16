@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-16T15:57:22.669488",
+  "generatedAt": "2026-11-16T16:01:40.962191",
   "roots": [
     "apps/tv_display/lib",
     "apps/mobile_remote/lib",
@@ -1788,14 +1788,14 @@
       "kind": "class",
       "name": "_OrderNumber",
       "file": "apps/mobile_remote/lib/screens/content/running_text_subtab.dart",
-      "line": 110,
+      "line": 113,
       "signature": "class _OrderNumber extends StatelessWidget {"
     },
     {
       "kind": "constructor",
       "name": "_OrderNumber",
       "file": "apps/mobile_remote/lib/screens/content/running_text_subtab.dart",
-      "line": 111,
+      "line": 114,
       "parent": "_OrderNumber",
       "signature": "  const _OrderNumber(this.number);"
     },
@@ -1803,7 +1803,7 @@
       "kind": "field",
       "name": "number",
       "file": "apps/mobile_remote/lib/screens/content/running_text_subtab.dart",
-      "line": 113,
+      "line": 116,
       "parent": "_OrderNumber",
       "signature": "  final int number;"
     },
@@ -1811,7 +1811,7 @@
       "kind": "method",
       "name": "build",
       "file": "apps/mobile_remote/lib/screens/content/running_text_subtab.dart",
-      "line": 116,
+      "line": 119,
       "parent": "_OrderNumber",
       "signature": "  Widget build(BuildContext context) {"
     },
@@ -1819,14 +1819,14 @@
       "kind": "class",
       "name": "RunningTextFormDialog",
       "file": "apps/mobile_remote/lib/screens/content/running_text_subtab.dart",
-      "line": 141,
+      "line": 144,
       "signature": "class RunningTextFormDialog extends StatefulWidget {"
     },
     {
       "kind": "field",
       "name": "title",
       "file": "apps/mobile_remote/lib/screens/content/running_text_subtab.dart",
-      "line": 152,
+      "line": 155,
       "parent": "RunningTextFormDialog",
       "signature": "  final String title;"
     },
@@ -1834,7 +1834,7 @@
       "kind": "field",
       "name": "textController",
       "file": "apps/mobile_remote/lib/screens/content/running_text_subtab.dart",
-      "line": 153,
+      "line": 156,
       "parent": "RunningTextFormDialog",
       "signature": "  final TextEditingController textController;"
     },
@@ -1842,7 +1842,7 @@
       "kind": "field",
       "name": "category",
       "file": "apps/mobile_remote/lib/screens/content/running_text_subtab.dart",
-      "line": 154,
+      "line": 157,
       "parent": "RunningTextFormDialog",
       "signature": "  final String category;"
     },
@@ -1850,7 +1850,7 @@
       "kind": "field",
       "name": "categories",
       "file": "apps/mobile_remote/lib/screens/content/running_text_subtab.dart",
-      "line": 155,
+      "line": 158,
       "parent": "RunningTextFormDialog",
       "signature": "  final List<String> categories;"
     },
@@ -1858,7 +1858,7 @@
       "kind": "field",
       "name": "onCategoryChanged",
       "file": "apps/mobile_remote/lib/screens/content/running_text_subtab.dart",
-      "line": 156,
+      "line": 159,
       "parent": "RunningTextFormDialog",
       "signature": "  final ValueChanged<String> onCategoryChanged;"
     },
@@ -1866,7 +1866,7 @@
       "kind": "field",
       "name": "onSave",
       "file": "apps/mobile_remote/lib/screens/content/running_text_subtab.dart",
-      "line": 157,
+      "line": 160,
       "parent": "RunningTextFormDialog",
       "signature": "  final VoidCallback onSave;"
     },
@@ -1874,7 +1874,7 @@
       "kind": "method",
       "name": "createState",
       "file": "apps/mobile_remote/lib/screens/content/running_text_subtab.dart",
-      "line": 160,
+      "line": 163,
       "parent": "RunningTextFormDialog",
       "signature": "  State<RunningTextFormDialog> createState() => RunningTextFormDialogState();"
     },
@@ -1882,14 +1882,14 @@
       "kind": "class",
       "name": "RunningTextFormDialogState",
       "file": "apps/mobile_remote/lib/screens/content/running_text_subtab.dart",
-      "line": 163,
+      "line": 166,
       "signature": "class RunningTextFormDialogState extends State<RunningTextFormDialog> {"
     },
     {
       "kind": "field",
       "name": "_category",
       "file": "apps/mobile_remote/lib/screens/content/running_text_subtab.dart",
-      "line": 164,
+      "line": 167,
       "parent": "RunningTextFormDialogState",
       "signature": "  late String _category;"
     },
@@ -1897,7 +1897,7 @@
       "kind": "method",
       "name": "initState",
       "file": "apps/mobile_remote/lib/screens/content/running_text_subtab.dart",
-      "line": 167,
+      "line": 170,
       "parent": "RunningTextFormDialogState",
       "signature": "  void initState() {"
     },
@@ -1905,7 +1905,7 @@
       "kind": "method",
       "name": "_save",
       "file": "apps/mobile_remote/lib/screens/content/running_text_subtab.dart",
-      "line": 172,
+      "line": 175,
       "parent": "RunningTextFormDialogState",
       "signature": "  void _save() {"
     },
@@ -1913,7 +1913,7 @@
       "kind": "method",
       "name": "build",
       "file": "apps/mobile_remote/lib/screens/content/running_text_subtab.dart",
-      "line": 179,
+      "line": 182,
       "parent": "RunningTextFormDialogState",
       "signature": "  Widget build(BuildContext context) {"
     },

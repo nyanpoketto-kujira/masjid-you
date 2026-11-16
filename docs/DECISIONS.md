@@ -731,3 +731,20 @@ Melanjutkan ADR-025. Kondisi sebelum fase ini: pergantian gate koneksi -> menu u
 - Regresi dikunci 3 test baru (`accessibility_phase4_test.dart`: SettingsTab & HomeTab pada textScaler 2.0 tanpa overflow/exception, target sentuh utama >=48dp). Total: mobile_remote 90 -> 93.
 
 ---
+
+## ADR-027 — Fase 5 Refaktor UI: Polish & Penutup
+
+### Konteks
+Melanjutkan ADR-026; fase terakhir refaktor bertahap ADR-022. Audit akhir sebelum menutup maraton: warna hard-code, wording umpan balik kirim data, dan status dokumen.
+
+### Keputusan
+1. **Audit warna hard-code** (`apps/mobile_remote/lib`, grep `Color(0x`/`Colors.`): warna UI diganti ke peran `colorScheme` — ikon hapus (running text, banner, kas, gambar khusus) memakai `colorScheme.error`; ikon status TV di tab Tes memakai `colorScheme.primary` saat terhubung (sebelumnya `Colors.green`) dan `colorScheme.error` saat putus. Yang **dipertahankan** dengan sengaja: hijau/merah kas (`Colors.green`/`Colors.red` di `KasStatCard` & baris transaksi) karena warna semantik data (Masuk/Keluar) — selalu berpasangan dengan kata/tanda +/−, bukan warna saja; scrim hitam `Colors.black` 60% + ikon `Colors.white` pada tombol tutup pratinjau gambar karena overlay legibilitas di atas foto (bukan warna UI); seed `kMasjidSeedColor` `0xFF006A60` di `remote_theme.dart` karena itulah definisi tema.
+2. **Wording SnackBar kirim data menyebut cakupan** (tanpa mengubah perilaku): jalur `_pushAllToTv` & `_sendConfigUpdate` saat terhubung kini "Tersimpan & ditampilkan di TV" (sebelumnya "Semua data berhasil dikirim ke TV!" / "Pengaturan berhasil diperbarui di TV!"); `_sendConfigUpdate` saat tidak terhubung kini "Tersimpan di HP — TV belum terhubung" (sebelumnya "Pengaturan disimpan lokal (belum dikirim)."). Jalur `_pushAllToTv` saat belum terhubung tetap mencoba sambung ulang seperti sebelumnya.
+3. **Penutup**: plan refaktor (`plan-refaktor-ui-remote.md`) ditandai semua fase selesai; tabel status README diperbarui dengan jumlah test terbaru semua paket.
+
+### Konsekuensi
+- Tidak ada lagi warna UI hard-code di luar tema, kecuali warna semantik kas & overlay foto yang didokumentasikan di atas.
+- Pengguna selalu tahu cakupan simpanannya: tampil di TV vs hanya tersimpan di HP.
+- Status akhir maraton (branch `feat/remote-ui-refactor-pool`, tanpa menyentuh `main` sesuai /NNM): shared_models 70, bluetooth_sync 30, tv_display 67, mobile_remote 93 test — semua hijau; root `flutter analyze` tanpa issue.
+
+---

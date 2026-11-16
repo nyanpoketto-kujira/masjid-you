@@ -87,7 +87,9 @@ class SimulationTab extends StatelessWidget {
                       Icon(
                         isConnected ? Icons.tv : Icons.tv_off,
                         size: 18,
-                        color: isConnected ? Colors.green : colorScheme.error,
+                        color: isConnected
+                            ? colorScheme.primary
+                            : colorScheme.error,
                       ),
                       const SizedBox(width: 8),
                       Expanded(

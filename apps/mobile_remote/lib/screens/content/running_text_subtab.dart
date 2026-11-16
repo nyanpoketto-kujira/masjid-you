@@ -50,6 +50,8 @@ class RunningTextSubtab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _openAddDialog(context),
@@ -92,7 +94,8 @@ class RunningTextSubtab extends StatelessWidget {
                           onPressed: () => onEditMessage(item),
                         ),
                         IconButton(
-                          icon: const Icon(Icons.delete, color: Colors.red),
+                          icon: Icon(Icons.delete,
+                              color: colorScheme.error),
                           tooltip: 'Hapus teks',
                           onPressed: () => onRemoveMessage(item.id),
                         ),

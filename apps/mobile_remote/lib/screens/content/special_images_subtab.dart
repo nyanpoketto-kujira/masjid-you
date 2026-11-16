@@ -128,8 +128,8 @@ class SpecialImagesSubtab extends StatelessWidget {
                           children: [
                             TextButton.icon(
                               onPressed: () => onRemoveImage(image.id),
-                              icon: const Icon(Icons.delete,
-                                  size: 18, color: Colors.red),
+                              icon: Icon(Icons.delete,
+                                  size: 18, color: colorScheme.error),
                               label: const Text('Hapus'),
                             ),
                           ],

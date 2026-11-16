@@ -147,8 +147,8 @@ class BannersSubtab extends StatelessWidget {
                             ),
                             TextButton.icon(
                               onPressed: () => onRemoveBanner(b.id),
-                              icon: const Icon(Icons.delete,
-                                  size: 18, color: Colors.red),
+                              icon: Icon(Icons.delete,
+                                  size: 18, color: colorScheme.error),
                               label: const Text('Hapus'),
                             ),
                           ],

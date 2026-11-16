@@ -251,23 +251,23 @@ Total simbol: **1008**
 - `field` **onAddMessage (RunningTextSubtab)** — baris 15 — `  final VoidCallback onAddMessage;`
 - `method` **_openAddDialog (RunningTextSubtab)** — baris 35 — `  void _openAddDialog(BuildContext context) {`
 - `method` **build (RunningTextSubtab)** — baris 52 — `  Widget build(BuildContext context) {`
-- `class` **_OrderNumber** — baris 110 — `class _OrderNumber extends StatelessWidget {`
-- `constructor` **_OrderNumber (_OrderNumber)** — baris 111 — `  const _OrderNumber(this.number);`
-- `field` **number (_OrderNumber)** — baris 113 — `  final int number;`
-- `method` **build (_OrderNumber)** — baris 116 — `  Widget build(BuildContext context) {`
-- `class` **RunningTextFormDialog** — baris 141 — `class RunningTextFormDialog extends StatefulWidget {`
-- `field` **title (RunningTextFormDialog)** — baris 152 — `  final String title;`
-- `field` **textController (RunningTextFormDialog)** — baris 153 — `  final TextEditingController textController;`
-- `field` **category (RunningTextFormDialog)** — baris 154 — `  final String category;`
-- `field` **categories (RunningTextFormDialog)** — baris 155 — `  final List<String> categories;`
-- `field` **onCategoryChanged (RunningTextFormDialog)** — baris 156 — `  final ValueChanged<String> onCategoryChanged;`
-- `field` **onSave (RunningTextFormDialog)** — baris 157 — `  final VoidCallback onSave;`
-- `method` **createState (RunningTextFormDialog)** — baris 160 — `  State<RunningTextFormDialog> createState() => RunningTextFormDialogState();`
-- `class` **RunningTextFormDialogState** — baris 163 — `class RunningTextFormDialogState extends State<RunningTextFormDialog> {`
-- `field` **_category (RunningTextFormDialogState)** — baris 164 — `  late String _category;`
-- `method` **initState (RunningTextFormDialogState)** — baris 167 — `  void initState() {`
-- `method` **_save (RunningTextFormDialogState)** — baris 172 — `  void _save() {`
-- `method` **build (RunningTextFormDialogState)** — baris 179 — `  Widget build(BuildContext context) {`
+- `class` **_OrderNumber** — baris 113 — `class _OrderNumber extends StatelessWidget {`
+- `constructor` **_OrderNumber (_OrderNumber)** — baris 114 — `  const _OrderNumber(this.number);`
+- `field` **number (_OrderNumber)** — baris 116 — `  final int number;`
+- `method` **build (_OrderNumber)** — baris 119 — `  Widget build(BuildContext context) {`
+- `class` **RunningTextFormDialog** — baris 144 — `class RunningTextFormDialog extends StatefulWidget {`
+- `field` **title (RunningTextFormDialog)** — baris 155 — `  final String title;`
+- `field` **textController (RunningTextFormDialog)** — baris 156 — `  final TextEditingController textController;`
+- `field` **category (RunningTextFormDialog)** — baris 157 — `  final String category;`
+- `field` **categories (RunningTextFormDialog)** — baris 158 — `  final List<String> categories;`
+- `field` **onCategoryChanged (RunningTextFormDialog)** — baris 159 — `  final ValueChanged<String> onCategoryChanged;`
+- `field` **onSave (RunningTextFormDialog)** — baris 160 — `  final VoidCallback onSave;`
+- `method` **createState (RunningTextFormDialog)** — baris 163 — `  State<RunningTextFormDialog> createState() => RunningTextFormDialogState();`
+- `class` **RunningTextFormDialogState** — baris 166 — `class RunningTextFormDialogState extends State<RunningTextFormDialog> {`
+- `field` **_category (RunningTextFormDialogState)** — baris 167 — `  late String _category;`
+- `method` **initState (RunningTextFormDialogState)** — baris 170 — `  void initState() {`
+- `method` **_save (RunningTextFormDialogState)** — baris 175 — `  void _save() {`
+- `method` **build (RunningTextFormDialogState)** — baris 182 — `  Widget build(BuildContext context) {`
 
 ### `apps/mobile_remote/lib/screens/content/special_images_subtab.dart`
 - `class` **SpecialImagesSubtab** — baris 18 — `class SpecialImagesSubtab extends StatelessWidget {`
