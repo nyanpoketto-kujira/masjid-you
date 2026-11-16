@@ -112,19 +112,19 @@ State & teks form hidup karena controller-nya milik `_RemoteHomeScreenState` (ti
 
 ### 3.1 Destinasi Pengaturan (indeks 2)
 
-**Fungsi**: identitas masjid + koordinat + durasi siklus shalat + offset jadwal + aksi cepat + simulasi.
+**Fungsi**: identitas masjid + koordinat + durasi siklus shalat + offset jadwal + aksi cepat + simulasi. Sejak Fase 2 (ADR-024) form dikelompokkan dalam grup bertajuk ala pola settings M3 dengan sticky bottom bar simpan.
 
 | Bagian | Elemen | Keterangan |
 |---|---|---|
-| Identitas | `Nama Masjid`, `Alamat Masjid` | `_nameController`, `_addressController` |
-| Koordinat & Jadwal Sholat | `Latitude`, `Longitude` | input desimal; `_latitudeController`, `_longitudeController` |
-| GPS | tombol "Ambil Koordinat dari GPS" | `_getLocationFromGps()` — spinner saat `_isFetchingLocation` |
-| Offset | 6 kolom "Subuh … Isya" (suffix `mnt`) | `_prayerOffsetControllers` per `PrayerType` |
-| Durasi Siklus Shalat | 4 kolom `Jelang Azan` (15), `Azan` (2), `Jeda Ikamah` (1), `Shalat` (10) | `_preAdhanController` dkk; angka `digitsOnly`, min 0 |
-| Aksi Cepat | kartu "Aksi Cepat Waktu Shalat": `Skip Azan`, `Skip Ikamah / Mulai Shalat`, `Selesaikan Shalat` + status "Mode TV saat ini" | `_buildQuickActionsCard`, `_sendQuickAction(action)`; tombol aktif hanya saat fase TV sesuai (`_tvPhase`) |
+| Masjid | `Nama Masjid`, `Alamat Masjid` | `_nameController`, `_addressController` |
+| Lokasi & Jadwal | `Latitude`, `Longitude` + tombol "Ambil Koordinat dari GPS" + "Simulasi Jadwal" | input desimal; `_getLocationFromGps()` — spinner saat `_isFetchingLocation`; simulasi `_showScheduleSimulation()` |
+| Penyesuaian Waktu | 6 baris stepper `Subuh … Isya` (−60..+60 mnt) | `StepperRow` (`lib/widgets/stepper_row.dart`) menulis ke `_prayerOffsetControllers` yang sama |
+| Durasi Tampilan TV | 4 baris stepper `Jelang Azan` (15), `Azan` (2), `Jeda Ikamah` (1), `Shalat` (10) | `_preAdhanController` dkk; batas 0..180 mnt |
+| Tampilan TV | Switch `Tampilkan Kas Masjid` & `Ada Shalat Jumat (Jumatan)` (instant-apply, langsung `_sendConfigUpdate()`); stepper `Durasi Khutbah` + `Nama Khatib` + `Nama Muadzin` (non-aktif saat Jumatan mati) | `_showKas`/`_hasFridayPrayer`; `_khutbahController` dkk |
+| Aksi Cepat Waktu Shalat | kartu "Aksi Cepat Waktu Shalat": `Skip Azan`, `Mulai Shalat`, `Selesai Shalat` | `_buildQuickActionsCard`, `_sendQuickAction(action)`; tombol aktif hanya saat fase TV sesuai (`_tvPhase`) |
 | Tampilan Aplikasi | `SegmentedButton` Tema (Sistem/Terang/Gelap) + Warna (Ikuti Wallpaper/Hijau Masjid) | preferensi `ThemePreferences` (ADR-022); langsung berlaku & tersimpan di HP, tidak dikirim ke TV |
-| Aksi | "Simpan & Update Ke TV" | `_sendConfigUpdate()` — juga persist durasi ke SharedPreferences |
-| Simulasi | "Simulasi Jadwal" | `_showScheduleSimulation()` |
+| Data | "Export Backup" / "Import Backup" | `_exportBackup()` / `_importBackup()` |
+| Sticky bottom bar | tombol "Simpan & Update Ke TV" 56dp, hanya aktif bila `isDirty` | dirty dilacak `_RemoteHomeScreenState` via listener semua controller config (`_buildConfigFromForm() != _config`); keluar dari tab saat dirty → dialog "Buang perubahan?" (Buang = `_syncConfigControllers()`) |
 
 **Persist lokal:** `_loadSavedDurations()` (init) & `_persistDurations(config)` (saat kirim) memakai `shared_preferences` — kunci `preAdhanMinutes`, `adhanMinutes`, `preIqomahMinutes`, `shalatMinutes`.
 

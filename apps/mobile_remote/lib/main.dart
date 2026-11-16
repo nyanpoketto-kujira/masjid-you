@@ -181,6 +181,11 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
 
   bool _hasUnsyncedChanges = false;
 
+  /// `true` bila ada perubahan config di form Pengaturan yang belum
+  /// disimpan (Fase 2, ADR-024): dilacak lewat listener semua controller
+  /// config; mengaktifkan tombol "Simpan & Update Ke TV" di sticky bar.
+  bool _settingsDirty = false;
+
   /// `true` bila dialog PIN sedang terbuka (dipakai `_closePinDialog`).
   bool _pinDialogOpen = false;
 
@@ -297,6 +302,7 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
     super.initState();
     _subTabController = TabController(length: 4, vsync: this);
     _syncConfigControllers();
+    _attachConfigListeners();
 
     WidgetsBinding.instance.addObserver(this);
     _client.onPacket = _handleTvPacket;
@@ -415,6 +421,39 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
     _fridayMuadzinController.text = _config.fridayMuadzin;
     _showKas = _config.showKas;
     _hasFridayPrayer = _config.hasFridayPrayer;
+  }
+
+  /// Pasang listener ke semua controller config agar perubahan form
+  /// Pengaturan langsung menandai dirty (tombol simpan sticky aktif).
+  /// Dipanggil sekali di [initState], setelah controller diisi dari
+  /// [_config] agar nilai awal tidak terhitung sebagai perubahan.
+  void _attachConfigListeners() {
+    final controllers = <TextEditingController>[
+      _nameController,
+      _addressController,
+      _latitudeController,
+      _longitudeController,
+      ..._prayerOffsetControllers.values,
+      _preAdhanController,
+      _adhanController,
+      _preIqomahController,
+      _shalatController,
+      _khutbahController,
+      _fridayKhatibController,
+      _fridayMuadzinController,
+    ];
+    for (final controller in controllers) {
+      controller.addListener(_onConfigControllerChanged);
+    }
+  }
+
+  /// Hitung ulang dirty: form dianggap berubah bila config yang dibangun
+  /// dari controller berbeda dari [_config] yang tersimpan.
+  void _onConfigControllerChanged() {
+    final dirty = _buildConfigFromForm() != _config;
+    if (dirty != _settingsDirty) {
+      setState(() => _settingsDirty = dirty);
+    }
   }
 
   /// Nilai awal form saat startup.
@@ -993,6 +1032,10 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
         _hasUnsyncedChanges = true;
       });
       _showSnack('Pengaturan disimpan lokal (belum dikirim).');
+    }
+    // Config tersimpan == isi form: tidak ada lagi perubahan tertunda.
+    if (_settingsDirty) {
+      setState(() => _settingsDirty = false);
     }
   }
 
@@ -1793,15 +1836,19 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
                       fridayMuadzinController: _fridayMuadzinController,
                       showKas: _showKas,
                       hasFridayPrayer: _hasFridayPrayer,
+                      // Toggle Tampilan TV bersifat instant-apply (Fase 2):
+                      // langsung kirim ke TV setelah setState.
                       onShowKasChanged: (val) {
                         setState(() {
                           _showKas = val;
                         });
+                        _sendConfigUpdate();
                       },
                       onHasFridayPrayerChanged: (val) {
                         setState(() {
                           _hasFridayPrayer = val;
                         });
+                        _sendConfigUpdate();
                       },
                       isFetchingLocation: _isFetchingLocation,
                       isConnected: _isConnected,
@@ -1816,6 +1863,7 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
                       colorSource: widget.colorSource,
                       onThemeModeChanged: widget.onThemeModeChanged,
                       onColorSourceChanged: widget.onColorSourceChanged,
+                      isDirty: _settingsDirty,
                     ),
                     SimulationTab(
                       isConnected: _isConnected,
@@ -1841,11 +1889,7 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
       bottomNavigationBar: connected
           ? NavigationBar(
               selectedIndex: _tabIndex,
-              onDestinationSelected: (index) {
-                setState(() {
-                  _tabIndex = index;
-                });
-              },
+              onDestinationSelected: _handleDestinationSelected,
               destinations: const [
                 NavigationDestination(
                   icon: Icon(Icons.home_outlined),
@@ -1871,6 +1915,47 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
             )
           : null,
     );
+  }
+
+  /// Pindah destinasi menu bawah. Bila keluar dari tab Pengaturan dalam
+  /// keadaan dirty, tanyakan dulu: "Buang" mengembalikan semua controller
+  /// dari [_config] lewat [_syncConfigControllers] lalu pindah; "Tetap di
+  /// sini" membatalkan perpindahan.
+  Future<void> _handleDestinationSelected(int index) async {
+    if (_tabIndex == 2 && _settingsDirty && index != 2) {
+      final discard = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) {
+          return AlertDialog(
+            title: const Text('Buang perubahan?'),
+            content: const Text(
+              'Ada perubahan pengaturan yang belum disimpan. '
+              'Perubahan akan hilang bila Anda pindah dari tab ini.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext, false),
+                child: const Text('Tetap di sini'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(dialogContext, true),
+                child: const Text('Buang'),
+              ),
+            ],
+          );
+        },
+      );
+      if (discard != true || !mounted) return;
+      setState(() {
+        _syncConfigControllers();
+        _settingsDirty = false;
+        _tabIndex = index;
+      });
+      return;
+    }
+    setState(() {
+      _tabIndex = index;
+    });
   }
 
   /// Label jalur koneksi aktif untuk strip status & Beranda.

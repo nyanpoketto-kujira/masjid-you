@@ -136,13 +136,28 @@ void main() {
     return field.enabled;
   }
 
-  testWidgets('Jumatan mati: field khutbah, khatib & muadzin non-aktif',
+  testWidgets('Jumatan mati: stepper khutbah non-aktif, khatib & muadzin non-aktif',
       (tester) async {
     await tester.pumpWidget(harness(showKas: true, hasFridayPrayer: false));
     await tester.pump();
 
+    // 'Durasi Khutbah' kini baris stepper (Fase 2): kedua tombolnya mati.
     await reveal(tester, 'Durasi Khutbah');
-    expect(fieldEnabled(tester, 'Durasi Khutbah'), isFalse);
+    final minusButton = tester.widget<IconButton>(
+      find.ancestor(
+        of: find.byTooltip('Kurangi Durasi Khutbah'),
+        matching: find.byType(IconButton),
+      ),
+    );
+    final plusButton = tester.widget<IconButton>(
+      find.ancestor(
+        of: find.byTooltip('Tambah Durasi Khutbah'),
+        matching: find.byType(IconButton),
+      ),
+    );
+    expect(minusButton.onPressed, isNull);
+    expect(plusButton.onPressed, isNull);
+
     expect(fieldEnabled(tester, 'Nama Khatib'), isFalse);
     expect(fieldEnabled(tester, 'Nama Muadzin'), isFalse);
   });

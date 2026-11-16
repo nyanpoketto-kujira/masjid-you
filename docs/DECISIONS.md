@@ -669,3 +669,24 @@ Melanjutkan ADR-022 (keputusan D2–D5). Kondisi sebelum fase ini: seluruh menu 
 - Regresi dikunci test baru: Beranda (render status/jam/kas, tombol 56dp, callback, helper jadwal & format), `TvStore` status tampilan (default, round-trip, tidak menandai data resmi), dan round-trip aksi protokol baru lewat loop `SyncAction.values` yang sudah ada. Total: mobile_remote 68, tv_display 67, shared_models 70.
 
 ---
+
+## ADR-024 — Fase 2 Refaktor UI: Pengaturan Bergrup, Stepper & Sticky Save
+
+### Konteks
+Melanjutkan ADR-022/ADR-023. Kondisi sebelum fase ini: tab Pengaturan adalah satu form scroll sangat panjang (identitas → koordinat → offset grid 3 kolom → durasi 4 field sebaris → toggle → aksi cepat → simulasi → simpan → backup), offset & durasi berupa TextField angka kecil (suffix "mnt"/"m"), dan tombol "Simpan & Update" tenggelam di bawah daftar sehingga mudah terlewat; toggle Kas/Jumatan ikut tombol simpan padahal seharusnya langsung berlaku.
+
+### Keputusan
+1. **Grup bertajuk ala pola settings M3** (`lib/screens/settings/settings_tab.dart`): Masjid; Lokasi & Jadwal (lat/lng + GPS + Simulasi Jadwal); Penyesuaian Waktu; Durasi Tampilan TV; Tampilan TV; Aksi Cepat Waktu Shalat (kartu lama dipertahankan); Tampilan Aplikasi (posisi dipertahankan dari Fase 0); Data (Export/Import Backup). Tiap grup punya judul `titleMedium` tebal + catatan kaki satu kalimat. Grup Reset (destruktif) dari plan §3.4 belum dibuat — belum ada handler reset di `main.dart`; ditunda ke fase berikutnya bila dibutuhkan.
+2. **Baris stepper** (`lib/widgets/stepper_row.dart`): 6 offset sholat (−60..+60 menit, boleh negatif) dan 4 durasi + khutbah (0..180/120 menit) diganti dari TextField angka menjadi baris `− nilai +` dengan `IconButton` 48dp + tooltip "Kurangi/Tambah <label>". Stepper menulis ke `TextEditingController` yang sama dan menampilkan nilainya lewat `ValueListenableBuilder`, jadi alur simpan (`_buildConfigFromForm`) tidak berubah. Label lama ("Durasi Khutbah", "Nama Khatib", "Nama Muadzin") tetap bisa ditemukan; stepper khutbah non-aktif saat Jumatan mati.
+3. **Sticky bottom bar**: tombol "Simpan & Update Ke TV" (56dp, penuh lebar) selalu menempel di bawah tab Pengaturan dan hanya aktif bila ada perubahan (`isDirty`, parameter opsional baru — default `false` agar test lama tidak rusak). Tombol simpan lama di dalam daftar dihapus; "Simulasi Jadwal" pindah ke grup Lokasi & Jadwal.
+4. **Pelacakan dirty di `_RemoteHomeScreenState`**: listener ke semua controller config (nama, alamat, lat, lng, 6 offset, 4 durasi, khutbah, khatib, muadzin) menghitung ulang dirty sebagai `_buildConfigFromForm() != _config` (memanfaatkan value equality `MosqueConfig`); `_sendConfigUpdate` membersihkan dirty karena config tersimpan kini sama dengan isi form. Sinkronisasi ulang controller dari `_config` (snapshot TV, buang perubahan) otomatis membersihkan dirty lewat listener yang sama.
+5. **Dialog "Buang perubahan?"**: keluar dari tab Pengaturan (pindah destinasi menu bawah) dalam keadaan dirty memunculkan dialog konfirmasi; "Buang" mengembalikan controller dari `_config` via `_syncConfigControllers()` lalu pindah, "Tetap di sini" membatalkan perpindahan.
+6. **Toggle instant-apply**: handler `onShowKasChanged`/`onHasFridayPrayerChanged` di `main.dart` kini langsung memanggil `_sendConfigUpdate()` setelah `setState`, jadi perubahan Kas/Jumatan langsung dikirim ke TV tanpa menunggu tombol simpan.
+
+### Konsekuensi
+- Pengaturan lebih mudah dipindai (grup + footer penjelas) dan angka tidak lagi diketik manual — risiko salah ketik berkurang, terutama untuk pengguna lanjut usia.
+- Toggle yang sudah tersimpan tidak lagi ikut tertunda tombol simpan; sebaliknya, teks/angka yang belum disimpan tetap terlindungi dialog buang perubahan.
+- Banner "Ada perubahan belum dikirim" global masih dipertahankan untuk perubahan konten (Fase 3); untuk Pengaturan, sinyal utamanya kini sticky bar + teks "Ada perubahan belum disimpan".
+- Regresi dikunci 6 test baru (`settings_phase2_test.dart`: grup tampil, stepper menulis ke controller yang sama, batas min/max, sticky bar aktif/non-aktif + callback) dan 1 test lama disesuaikan minimal (stepper khutbah non-aktif saat Jumatan mati). Total: mobile_remote 68 -> 74.
+
+---

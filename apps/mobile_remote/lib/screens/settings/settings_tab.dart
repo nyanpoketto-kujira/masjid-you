@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:shared_models/shared_models.dart';
 import '../../theme/theme_preferences.dart';
+import '../../widgets/stepper_row.dart';
 
+/// Tab Pengaturan (Fase 2 refaktor UI, ADR-024): form dikelompokkan dalam
+/// grup bertajuk ala pola settings M3; offset & durasi memakai baris
+/// stepper (− nilai +) yang tetap menulis ke [TextEditingController] yang
+/// sama (alur simpan tidak berubah); tombol simpan menjadi sticky bottom
+/// bar yang hanya aktif saat ada perubahan ([isDirty]).
 class SettingsTab extends StatelessWidget {
   final MosqueConfig config;
   final TextEditingController nameController;
@@ -41,6 +46,12 @@ class SettingsTab extends StatelessWidget {
   final ValueChanged<ThemeMode>? onThemeModeChanged;
   final ValueChanged<AppColorSource>? onColorSourceChanged;
 
+  /// Ada perubahan config yang belum disimpan (dilacak di
+  /// `_RemoteHomeScreenState` lewat listener semua controller config).
+  /// Tombol "Simpan & Update Ke TV" di sticky bottom bar hanya aktif
+  /// bila `true`.
+  final bool isDirty;
+
   const SettingsTab({
     super.key,
     required this.config,
@@ -73,6 +84,7 @@ class SettingsTab extends StatelessWidget {
     this.colorSource = AppColorSource.dynamic,
     this.onThemeModeChanged,
     this.onColorSourceChanged,
+    this.isDirty = false,
   });
 
   @override
@@ -80,380 +92,363 @@ class SettingsTab extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: ListView(
-        children: [
-          Text(
-            'Identitas Masjid',
-            style: theme.textTheme.titleMedium
-                ?.copyWith(fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 12),
-          TextFormField(
-            controller: nameController,
-            decoration: const InputDecoration(
-              labelText: 'Nama Masjid',
-              prefixIcon: Icon(Icons.mosque),
-            ),
-          ),
-          const SizedBox(height: 12),
-          TextFormField(
-            controller: addressController,
-            decoration: const InputDecoration(
-              labelText: 'Alamat Masjid',
-              prefixIcon: Icon(Icons.location_on),
-            ),
-          ),
-          const SizedBox(height: 24),
-          Text(
-            'Koordinat & Jadwal Sholat',
-            style: theme.textTheme.titleMedium
-                ?.copyWith(fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 12),
-          Row(
+    return Column(
+      children: [
+        Expanded(
+          child: ListView(
+            padding: const EdgeInsets.all(16.0),
             children: [
-              Expanded(
-                child: TextFormField(
-                  controller: latitudeController,
-                  keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
-                  decoration: const InputDecoration(labelText: 'Latitude'),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: TextFormField(
-                  controller: longitudeController,
-                  keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
-                  decoration: const InputDecoration(labelText: 'Longitude'),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: isFetchingLocation ? null : onFetchLocation,
-              icon: isFetchingLocation
-                  ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.my_location),
-              label: const Text('Ambil Koordinat dari GPS'),
-            ),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Offset Jadwal Sholat (Menit)',
-            style: theme.textTheme.titleSmall
-                ?.copyWith(fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          GridView.count(
-            crossAxisCount: 3,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            mainAxisSpacing: 8,
-            crossAxisSpacing: 8,
-            childAspectRatio: 1.6,
-            children: kAllPrayerTypes.map((type) {
-              return TextFormField(
-                controller: prayerOffsetControllers[type],
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  labelText: type.displayNameForDate(
-                    DateTime.now(),
-                    hasFridayPrayer: hasFridayPrayer,
+              _SettingsGroup(
+                title: 'Masjid',
+                footer: 'Nama dan alamat masjid yang tampil di layar TV.',
+                children: [
+                  TextFormField(
+                    controller: nameController,
+                    decoration: const InputDecoration(
+                      labelText: 'Nama Masjid',
+                      prefixIcon: Icon(Icons.mosque),
+                    ),
                   ),
-                  suffixText: 'mnt',
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                ),
-              );
-            }).toList(),
-          ),
-          const SizedBox(height: 24),
-          Text(
-            'Durasi Siklus Waktu Shalat (Menit)',
-            style: theme.textTheme.titleMedium
-                ?.copyWith(fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Sesuaikan durasi tampilan transisi layar TV.',
-            style: theme.textTheme.bodySmall
-                ?.copyWith(color: colorScheme.onSurfaceVariant),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: TextFormField(
-                  controller: preAdhanController,
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  decoration: const InputDecoration(
-                    labelText: 'Jelang Azan',
-                    suffixText: 'm',
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: addressController,
+                    decoration: const InputDecoration(
+                      labelText: 'Alamat Masjid',
+                      prefixIcon: Icon(Icons.location_on),
+                    ),
                   ),
-                ),
+                ],
               ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: TextFormField(
-                  controller: adhanController,
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  decoration: const InputDecoration(
-                    labelText: 'Azan',
-                    suffixText: 'm',
+              _SettingsGroup(
+                title: 'Lokasi & Jadwal',
+                footer: 'Jadwal dihitung untuk lokasi ini.',
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: latitudeController,
+                          keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true),
+                          decoration:
+                              const InputDecoration(labelText: 'Latitude'),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextFormField(
+                          controller: longitudeController,
+                          keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true),
+                          decoration:
+                              const InputDecoration(labelText: 'Longitude'),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: TextFormField(
-                  controller: preIqomahController,
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  decoration: const InputDecoration(
-                    labelText: 'Jeda Ikamah',
-                    suffixText: 'm',
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed:
+                          isFetchingLocation ? null : onFetchLocation,
+                      icon: isFetchingLocation
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child:
+                                  CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.my_location),
+                      label: const Text('Ambil Koordinat dari GPS'),
+                    ),
                   ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: TextFormField(
-                  controller: shalatController,
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  decoration: const InputDecoration(
-                    labelText: 'Shalat',
-                    suffixText: 'm',
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          Text(
-            'Tampilan Kartu Samping TV',
-            style: theme.textTheme.titleMedium
-                ?.copyWith(fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Kartu samping bergantian tampil: Kas -> Petugas Jumat -> Gambar Khusus.',
-            style: theme.textTheme.bodySmall
-                ?.copyWith(color: colorScheme.onSurfaceVariant),
-          ),
-          SwitchListTile(
-            contentPadding: EdgeInsets.zero,
-            title: const Text('Tampilkan Kas Masjid'),
-            subtitle:
-                const Text('Matikan bila kartu kas tidak perlu tampil di TV'),
-            value: showKas,
-            onChanged: onShowKasChanged,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Siklus Hari Jumat & Petugas',
-            style: theme.textTheme.titleSmall
-                ?.copyWith(fontWeight: FontWeight.bold),
-          ),
-          SwitchListTile(
-            contentPadding: EdgeInsets.zero,
-            title: const Text('Ada Shalat Jumat (Jumatan)'),
-            subtitle: const Text(
-              'Matikan untuk musholla: kartu Petugas Jumat, label "Jumat", '
-              'dan fase khutbah tidak ditampilkan',
-            ),
-            value: hasFridayPrayer,
-            onChanged: onHasFridayPrayerChanged,
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: TextFormField(
-                  controller: khutbahController,
-                  enabled: hasFridayPrayer,
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  decoration: const InputDecoration(
-                    labelText: 'Durasi Khutbah',
-                    suffixText: 'm',
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: TextFormField(
-                  controller: fridayKhatibController,
-                  enabled: hasFridayPrayer,
-                  decoration: const InputDecoration(
-                    labelText: 'Nama Khatib',
-                    prefixIcon: Icon(Icons.person),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: TextFormField(
-                  controller: fridayMuadzinController,
-                  enabled: hasFridayPrayer,
-                  decoration: const InputDecoration(
-                    labelText: 'Nama Muadzin',
-                    prefixIcon: Icon(Icons.campaign),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          Text(
-            'Tampilan Aplikasi',
-            style: theme.textTheme.titleMedium
-                ?.copyWith(fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Tema dan warna aplikasi remote di HP ini.',
-            style: theme.textTheme.bodySmall
-                ?.copyWith(color: colorScheme.onSurfaceVariant),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'Tema',
-            style: theme.textTheme.titleSmall
-                ?.copyWith(fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          SegmentedButton<ThemeMode>(
-            segments: const [
-              ButtonSegment(
-                value: ThemeMode.system,
-                icon: Icon(Icons.brightness_auto),
-                label: Text('Sistem'),
-              ),
-              ButtonSegment(
-                value: ThemeMode.light,
-                icon: Icon(Icons.light_mode),
-                label: Text('Terang'),
-              ),
-              ButtonSegment(
-                value: ThemeMode.dark,
-                icon: Icon(Icons.dark_mode),
-                label: Text('Gelap'),
-              ),
-            ],
-            selected: {themeMode},
-            onSelectionChanged: onThemeModeChanged == null
-                ? null
-                : (selection) => onThemeModeChanged!(selection.first),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Warna',
-            style: theme.textTheme.titleSmall
-                ?.copyWith(fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          SegmentedButton<AppColorSource>(
-            segments: const [
-              ButtonSegment(
-                value: AppColorSource.dynamic,
-                icon: Icon(Icons.wallpaper),
-                label: Text('Ikuti Wallpaper'),
-              ),
-              ButtonSegment(
-                value: AppColorSource.seed,
-                icon: Icon(Icons.mosque),
-                label: Text('Hijau Masjid'),
-              ),
-            ],
-            selected: {colorSource},
-            onSelectionChanged: onColorSourceChanged == null
-                ? null
-                : (selection) => onColorSourceChanged!(selection.first),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Ikuti Wallpaper hanya tersedia di Android 12 ke atas; '
-            'di perangkat lain otomatis memakai Hijau Masjid.',
-            style: theme.textTheme.bodySmall
-                ?.copyWith(color: colorScheme.onSurfaceVariant),
-          ),
-          const SizedBox(height: 24),
-          _buildQuickActionsCard(theme, colorScheme),
-          const SizedBox(height: 24),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () {
-                    final curr = MosqueConfig(
-                      name: nameController.text.trim(),
-                      address: addressController.text.trim(),
-                      latitude:
-                          double.tryParse(latitudeController.text.trim()) ??
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: () {
+                        final curr = MosqueConfig(
+                          name: nameController.text.trim(),
+                          address: addressController.text.trim(),
+                          latitude: double.tryParse(
+                                  latitudeController.text.trim()) ??
                               config.latitude,
-                      longitude:
-                          double.tryParse(longitudeController.text.trim()) ??
+                          longitude: double.tryParse(
+                                  longitudeController.text.trim()) ??
                               config.longitude,
-                      prayerOffsets: {
-                        for (final type in kAllPrayerTypes)
-                          type: int.tryParse(
-                                  prayerOffsetControllers[type]!.text.trim()) ??
-                              0,
+                          prayerOffsets: {
+                            for (final type in kAllPrayerTypes)
+                              type: int.tryParse(
+                                      prayerOffsetControllers[type]!
+                                          .text
+                                          .trim()) ??
+                                  0,
+                          },
+                          showKas: showKas,
+                          hasFridayPrayer: hasFridayPrayer,
+                        );
+                        onShowSimulation(curr);
                       },
-                      showKas: showKas,
-                      hasFridayPrayer: hasFridayPrayer,
-                    );
-                    onShowSimulation(curr);
-                  },
-                  icon: const Icon(Icons.analytics_outlined),
-                  label: const Text('Simulasi Jadwal'),
-                ),
+                      icon: const Icon(Icons.analytics_outlined),
+                      label: const Text('Simulasi Jadwal'),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: FilledButton.icon(
-                  onPressed: onSaveConfig,
-                  icon: const Icon(Icons.save),
-                  label: const Text('Simpan & Update'),
-                ),
+              _SettingsGroup(
+                title: 'Penyesuaian Waktu',
+                footer:
+                    'Geser nilai untuk menggeser jadwal sholat (dalam menit).',
+                children: [
+                  for (final type in kAllPrayerTypes)
+                    StepperRow(
+                      label: type.displayNameForDate(
+                        DateTime.now(),
+                        hasFridayPrayer: hasFridayPrayer,
+                      ),
+                      controller: prayerOffsetControllers[type]!,
+                      min: -60,
+                      max: 60,
+                    ),
+                ],
+              ),
+              _SettingsGroup(
+                title: 'Durasi Tampilan TV',
+                footer: 'Sesuaikan durasi tampilan transisi layar TV.',
+                children: [
+                  StepperRow(
+                    label: 'Jelang Azan',
+                    controller: preAdhanController,
+                    unit: 'm',
+                  ),
+                  StepperRow(
+                    label: 'Azan',
+                    controller: adhanController,
+                    unit: 'm',
+                  ),
+                  StepperRow(
+                    label: 'Jeda Ikamah',
+                    controller: preIqomahController,
+                    unit: 'm',
+                  ),
+                  StepperRow(
+                    label: 'Shalat',
+                    controller: shalatController,
+                    unit: 'm',
+                  ),
+                ],
+              ),
+              _SettingsGroup(
+                title: 'Tampilan TV',
+                footer:
+                    'Kartu samping bergantian tampil: Kas -> Petugas Jumat -> Gambar Khusus.',
+                children: [
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text('Tampilkan Kas Masjid'),
+                    subtitle: const Text(
+                        'Matikan bila kartu kas tidak perlu tampil di TV'),
+                    value: showKas,
+                    onChanged: onShowKasChanged,
+                  ),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text('Ada Shalat Jumat (Jumatan)'),
+                    subtitle: const Text(
+                      'Matikan untuk musholla: kartu Petugas Jumat, label "Jumat", '
+                      'dan fase khutbah tidak ditampilkan',
+                    ),
+                    value: hasFridayPrayer,
+                    onChanged: onHasFridayPrayerChanged,
+                  ),
+                  const SizedBox(height: 4),
+                  StepperRow(
+                    label: 'Durasi Khutbah',
+                    controller: khutbahController,
+                    enabled: hasFridayPrayer,
+                    unit: 'm',
+                    max: 120,
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: fridayKhatibController,
+                    enabled: hasFridayPrayer,
+                    decoration: const InputDecoration(
+                      labelText: 'Nama Khatib',
+                      prefixIcon: Icon(Icons.person),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: fridayMuadzinController,
+                    enabled: hasFridayPrayer,
+                    decoration: const InputDecoration(
+                      labelText: 'Nama Muadzin',
+                      prefixIcon: Icon(Icons.campaign),
+                    ),
+                  ),
+                ],
+              ),
+              _SettingsGroup(
+                title: 'Aksi Cepat Waktu Shalat',
+                footer:
+                    'Gunakan tombol di bawah ini untuk melewati fase TV saat ini.',
+                children: [
+                  _buildQuickActionsCard(theme, colorScheme),
+                ],
+              ),
+              _SettingsGroup(
+                title: 'Tampilan Aplikasi',
+                footer: 'Tema dan warna aplikasi remote di HP ini.',
+                children: [
+                  Text(
+                    'Tema',
+                    style: theme.textTheme.titleSmall
+                        ?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  SegmentedButton<ThemeMode>(
+                    segments: const [
+                      ButtonSegment(
+                        value: ThemeMode.system,
+                        icon: Icon(Icons.brightness_auto),
+                        label: Text('Sistem'),
+                      ),
+                      ButtonSegment(
+                        value: ThemeMode.light,
+                        icon: Icon(Icons.light_mode),
+                        label: Text('Terang'),
+                      ),
+                      ButtonSegment(
+                        value: ThemeMode.dark,
+                        icon: Icon(Icons.dark_mode),
+                        label: Text('Gelap'),
+                      ),
+                    ],
+                    selected: {themeMode},
+                    onSelectionChanged: onThemeModeChanged == null
+                        ? null
+                        : (selection) =>
+                            onThemeModeChanged!(selection.first),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Warna',
+                    style: theme.textTheme.titleSmall
+                        ?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  SegmentedButton<AppColorSource>(
+                    segments: const [
+                      ButtonSegment(
+                        value: AppColorSource.dynamic,
+                        icon: Icon(Icons.wallpaper),
+                        label: Text('Ikuti Wallpaper'),
+                      ),
+                      ButtonSegment(
+                        value: AppColorSource.seed,
+                        icon: Icon(Icons.mosque),
+                        label: Text('Hijau Masjid'),
+                      ),
+                    ],
+                    selected: {colorSource},
+                    onSelectionChanged: onColorSourceChanged == null
+                        ? null
+                        : (selection) =>
+                            onColorSourceChanged!(selection.first),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Ikuti Wallpaper hanya tersedia di Android 12 ke atas; '
+                    'di perangkat lain otomatis memakai Hijau Masjid.',
+                    style: theme.textTheme.bodySmall
+                        ?.copyWith(color: colorScheme.onSurfaceVariant),
+                  ),
+                ],
+              ),
+              _SettingsGroup(
+                title: 'Data',
+                footer:
+                    'Simpan salinan seluruh data masjid atau pulihkan dari file backup.',
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: onExportBackup,
+                          icon: const Icon(Icons.backup_outlined),
+                          label: const Text('Export Backup'),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: FilledButton.icon(
+                          onPressed: onImportBackup,
+                          icon: const Icon(Icons.restore),
+                          label: const Text('Import Backup'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ],
           ),
-          const SizedBox(height: 24),
-          Row(
+        ),
+        _buildStickySaveBar(theme, colorScheme),
+      ],
+    );
+  }
+
+  /// Bilah simpan yang selalu menempel di bawah tab Pengaturan; tombol
+  /// hanya aktif bila ada perubahan config yang belum disimpan.
+  Widget _buildStickySaveBar(ThemeData theme, ColorScheme colorScheme) {
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainer,
+        border: Border(
+          top: BorderSide(color: colorScheme.outlineVariant),
+        ),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: onExportBackup,
-                  icon: const Icon(Icons.backup_outlined),
-                  label: const Text('Export Backup'),
+              if (isDirty)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Row(
+                    children: [
+                      Icon(Icons.info_outline,
+                          size: 18, color: colorScheme.onSurfaceVariant),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Ada perubahan belum disimpan',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: FilledButton.icon(
-                  onPressed: onImportBackup,
-                  icon: const Icon(Icons.restore),
-                  label: const Text('Import Backup'),
+              FilledButton.icon(
+                onPressed: isDirty ? onSaveConfig : null,
+                style: FilledButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 56),
                 ),
+                icon: const Icon(Icons.save),
+                label: const Text('Simpan & Update Ke TV'),
               ),
             ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -471,24 +466,6 @@ class SettingsTab extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Icon(Icons.bolt, color: colorScheme.primary),
-                const SizedBox(width: 8),
-                Text(
-                  'Aksi Cepat Waktu Shalat',
-                  style: theme.textTheme.titleMedium
-                      ?.copyWith(fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Gunakan tombol di bawah ini untuk melewati fase TV saat ini.',
-              style: theme.textTheme.bodySmall
-                  ?.copyWith(color: colorScheme.onSurfaceVariant),
-            ),
-            const SizedBox(height: 12),
             Row(
               children: [
                 Expanded(
@@ -522,6 +499,47 @@ class SettingsTab extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Satu grup bertajuk di tab Pengaturan: judul + isi + catatan kaki satu
+/// kalimat, mengikuti pola settings M3.
+class _SettingsGroup extends StatelessWidget {
+  const _SettingsGroup({
+    required this.title,
+    required this.children,
+    this.footer,
+  });
+
+  final String title;
+  final List<Widget> children;
+  final String? footer;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style:
+              theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 12),
+        ...children,
+        if (footer != null) ...[
+          const SizedBox(height: 8),
+          Text(
+            footer!,
+            style: theme.textTheme.bodySmall
+                ?.copyWith(color: colorScheme.onSurfaceVariant),
+          ),
+        ],
+        const SizedBox(height: 24),
+      ],
     );
   }
 }
