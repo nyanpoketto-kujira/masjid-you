@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:animations/animations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_models/shared_models.dart';
 import 'package:bluetooth_sync/bluetooth_sync.dart';
@@ -29,6 +29,7 @@ import 'screens/content/special_images_subtab.dart';
 import 'screens/content/background_images_subtab.dart';
 import 'screens/connection/connection_gateway_screen.dart';
 import 'screens/simulation/simulation_tab.dart';
+import 'screens/simulation/schedule_simulation_dialog.dart';
 
 
 const List<String> _runningCategories = [
@@ -1872,155 +1873,13 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
   }
 
   void _showScheduleSimulation(MosqueConfig formConfig) {
-    var simDateTime = DateTime.now();
     showDialog(
       context: context,
-      builder: (ctx) {
-        return StatefulBuilder(
-          builder: (dialogContext, setDialogState) {
-            final schedule = PrayerSchedule.calculate(formConfig, simDateTime);
-            final dateFormat = DateFormat('EEEE, d MMMM yyyy', 'id_ID');
-
-            return AlertDialog(
-              title: const Text('Simulasi Perhitungan Jadwal'),
-              content: SizedBox(
-                width: double.maxFinite,
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Text(
-                        'Pilih tanggal dan jam di bawah untuk mensimulasikan countdown shalat berikutnya.',
-                        style: TextStyle(fontSize: 12),
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: OutlinedButton.icon(
-                              icon: const Icon(Icons.calendar_today, size: 18),
-                              label: Text(
-                                dateFormat.format(simDateTime),
-                              ),
-                              onPressed: () async {
-                                final picked = await showDatePicker(
-                                  context: context,
-                                  initialDate: simDateTime,
-                                  firstDate: DateTime(2020),
-                                  lastDate: DateTime(2100),
-                                );
-                                if (picked != null) {
-                                  setDialogState(() {
-                                    simDateTime = DateTime(
-                                      picked.year,
-                                      picked.month,
-                                      picked.day,
-                                      simDateTime.hour,
-                                      simDateTime.minute,
-                                    );
-                                  });
-                                }
-                              },
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: OutlinedButton.icon(
-                              icon: const Icon(Icons.access_time, size: 18),
-                              label: Text(
-                                DateFormat('HH:mm').format(simDateTime),
-                              ),
-                              onPressed: () async {
-                                final picked = await showTimePicker(
-                                  context: context,
-                                  initialTime: TimeOfDay.fromDateTime(
-                                    simDateTime,
-                                  ),
-                                );
-                                if (picked != null) {
-                                  setDialogState(() {
-                                    simDateTime = DateTime(
-                                      simDateTime.year,
-                                      simDateTime.month,
-                                      simDateTime.day,
-                                      picked.hour,
-                                      picked.minute,
-                                    );
-                                  });
-                                }
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        'Lokasi: ${formConfig.latitude.toStringAsFixed(4)}, ${formConfig.longitude.toStringAsFixed(4)} (dihitung offline)',
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                      const SizedBox(height: 8),
-                      for (final item in schedule.items)
-                        _buildSimulationRow(
-                          context,
-                          schedule,
-                          item,
-                        ),
-                    ],
-                  ),
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('Tutup'),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
-
-  Widget _buildSimulationRow(
-    BuildContext context,
-    PrayerSchedule schedule,
-    PrayerScheduleItem item,
-  ) {
-    final isNext = schedule.nextPrayer == item.type;
-    return Card(
-      margin: const EdgeInsets.only(bottom: 6),
-      color: isNext ? Theme.of(context).colorScheme.primaryContainer : null,
-      child: ListTile(
-        dense: true,
-        leading: Icon(
-          isNext ? Icons.alarm_on : Icons.schedule,
-          color:
-              isNext ? Theme.of(context).colorScheme.onPrimaryContainer : null,
-        ),
-        title: Text(
-          item.type.displayNameForDate(
-            item.time,
-            hasFridayPrayer: _hasFridayPrayer,
-          ),
-          style: isNext ? const TextStyle(fontWeight: FontWeight.bold) : null,
-        ),
-        trailing: isNext
-            ? Text(
-                '${item.formattedTime}\nSELANJUTNYA · ${_formatDurationShort(schedule.timeUntilNextPrayer)}',
-                textAlign: TextAlign.right,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              )
-            : Text(item.formattedTime),
+      builder: (ctx) => ScheduleSimulationDialog(
+        config: formConfig,
+        hasFridayPrayer: _hasFridayPrayer,
       ),
     );
-  }
-
-  String _formatDurationShort(Duration? duration) {
-    if (duration == null || duration.isNegative) return '00:00';
-    final minutes = duration.inMinutes;
-    final seconds = duration.inSeconds.remainder(60);
-    return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
   }
 
   @override
@@ -2621,6 +2480,10 @@ class _MasjidYouRemoteAppState extends State<MasjidYouRemoteApp> {
   }
 }
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  // Data tanggal locale id_ID untuk intl — tanpa inisialisasi ini,
+  // DateFormat berlokale melempar LocaleDataException (ADR-033).
+  await initializeDateFormatting('id_ID', null);
   runApp(const MasjidYouRemoteApp());
 }

@@ -843,3 +843,19 @@ Permintaan DKM dari tes emulator 17 Nov 2026 (lanjutan Babak 2): header TV selam
 - Regresi dikunci 21 test baru: shared_models +3 (snapshot logo round-trip + toleransi snapshot lama + paket updateLogo termasuk penghapusan), tv_display +5 (persist logo TvStore: simpan/muat/hapus/data lama; HeaderClock: tanpa logo identik, dengan logo kotak 1:1 + nama bergeser), mobile_remote +13 (penyiapan Bluetooth: perkecilan, alpha->PNG, tanpa alpha->JPEG, kecil apa adanya, fail-soft, transformasi paket; editor Pengaturan: pratinjau 1:1, Pilih/Ganti/Hapus, progress). Total: shared_models 91 -> 94, tv_display 104 -> 109, mobile_remote 132 -> 145 (termasuk 9 test perbaikan GPS yang mendarat tepat sebelumnya; suite mobile_remote kini hijau penuh dengan TZ=Asia/Jakarta).
 
 ---
+
+## ADR-033 — Dialog Simulasi Jadwal Blank: Data Locale intl Tidak Pernah Diinisialisasi
+
+### Konteks
+Laporan DKM 17 Nov 2026: dialog "Simulasi Perhitungan Jadwal" (tab Pengaturan → Simulasi Jadwal) hanya menghasilkan tampilan kosong/blank. Reproduksi di emulator menghasilkan stack trace `LocaleDataException: Locale data has not been initialized, call initializeDateFormatting(<locale>)` dari `DateFormat('EEEE, d MMMM yyyy', 'id_ID')` di dalam builder dialog (main.dart lama, baris 1882): builder melempar **sebelum** `AlertDialog` sempat dibangun, sehingga pada build rilis yang tampil hanya barrier redup tanpa dialog sama sekali. Akar masalahnya sistemik: **tidak ada satu pun app yang pernah memanggil `initializeDateFormatting`**. Kode lain selamat karena memakai format manual (Beranda memakai `formatTanggalId` dengan komentar eksplisit "tanpa inisialisasi locale intl") atau locale default; `HeaderClock` TV menelan error yang sama lewat try/catch sehingga tanggal header TV selama ini tampil bahasa Inggris ("Tuesday, 17 November 2026") alih-alih bahasa Indonesia yang diniatkan kode.
+
+### Keputusan
+1. **Inisialisasi locale di kedua `main()`**: `await initializeDateFormatting('id_ID', null)` tepat setelah `WidgetsFlutterBinding.ensureInitialized()` di mobile_remote dan tv_display. Ini memperbaiki akar masalah untuk semua pemakai `DateFormat`/`NumberFormat` berlokale, sekarang dan mendatang. Try/catch di `HeaderClock` dipertahankan sebagai jaring pengaman, tetapi jalur utamanya kini berhasil dan tanggal TV tampil bahasa Indonesia.
+2. **Dialog diekstrak menjadi widget sendiri**: `ScheduleSimulationDialog` (`lib/screens/simulation/schedule_simulation_dialog.dart`) dengan parameter `config`, `hasFridayPrayer`, dan `initialDateTime` opsional (agar test deterministik). `_showScheduleSimulation` di main.dart tinggal membuka dialog itu; isi dan perilaku dialog tidak berubah.
+3. **Label tanggal dialog memakai format manual** `formatTanggalId` (konvensi Beranda yang sudah ada), bukan `DateFormat` id_ID — dialog tidak boleh bisa blank lagi hanya karena inisialisasi locale terlewat, apa pun urutan startup-nya.
+
+### Konsekuensi
+- Dialog simulasi tampil penuh kembali; tanggal header TV berubah dari bahasa Inggris menjadi bahasa Indonesia — perubahan terlihat yang disengaja, sesuai format yang ditulis kode sejak awal.
+- Regresi dikunci oleh test yang **sengaja tidak** menginisialisasi locale: mobile_remote +5 (`schedule_simulation_dialog_test.dart`: dialog terbangun tanpa error + label tanggal Indonesia, enam baris jadwal dengan sorotan SELANJUTNYA, label Jumat/Dzuhur dua arah, Subuh besok saat larut malam), tv_display +1 (setelah `initializeDateFormatting`, `HeaderClock` menampilkan "Selasa, 17 November 2026").
+
+---

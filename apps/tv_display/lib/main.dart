@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:shared_models/shared_models.dart';
 
@@ -25,6 +26,11 @@ import 'server/bluetooth_host_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Data tanggal locale id_ID untuk intl — tanpa inisialisasi ini,
+  // DateFormat('...', 'id_ID') di HeaderClock selalu jatuh ke
+  // fallback bahasa Inggris (ADR-033).
+  await initializeDateFormatting('id_ID', null);
 
   // Hide status bar and enable full screen TV experience
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);

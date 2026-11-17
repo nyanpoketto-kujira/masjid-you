@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:shared_models/shared_models.dart';
 
 import 'package:tv_display/theme/app_theme.dart';
@@ -95,6 +96,26 @@ void main() {
         nameXWithLogo - nameXWithoutLogo,
         HeaderClock.logoSize + 16,
       );
+    });
+  });
+
+  group('tanggal bahasa Indonesia (ADR-033)', () {
+    testWidgets(
+        'setelah initializeDateFormatting, tanggal tampil bahasa Indonesia',
+        (tester) async {
+      // Meniru main() produksi: tanpa inisialisasi ini, DateFormat
+      // 'id_ID' di HeaderClock jatuh ke fallback bahasa Inggris.
+      await initializeDateFormatting('id_ID', null);
+      await _pump(
+        tester,
+        HeaderClock(
+          config: _config,
+          // Selasa, 17 November 2026.
+          currentTime: DateTime(2026, 11, 17, 13, 0),
+        ),
+      );
+      expect(tester.takeException(), isNull);
+      expect(find.text('Selasa, 17 November 2026'), findsOneWidget);
     });
   });
 }

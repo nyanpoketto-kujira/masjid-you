@@ -2,13 +2,13 @@
 
 > Dibuat otomatis oleh `dart run tools/codebase_index.dart`. Jangan edit manual — regenerate setelah perubahan kode.
 
-Total simbol: **1179**
+Total simbol: **1189**
 
 | Kategori | Jumlah |
 |---|---:|
-| `class` | 117 |
-| `field` | 548 |
-| `method` | 406 |
+| `class` | 119 |
+| `field` | 552 |
+| `method` | 410 |
 | `getter` | 47 |
 | `function` | 28 |
 | `constructor` | 2 |
@@ -19,180 +19,179 @@ Total simbol: **1179**
 
 
 ### `apps/mobile_remote/lib/main.dart`
-- `class` **RemoteHomeScreen** — baris 43 — `class RemoteHomeScreen extends StatefulWidget {`
-- `field` **themeMode (RemoteHomeScreen)** — baris 53 — `  final ThemeMode themeMode;`
-- `field` **colorSource (RemoteHomeScreen)** — baris 54 — `  final AppColorSource colorSource;`
-- `field` **onThemeModeChanged (RemoteHomeScreen)** — baris 55 — `  final ValueChanged<ThemeMode>? onThemeModeChanged;`
-- `field` **onColorSourceChanged (RemoteHomeScreen)** — baris 56 — `  final ValueChanged<AppColorSource>? onColorSourceChanged;`
-- `method` **createState (RemoteHomeScreen)** — baris 59 — `  State<RemoteHomeScreen> createState() => _RemoteHomeScreenState();`
-- `class` **_PinDialog** — baris 95 — `class _PinDialog extends StatefulWidget {`
-- `field` **onSubmit (_PinDialog)** — baris 96 — `  final ValueChanged<String> onSubmit;`
-- `field` **onCancel (_PinDialog)** — baris 97 — `  final VoidCallback onCancel;`
-- `method` **createState (_PinDialog)** — baris 102 — `  State<_PinDialog> createState() => _PinDialogState();`
-- `class` **_PinDialogState** — baris 105 — `class _PinDialogState extends State<_PinDialog> {`
-- `field` **_pinController (_PinDialogState)** — baris 106 — `  final _pinController = TextEditingController();`
-- `method` **dispose (_PinDialogState)** — baris 109 — `  void dispose() {`
-- `method` **_submit (_PinDialogState)** — baris 114 — `  void _submit() {`
-- `method` **build (_PinDialogState)** — baris 121 — `  Widget build(BuildContext context) {`
-- `class` **_RemoteHomeScreenState** — baris 171 — `class _RemoteHomeScreenState extends State<RemoteHomeScreen>`
-- `field` **_tabIndex (_RemoteHomeScreenState)** — baris 174 — `  int _tabIndex = 0;`
-- `field` **_subTabController (_RemoteHomeScreenState)** — baris 177 — `  late final TabController _subTabController;`
-- `field` **_tvMuted (_RemoteHomeScreenState)** — baris 181 — `  bool _tvMuted = false;`
-- `field` **_tvStandby (_RemoteHomeScreenState)** — baris 182 — `  bool _tvStandby = false;`
-- `field` **_ipController (_RemoteHomeScreenState)** — baris 184 — `  final _ipController = TextEditingController(text: '192.168.1.');`
-- `field` **_client (_RemoteHomeScreenState)** — baris 185 — `  final _client = RemoteWsClient();`
-- `field` **_btClient (_RemoteHomeScreenState)** — baris 186 — `  final _btClient = BluetoothClientService();`
-- `field` **_isConnecting (_RemoteHomeScreenState)** — baris 187 — `  bool _isConnecting = false;`
-- `field` **_isConnected (_RemoteHomeScreenState)** — baris 188 — `  bool _isConnected = false;`
-- `field` **_wasConnected (_RemoteHomeScreenState)** — baris 189 — `  bool _wasConnected = false;`
-- `field` **_showDisconnectedNotice (_RemoteHomeScreenState)** — baris 190 — `  bool _showDisconnectedNotice = false;`
-- `field` **_syncDialogOpen (_RemoteHomeScreenState)** — baris 191 — `  bool _syncDialogOpen = false;`
-- `field` **_lastConnectionKind (_RemoteHomeScreenState)** — baris 192 — `  String? _lastConnectionKind;`
-- `field` **_lastBtDevice (_RemoteHomeScreenState)** — baris 193 — `  BluetoothDeviceInfo? _lastBtDevice;`
-- `field` **_btIsScanning (_RemoteHomeScreenState)** — baris 196 — `  bool _btIsScanning = false;`
-- `field` **_btConnected (_RemoteHomeScreenState)** — baris 197 — `  bool _btConnected = false;`
-- `field` **_btDevices (_RemoteHomeScreenState)** — baris 198 — `  List<BluetoothDeviceInfo> _btDevices = [];`
-- `field` **_btKnownDevices (_RemoteHomeScreenState)** — baris 202 — `  List<BluetoothDeviceInfo> _btKnownDevices = [];`
-- `field` **_btStatus (_RemoteHomeScreenState)** — baris 203 — `  String _btStatus = 'Bluetooth: Stanby';`
-- `field` **_btStateSub (_RemoteHomeScreenState)** — baris 204 — `  StreamSubscription<BluetoothClientState>? _btStateSub;`
-- `field` **_hasUnsyncedChanges (_RemoteHomeScreenState)** — baris 206 — `  bool _hasUnsyncedChanges = false;`
-- `field` **_settingsDirty (_RemoteHomeScreenState)** — baris 211 — `  bool _settingsDirty = false;`
-- `field` **_pinDialogOpen (_RemoteHomeScreenState)** — baris 214 — `  bool _pinDialogOpen = false;`
-- `field` **_pendingBtState (_RemoteHomeScreenState)** — baris 218 — `  BluetoothClientState? _pendingBtState;`
-- `field` **_cacheStore (_RemoteHomeScreenState)** — baris 221 — `  final RemoteCacheStore _cacheStore = RemoteCacheStore();`
-- `field` **_backupService (_RemoteHomeScreenState)** — baris 224 — `  final BackupService _backupService = BackupService();`
-- `field` **_didBootstrapPush (_RemoteHomeScreenState)** — baris 228 — `  bool _didBootstrapPush = false;`
-- `field` **_config (_RemoteHomeScreenState)** — baris 230 — `  MosqueConfig _config = const MosqueConfig(`
-- `field` **_nameController (_RemoteHomeScreenState)** — baris 237 — `  final _nameController = TextEditingController();`
-- `field` **_addressController (_RemoteHomeScreenState)** — baris 238 — `  final _addressController = TextEditingController();`
-- `field` **_latitudeController (_RemoteHomeScreenState)** — baris 239 — `  final _latitudeController = TextEditingController();`
-- `field` **_longitudeController (_RemoteHomeScreenState)** — baris 240 — `  final _longitudeController = TextEditingController();`
-- `field` **_prayerOffsetControllers (_RemoteHomeScreenState)** — baris 241 — `  final Map<PrayerType, TextEditingController> _prayerOffsetControllers = {`
-- `field` **_preAdhanController (_RemoteHomeScreenState)** — baris 244 — `  final _preAdhanController = TextEditingController();`
-- `field` **_adhanController (_RemoteHomeScreenState)** — baris 245 — `  final _adhanController = TextEditingController();`
-- `field` **_preIqomahController (_RemoteHomeScreenState)** — baris 246 — `  final _preIqomahController = TextEditingController();`
-- `field` **_shalatController (_RemoteHomeScreenState)** — baris 247 — `  final _shalatController = TextEditingController();`
-- `field` **_khutbahController (_RemoteHomeScreenState)** — baris 248 — `  final _khutbahController = TextEditingController();`
-- `field` **_fridayKhatibController (_RemoteHomeScreenState)** — baris 249 — `  final _fridayKhatibController = TextEditingController();`
-- `field` **_fridayMuadzinController (_RemoteHomeScreenState)** — baris 250 — `  final _fridayMuadzinController = TextEditingController();`
-- `field` **_backgroundSlideController (_RemoteHomeScreenState)** — baris 256 — `  final _backgroundSlideController = TextEditingController();`
-- `field` **_showKas (_RemoteHomeScreenState)** — baris 260 — `  bool _showKas = true;`
-- `field` **_hasFridayPrayer (_RemoteHomeScreenState)** — baris 261 — `  bool _hasFridayPrayer = true;`
-- `field` **_isFetchingLocation (_RemoteHomeScreenState)** — baris 262 — `  bool _isFetchingLocation = false;`
-- `field` **_runningTextController (_RemoteHomeScreenState)** — baris 263 — `  final _runningTextController = TextEditingController();`
-- `field` **_runningCategory (_RemoteHomeScreenState)** — baris 264 — `  String _runningCategory = _runningCategories.first;`
-- `field` **_bannerHeaderController (_RemoteHomeScreenState)** — baris 266 — `  final _bannerHeaderController = TextEditingController();`
-- `field` **_bannerTitleController (_RemoteHomeScreenState)** — baris 267 — `  final _bannerTitleController = TextEditingController();`
-- `field` **_bannerContentController (_RemoteHomeScreenState)** — baris 268 — `  final _bannerContentController = TextEditingController();`
-- `field` **_bannerFooterController (_RemoteHomeScreenState)** — baris 269 — `  final _bannerFooterController = TextEditingController();`
-- `field` **_kasAmountController (_RemoteHomeScreenState)** — baris 271 — `  final _kasAmountController = TextEditingController();`
-- `field` **_kasDescriptionController (_RemoteHomeScreenState)** — baris 272 — `  final _kasDescriptionController = TextEditingController();`
-- `field` **_kasType (_RemoteHomeScreenState)** — baris 273 — `  KasType _kasType = KasType.masuk;`
-- `field` **_tvPhase (_RemoteHomeScreenState)** — baris 276 — `  PrayerPhase _tvPhase = PrayerPhase.normal;`
-- `field` **_kasTransactions (_RemoteHomeScreenState)** — baris 278 — `  final List<KasTransaction> _kasTransactions = [`
-- `field` **_runningTexts (_RemoteHomeScreenState)** — baris 295 — `  final List<RunningTextMessage> _runningTexts = [`
-- `field` **_banners (_RemoteHomeScreenState)** — baris 310 — `  final List<MediaBanner> _banners = [`
-- `field` **_sideImages (_RemoteHomeScreenState)** — baris 328 — `  final List<SpecialImage> _sideImages = [];`
-- `field` **_backgroundImages (_RemoteHomeScreenState)** — baris 331 — `  final List<BackgroundImage> _backgroundImages = [];`
-- `field` **_bgSendUncompressed (_RemoteHomeScreenState)** — baris 335 — `  bool _bgSendUncompressed = false;`
-- `field` **_bgSendProgress (_RemoteHomeScreenState)** — baris 339 — `  double? _bgSendProgress;`
-- `field` **_mosqueLogoBase64 (_RemoteHomeScreenState)** — baris 344 — `  String? _mosqueLogoBase64;`
-- `field` **_mosqueLogoBytes (_RemoteHomeScreenState)** — baris 345 — `  Uint8List? _mosqueLogoBytes;`
-- `field` **_logoSendProgress (_RemoteHomeScreenState)** — baris 349 — `  double? _logoSendProgress;`
-- `method` **initState (_RemoteHomeScreenState)** — baris 352 — `  void initState() {`
-- `method` **didChangeAppLifecycleState (_RemoteHomeScreenState)** — baris 456 — `  void didChangeAppLifecycleState(AppLifecycleState state) {`
-- `method` **_syncConfigControllers (_RemoteHomeScreenState)** — baris 476 — `  void _syncConfigControllers() {`
-- `method` **_attachConfigListeners (_RemoteHomeScreenState)** — baris 501 — `  void _attachConfigListeners() {`
-- `method` **_onConfigControllerChanged (_RemoteHomeScreenState)** — baris 524 — `  void _onConfigControllerChanged() {`
-- `method` **_loadStartupData (_RemoteHomeScreenState)** — baris 535 — `  Future<void> _loadStartupData() async {`
-- `method` **_applySnapshot (_RemoteHomeScreenState)** — baris 547 — `  void _applySnapshot(StateSnapshot snapshot) {`
-- `method` **_setMosqueLogoLocal (_RemoteHomeScreenState)** — baris 572 — `  void _setMosqueLogoLocal(String? logoBase64) {`
-- `method` **_requestTvState (_RemoteHomeScreenState)** — baris 587 — `  void _requestTvState() {`
-- `method` **_showUndoSnack (_RemoteHomeScreenState)** — baris 616 — `  void _showUndoSnack(String message, VoidCallback onUndo) {`
-- `method` **_sendRunningTextsIfConnected (_RemoteHomeScreenState)** — baris 630 — `  void _sendRunningTextsIfConnected() {`
-- `method` **_sendBannersIfConnected (_RemoteHomeScreenState)** — baris 639 — `  void _sendBannersIfConnected() {`
-- `method` **_sendKasIfConnected (_RemoteHomeScreenState)** — baris 648 — `  void _sendKasIfConnected() {`
-- `method` **_showPinDialog (_RemoteHomeScreenState)** — baris 660 — `  void _showPinDialog() {`
-- `method` **_closePinDialog (_RemoteHomeScreenState)** — baris 696 — `  void _closePinDialog() {`
-- `method` **_drainPendingBtState (_RemoteHomeScreenState)** — baris 704 — `  void _drainPendingBtState() {`
-- `method` **_loadSavedDurations (_RemoteHomeScreenState)** — baris 746 — `  Future<void> _loadSavedDurations() async {`
-- `method` **_persistDurations (_RemoteHomeScreenState)** — baris 788 — `  Future<void> _persistDurations(MosqueConfig config) async {`
-- `method` **_handleTvPacket (_RemoteHomeScreenState)** — baris 807 — `  void _handleTvPacket(SyncPacket packet) {`
-- `method` **_applyTvPhase (_RemoteHomeScreenState)** — baris 823 — `  void _applyTvPhase(SyncPacket packet) {`
-- `method` **_applyTvSnapshot (_RemoteHomeScreenState)** — baris 842 — `  void _applyTvSnapshot(StateSnapshot snapshot) {`
-- `method` **_pushLocalDataToTv (_RemoteHomeScreenState)** — baris 861 — `  void _pushLocalDataToTv() {`
-- `method` **_exportBackup (_RemoteHomeScreenState)** — baris 871 — `  Future<void> _exportBackup() async {`
-- `method` **_importBackup (_RemoteHomeScreenState)** — baris 894 — `  Future<void> _importBackup() async {`
-- `method` **_applyImportedBackup (_RemoteHomeScreenState)** — baris 946 — `  Future<void> _applyImportedBackup(BackupBundle bundle) async {`
-- `method` **_connectToTv (_RemoteHomeScreenState)** — baris 971 — `  Future<void> _connectToTv() async {`
-- `method` **_handleConnectionEstablished (_RemoteHomeScreenState)** — baris 1003 — `  void _handleConnectionEstablished(String kind) {`
-- `method` **_handleTransportDisconnected (_RemoteHomeScreenState)** — baris 1022 — `  void _handleTransportDisconnected() {`
-- `method` **_reconnectLast (_RemoteHomeScreenState)** — baris 1031 — `  Future<void> _reconnectLast() async {`
-- `method` **_showSyncConflictDialog (_RemoteHomeScreenState)** — baris 1045 — `  void _showSyncConflictDialog() {`
-- `method` **_disconnectFromTv (_RemoteHomeScreenState)** — baris 1085 — `  Future<void> _disconnectFromTv() async {`
-- `method` **_buildConfigFromForm (_RemoteHomeScreenState)** — baris 1097 — `  MosqueConfig _buildConfigFromForm() {`
-- `method` **_minutesFrom (_RemoteHomeScreenState)** — baris 1136 — `  int _minutesFrom(TextEditingController controller, int fallback) {`
-- `method` **_syncAllToTv (_RemoteHomeScreenState)** — baris 1142 — `  void _syncAllToTv() {`
-- `method` **_pushAllToTv (_RemoteHomeScreenState)** — baris 1154 — `  void _pushAllToTv() {`
-- `method` **_sendConfigUpdate (_RemoteHomeScreenState)** — baris 1167 — `  void _sendConfigUpdate() {`
-- `method` **_totalKas (_RemoteHomeScreenState)** — baris 1191 — `  int _totalKas(KasType type) => _kasTransactions`
-- `method` **_toggleTvMuted (_RemoteHomeScreenState)** — baris 1197 — `  void _toggleTvMuted() {`
-- `method` **_toggleTvStandby (_RemoteHomeScreenState)** — baris 1209 — `  void _toggleTvStandby() {`
-- `method` **_sendQuickAction (_RemoteHomeScreenState)** — baris 1220 — `  void _sendQuickAction(SyncAction action) {`
-- `method` **_sendForcePhase (_RemoteHomeScreenState)** — baris 1240 — `  void _sendForcePhase(PrayerPhase phase) {`
-- `method` **_getLocationFromGps (_RemoteHomeScreenState)** — baris 1248 — `  Future<void> _getLocationFromGps() async {`
-- `method` **_addRunningText (_RemoteHomeScreenState)** — baris 1290 — `  void _addRunningText() {`
-- `method` **_removeRunningText (_RemoteHomeScreenState)** — baris 1314 — `  void _removeRunningText(String id) {`
-- `method` **_editRunningText (_RemoteHomeScreenState)** — baris 1334 — `  void _editRunningText(RunningTextMessage item) {`
-- `method` **_addBanner (_RemoteHomeScreenState)** — baris 1369 — `  void _addBanner(String? base64Image) {`
-- `method` **_removeBanner (_RemoteHomeScreenState)** — baris 1404 — `  void _removeBanner(String id) {`
-- `method` **_toggleBanner (_RemoteHomeScreenState)** — baris 1422 — `  void _toggleBanner(String id, bool val) {`
-- `method` **_sendSideImagesIfConnected (_RemoteHomeScreenState)** — baris 1441 — `  void _sendSideImagesIfConnected() {`
-- `method` **_addSideImage (_RemoteHomeScreenState)** — baris 1450 — `  void _addSideImage(String caption, String base64Image) {`
-- `method` **_removeSideImage (_RemoteHomeScreenState)** — baris 1463 — `  void _removeSideImage(String id) {`
-- `method` **_toggleSideImage (_RemoteHomeScreenState)** — baris 1481 — `  void _toggleSideImage(String id, bool val) {`
-- `method` **_reorderRunningTexts (_RemoteHomeScreenState)** — baris 1496 — `  void _reorderRunningTexts(int oldIndex, int newIndex) {`
-- `method` **_reorderBanners (_RemoteHomeScreenState)** — baris 1505 — `  void _reorderBanners(int oldIndex, int newIndex) {`
-- `method` **_reorderSideImages (_RemoteHomeScreenState)** — baris 1514 — `  void _reorderSideImages(int oldIndex, int newIndex) {`
-- `method` **_sendBackgroundImagesIfConnected (_RemoteHomeScreenState)** — baris 1527 — `  void _sendBackgroundImagesIfConnected() {`
-- `method` **_mirrorBackgroundImagesToBt (_RemoteHomeScreenState)** — baris 1545 — `  Future<void> _mirrorBackgroundImagesToBt(SyncPacket packet) async {`
-- `method` **_sendLogoIfConnected (_RemoteHomeScreenState)** — baris 1576 — `  void _sendLogoIfConnected() {`
-- `method` **_mirrorLogoToBt (_RemoteHomeScreenState)** — baris 1591 — `  Future<void> _mirrorLogoToBt(SyncPacket packet) async {`
-- `method` **_pickMosqueLogo (_RemoteHomeScreenState)** — baris 1616 — `  Future<void> _pickMosqueLogo() async {`
-- `method` **_removeMosqueLogo (_RemoteHomeScreenState)** — baris 1638 — `  void _removeMosqueLogo() {`
-- `method` **_addBackgroundImage (_RemoteHomeScreenState)** — baris 1654 — `  void _addBackgroundImage(String base64Image) {`
-- `method` **_removeBackgroundImage (_RemoteHomeScreenState)** — baris 1666 — `  void _removeBackgroundImage(String id) {`
-- `method` **_toggleBackgroundImage (_RemoteHomeScreenState)** — baris 1684 — `  void _toggleBackgroundImage(String id, bool val) {`
-- `method` **_reorderBackgroundImages (_RemoteHomeScreenState)** — baris 1696 — `  void _reorderBackgroundImages(int oldIndex, int newIndex) {`
-- `method` **_onBgSendUncompressedChanged (_RemoteHomeScreenState)** — baris 1707 — `  void _onBgSendUncompressedChanged(bool value) {`
-- `method` **_editBanner (_RemoteHomeScreenState)** — baris 1714 — `  void _editBanner(MediaBanner banner) {`
-- `method` **_addKasTransaction (_RemoteHomeScreenState)** — baris 1803 — `  void _addKasTransaction() {`
-- `method` **_removeKasTransaction (_RemoteHomeScreenState)** — baris 1830 — `  void _removeKasTransaction(String id) {`
-- `method` **_startBtScan (_RemoteHomeScreenState)** — baris 1848 — `  void _startBtScan() {`
-- `method` **_stopBtScan (_RemoteHomeScreenState)** — baris 1856 — `  void _stopBtScan() {`
-- `method` **_connectBt (_RemoteHomeScreenState)** — baris 1864 — `  void _connectBt(BluetoothDeviceInfo device) {`
-- `method` **_showScheduleSimulation (_RemoteHomeScreenState)** — baris 1874 — `  void _showScheduleSimulation(MosqueConfig formConfig) {`
-- `method` **_formatDurationShort (_RemoteHomeScreenState)** — baris 2019 — `  String _formatDurationShort(Duration? duration) {`
-- `method` **dispose (_RemoteHomeScreenState)** — baris 2027 — `  void dispose() {`
-- `method` **build (_RemoteHomeScreenState)** — baris 2062 — `  Widget build(BuildContext context) {`
-- `method` **_handleDestinationSelected (_RemoteHomeScreenState)** — baris 2304 — `  Future<void> _handleDestinationSelected(int index) async {`
-- `getter` **_transportLabel (_RemoteHomeScreenState)** — baris 2342 — `  String get _transportLabel =>`
-- `method` **_buildConnectionStatusStrip (_RemoteHomeScreenState)** — baris 2347 — `  Widget _buildConnectionStatusStrip(ThemeData theme, ColorScheme colorScheme) {`
-- `method` **_showConnectionSheet (_RemoteHomeScreenState)** — baris 2390 — `  void _showConnectionSheet() {`
-- `method` **_buildDisconnectedBanner (_RemoteHomeScreenState)** — baris 2464 — `  Widget _buildDisconnectedBanner(ThemeData theme, ColorScheme colorScheme) {`
-- `method` **_buildContentTabBar (_RemoteHomeScreenState)** — baris 2491 — `  Widget _buildContentTabBar(ThemeData theme, ColorScheme colorScheme) {`
-- `method` **_buildUnsyncedBanner (_RemoteHomeScreenState)** — baris 2522 — `  Widget _buildUnsyncedBanner(ThemeData theme, ColorScheme colorScheme) {`
-- `class` **MasjidYouRemoteApp** — baris 2550 — `class MasjidYouRemoteApp extends StatefulWidget {`
-- `method` **createState (MasjidYouRemoteApp)** — baris 2554 — `  State<MasjidYouRemoteApp> createState() => _MasjidYouRemoteAppState();`
-- `class` **_MasjidYouRemoteAppState** — baris 2557 — `class _MasjidYouRemoteAppState extends State<MasjidYouRemoteApp> {`
-- `field` **_themeMode (_MasjidYouRemoteAppState)** — baris 2558 — `  ThemeMode _themeMode = ThemeMode.system;`
-- `field` **_colorSource (_MasjidYouRemoteAppState)** — baris 2559 — `  AppColorSource _colorSource = AppColorSource.dynamic;`
-- `method` **initState (_MasjidYouRemoteAppState)** — baris 2562 — `  void initState() {`
-- `method` **_loadThemePreferences (_MasjidYouRemoteAppState)** — baris 2567 — `  Future<void> _loadThemePreferences() async {`
-- `method` **_setThemeMode (_MasjidYouRemoteAppState)** — baris 2577 — `  Future<void> _setThemeMode(ThemeMode mode) async {`
-- `method` **_setColorSource (_MasjidYouRemoteAppState)** — baris 2582 — `  Future<void> _setColorSource(AppColorSource source) async {`
-- `method` **build (_MasjidYouRemoteAppState)** — baris 2588 — `  Widget build(BuildContext context) {`
-- `function` **main** — baris 2624 — `void main() {`
+- `class` **RemoteHomeScreen** — baris 44 — `class RemoteHomeScreen extends StatefulWidget {`
+- `field` **themeMode (RemoteHomeScreen)** — baris 54 — `  final ThemeMode themeMode;`
+- `field` **colorSource (RemoteHomeScreen)** — baris 55 — `  final AppColorSource colorSource;`
+- `field` **onThemeModeChanged (RemoteHomeScreen)** — baris 56 — `  final ValueChanged<ThemeMode>? onThemeModeChanged;`
+- `field` **onColorSourceChanged (RemoteHomeScreen)** — baris 57 — `  final ValueChanged<AppColorSource>? onColorSourceChanged;`
+- `method` **createState (RemoteHomeScreen)** — baris 60 — `  State<RemoteHomeScreen> createState() => _RemoteHomeScreenState();`
+- `class` **_PinDialog** — baris 96 — `class _PinDialog extends StatefulWidget {`
+- `field` **onSubmit (_PinDialog)** — baris 97 — `  final ValueChanged<String> onSubmit;`
+- `field` **onCancel (_PinDialog)** — baris 98 — `  final VoidCallback onCancel;`
+- `method` **createState (_PinDialog)** — baris 103 — `  State<_PinDialog> createState() => _PinDialogState();`
+- `class` **_PinDialogState** — baris 106 — `class _PinDialogState extends State<_PinDialog> {`
+- `field` **_pinController (_PinDialogState)** — baris 107 — `  final _pinController = TextEditingController();`
+- `method` **dispose (_PinDialogState)** — baris 110 — `  void dispose() {`
+- `method` **_submit (_PinDialogState)** — baris 115 — `  void _submit() {`
+- `method` **build (_PinDialogState)** — baris 122 — `  Widget build(BuildContext context) {`
+- `class` **_RemoteHomeScreenState** — baris 172 — `class _RemoteHomeScreenState extends State<RemoteHomeScreen>`
+- `field` **_tabIndex (_RemoteHomeScreenState)** — baris 175 — `  int _tabIndex = 0;`
+- `field` **_subTabController (_RemoteHomeScreenState)** — baris 178 — `  late final TabController _subTabController;`
+- `field` **_tvMuted (_RemoteHomeScreenState)** — baris 182 — `  bool _tvMuted = false;`
+- `field` **_tvStandby (_RemoteHomeScreenState)** — baris 183 — `  bool _tvStandby = false;`
+- `field` **_ipController (_RemoteHomeScreenState)** — baris 185 — `  final _ipController = TextEditingController(text: '192.168.1.');`
+- `field` **_client (_RemoteHomeScreenState)** — baris 186 — `  final _client = RemoteWsClient();`
+- `field` **_btClient (_RemoteHomeScreenState)** — baris 187 — `  final _btClient = BluetoothClientService();`
+- `field` **_isConnecting (_RemoteHomeScreenState)** — baris 188 — `  bool _isConnecting = false;`
+- `field` **_isConnected (_RemoteHomeScreenState)** — baris 189 — `  bool _isConnected = false;`
+- `field` **_wasConnected (_RemoteHomeScreenState)** — baris 190 — `  bool _wasConnected = false;`
+- `field` **_showDisconnectedNotice (_RemoteHomeScreenState)** — baris 191 — `  bool _showDisconnectedNotice = false;`
+- `field` **_syncDialogOpen (_RemoteHomeScreenState)** — baris 192 — `  bool _syncDialogOpen = false;`
+- `field` **_lastConnectionKind (_RemoteHomeScreenState)** — baris 193 — `  String? _lastConnectionKind;`
+- `field` **_lastBtDevice (_RemoteHomeScreenState)** — baris 194 — `  BluetoothDeviceInfo? _lastBtDevice;`
+- `field` **_btIsScanning (_RemoteHomeScreenState)** — baris 197 — `  bool _btIsScanning = false;`
+- `field` **_btConnected (_RemoteHomeScreenState)** — baris 198 — `  bool _btConnected = false;`
+- `field` **_btDevices (_RemoteHomeScreenState)** — baris 199 — `  List<BluetoothDeviceInfo> _btDevices = [];`
+- `field` **_btKnownDevices (_RemoteHomeScreenState)** — baris 203 — `  List<BluetoothDeviceInfo> _btKnownDevices = [];`
+- `field` **_btStatus (_RemoteHomeScreenState)** — baris 204 — `  String _btStatus = 'Bluetooth: Stanby';`
+- `field` **_btStateSub (_RemoteHomeScreenState)** — baris 205 — `  StreamSubscription<BluetoothClientState>? _btStateSub;`
+- `field` **_hasUnsyncedChanges (_RemoteHomeScreenState)** — baris 207 — `  bool _hasUnsyncedChanges = false;`
+- `field` **_settingsDirty (_RemoteHomeScreenState)** — baris 212 — `  bool _settingsDirty = false;`
+- `field` **_pinDialogOpen (_RemoteHomeScreenState)** — baris 215 — `  bool _pinDialogOpen = false;`
+- `field` **_pendingBtState (_RemoteHomeScreenState)** — baris 219 — `  BluetoothClientState? _pendingBtState;`
+- `field` **_cacheStore (_RemoteHomeScreenState)** — baris 222 — `  final RemoteCacheStore _cacheStore = RemoteCacheStore();`
+- `field` **_backupService (_RemoteHomeScreenState)** — baris 225 — `  final BackupService _backupService = BackupService();`
+- `field` **_didBootstrapPush (_RemoteHomeScreenState)** — baris 229 — `  bool _didBootstrapPush = false;`
+- `field` **_config (_RemoteHomeScreenState)** — baris 231 — `  MosqueConfig _config = const MosqueConfig(`
+- `field` **_nameController (_RemoteHomeScreenState)** — baris 238 — `  final _nameController = TextEditingController();`
+- `field` **_addressController (_RemoteHomeScreenState)** — baris 239 — `  final _addressController = TextEditingController();`
+- `field` **_latitudeController (_RemoteHomeScreenState)** — baris 240 — `  final _latitudeController = TextEditingController();`
+- `field` **_longitudeController (_RemoteHomeScreenState)** — baris 241 — `  final _longitudeController = TextEditingController();`
+- `field` **_prayerOffsetControllers (_RemoteHomeScreenState)** — baris 242 — `  final Map<PrayerType, TextEditingController> _prayerOffsetControllers = {`
+- `field` **_preAdhanController (_RemoteHomeScreenState)** — baris 245 — `  final _preAdhanController = TextEditingController();`
+- `field` **_adhanController (_RemoteHomeScreenState)** — baris 246 — `  final _adhanController = TextEditingController();`
+- `field` **_preIqomahController (_RemoteHomeScreenState)** — baris 247 — `  final _preIqomahController = TextEditingController();`
+- `field` **_shalatController (_RemoteHomeScreenState)** — baris 248 — `  final _shalatController = TextEditingController();`
+- `field` **_khutbahController (_RemoteHomeScreenState)** — baris 249 — `  final _khutbahController = TextEditingController();`
+- `field` **_fridayKhatibController (_RemoteHomeScreenState)** — baris 250 — `  final _fridayKhatibController = TextEditingController();`
+- `field` **_fridayMuadzinController (_RemoteHomeScreenState)** — baris 251 — `  final _fridayMuadzinController = TextEditingController();`
+- `field` **_backgroundSlideController (_RemoteHomeScreenState)** — baris 257 — `  final _backgroundSlideController = TextEditingController();`
+- `field` **_showKas (_RemoteHomeScreenState)** — baris 261 — `  bool _showKas = true;`
+- `field` **_hasFridayPrayer (_RemoteHomeScreenState)** — baris 262 — `  bool _hasFridayPrayer = true;`
+- `field` **_isFetchingLocation (_RemoteHomeScreenState)** — baris 263 — `  bool _isFetchingLocation = false;`
+- `field` **_runningTextController (_RemoteHomeScreenState)** — baris 264 — `  final _runningTextController = TextEditingController();`
+- `field` **_runningCategory (_RemoteHomeScreenState)** — baris 265 — `  String _runningCategory = _runningCategories.first;`
+- `field` **_bannerHeaderController (_RemoteHomeScreenState)** — baris 267 — `  final _bannerHeaderController = TextEditingController();`
+- `field` **_bannerTitleController (_RemoteHomeScreenState)** — baris 268 — `  final _bannerTitleController = TextEditingController();`
+- `field` **_bannerContentController (_RemoteHomeScreenState)** — baris 269 — `  final _bannerContentController = TextEditingController();`
+- `field` **_bannerFooterController (_RemoteHomeScreenState)** — baris 270 — `  final _bannerFooterController = TextEditingController();`
+- `field` **_kasAmountController (_RemoteHomeScreenState)** — baris 272 — `  final _kasAmountController = TextEditingController();`
+- `field` **_kasDescriptionController (_RemoteHomeScreenState)** — baris 273 — `  final _kasDescriptionController = TextEditingController();`
+- `field` **_kasType (_RemoteHomeScreenState)** — baris 274 — `  KasType _kasType = KasType.masuk;`
+- `field` **_tvPhase (_RemoteHomeScreenState)** — baris 277 — `  PrayerPhase _tvPhase = PrayerPhase.normal;`
+- `field` **_kasTransactions (_RemoteHomeScreenState)** — baris 279 — `  final List<KasTransaction> _kasTransactions = [`
+- `field` **_runningTexts (_RemoteHomeScreenState)** — baris 296 — `  final List<RunningTextMessage> _runningTexts = [`
+- `field` **_banners (_RemoteHomeScreenState)** — baris 311 — `  final List<MediaBanner> _banners = [`
+- `field` **_sideImages (_RemoteHomeScreenState)** — baris 329 — `  final List<SpecialImage> _sideImages = [];`
+- `field` **_backgroundImages (_RemoteHomeScreenState)** — baris 332 — `  final List<BackgroundImage> _backgroundImages = [];`
+- `field` **_bgSendUncompressed (_RemoteHomeScreenState)** — baris 336 — `  bool _bgSendUncompressed = false;`
+- `field` **_bgSendProgress (_RemoteHomeScreenState)** — baris 340 — `  double? _bgSendProgress;`
+- `field` **_mosqueLogoBase64 (_RemoteHomeScreenState)** — baris 345 — `  String? _mosqueLogoBase64;`
+- `field` **_mosqueLogoBytes (_RemoteHomeScreenState)** — baris 346 — `  Uint8List? _mosqueLogoBytes;`
+- `field` **_logoSendProgress (_RemoteHomeScreenState)** — baris 350 — `  double? _logoSendProgress;`
+- `method` **initState (_RemoteHomeScreenState)** — baris 353 — `  void initState() {`
+- `method` **didChangeAppLifecycleState (_RemoteHomeScreenState)** — baris 457 — `  void didChangeAppLifecycleState(AppLifecycleState state) {`
+- `method` **_syncConfigControllers (_RemoteHomeScreenState)** — baris 477 — `  void _syncConfigControllers() {`
+- `method` **_attachConfigListeners (_RemoteHomeScreenState)** — baris 502 — `  void _attachConfigListeners() {`
+- `method` **_onConfigControllerChanged (_RemoteHomeScreenState)** — baris 525 — `  void _onConfigControllerChanged() {`
+- `method` **_loadStartupData (_RemoteHomeScreenState)** — baris 536 — `  Future<void> _loadStartupData() async {`
+- `method` **_applySnapshot (_RemoteHomeScreenState)** — baris 548 — `  void _applySnapshot(StateSnapshot snapshot) {`
+- `method` **_setMosqueLogoLocal (_RemoteHomeScreenState)** — baris 573 — `  void _setMosqueLogoLocal(String? logoBase64) {`
+- `method` **_requestTvState (_RemoteHomeScreenState)** — baris 588 — `  void _requestTvState() {`
+- `method` **_showUndoSnack (_RemoteHomeScreenState)** — baris 617 — `  void _showUndoSnack(String message, VoidCallback onUndo) {`
+- `method` **_sendRunningTextsIfConnected (_RemoteHomeScreenState)** — baris 631 — `  void _sendRunningTextsIfConnected() {`
+- `method` **_sendBannersIfConnected (_RemoteHomeScreenState)** — baris 640 — `  void _sendBannersIfConnected() {`
+- `method` **_sendKasIfConnected (_RemoteHomeScreenState)** — baris 649 — `  void _sendKasIfConnected() {`
+- `method` **_showPinDialog (_RemoteHomeScreenState)** — baris 661 — `  void _showPinDialog() {`
+- `method` **_closePinDialog (_RemoteHomeScreenState)** — baris 697 — `  void _closePinDialog() {`
+- `method` **_drainPendingBtState (_RemoteHomeScreenState)** — baris 705 — `  void _drainPendingBtState() {`
+- `method` **_loadSavedDurations (_RemoteHomeScreenState)** — baris 747 — `  Future<void> _loadSavedDurations() async {`
+- `method` **_persistDurations (_RemoteHomeScreenState)** — baris 789 — `  Future<void> _persistDurations(MosqueConfig config) async {`
+- `method` **_handleTvPacket (_RemoteHomeScreenState)** — baris 808 — `  void _handleTvPacket(SyncPacket packet) {`
+- `method` **_applyTvPhase (_RemoteHomeScreenState)** — baris 824 — `  void _applyTvPhase(SyncPacket packet) {`
+- `method` **_applyTvSnapshot (_RemoteHomeScreenState)** — baris 843 — `  void _applyTvSnapshot(StateSnapshot snapshot) {`
+- `method` **_pushLocalDataToTv (_RemoteHomeScreenState)** — baris 862 — `  void _pushLocalDataToTv() {`
+- `method` **_exportBackup (_RemoteHomeScreenState)** — baris 872 — `  Future<void> _exportBackup() async {`
+- `method` **_importBackup (_RemoteHomeScreenState)** — baris 895 — `  Future<void> _importBackup() async {`
+- `method` **_applyImportedBackup (_RemoteHomeScreenState)** — baris 947 — `  Future<void> _applyImportedBackup(BackupBundle bundle) async {`
+- `method` **_connectToTv (_RemoteHomeScreenState)** — baris 972 — `  Future<void> _connectToTv() async {`
+- `method` **_handleConnectionEstablished (_RemoteHomeScreenState)** — baris 1004 — `  void _handleConnectionEstablished(String kind) {`
+- `method` **_handleTransportDisconnected (_RemoteHomeScreenState)** — baris 1023 — `  void _handleTransportDisconnected() {`
+- `method` **_reconnectLast (_RemoteHomeScreenState)** — baris 1032 — `  Future<void> _reconnectLast() async {`
+- `method` **_showSyncConflictDialog (_RemoteHomeScreenState)** — baris 1046 — `  void _showSyncConflictDialog() {`
+- `method` **_disconnectFromTv (_RemoteHomeScreenState)** — baris 1086 — `  Future<void> _disconnectFromTv() async {`
+- `method` **_buildConfigFromForm (_RemoteHomeScreenState)** — baris 1098 — `  MosqueConfig _buildConfigFromForm() {`
+- `method` **_minutesFrom (_RemoteHomeScreenState)** — baris 1137 — `  int _minutesFrom(TextEditingController controller, int fallback) {`
+- `method` **_syncAllToTv (_RemoteHomeScreenState)** — baris 1143 — `  void _syncAllToTv() {`
+- `method` **_pushAllToTv (_RemoteHomeScreenState)** — baris 1155 — `  void _pushAllToTv() {`
+- `method` **_sendConfigUpdate (_RemoteHomeScreenState)** — baris 1168 — `  void _sendConfigUpdate() {`
+- `method` **_totalKas (_RemoteHomeScreenState)** — baris 1192 — `  int _totalKas(KasType type) => _kasTransactions`
+- `method` **_toggleTvMuted (_RemoteHomeScreenState)** — baris 1198 — `  void _toggleTvMuted() {`
+- `method` **_toggleTvStandby (_RemoteHomeScreenState)** — baris 1210 — `  void _toggleTvStandby() {`
+- `method` **_sendQuickAction (_RemoteHomeScreenState)** — baris 1221 — `  void _sendQuickAction(SyncAction action) {`
+- `method` **_sendForcePhase (_RemoteHomeScreenState)** — baris 1241 — `  void _sendForcePhase(PrayerPhase phase) {`
+- `method` **_getLocationFromGps (_RemoteHomeScreenState)** — baris 1249 — `  Future<void> _getLocationFromGps() async {`
+- `method` **_addRunningText (_RemoteHomeScreenState)** — baris 1291 — `  void _addRunningText() {`
+- `method` **_removeRunningText (_RemoteHomeScreenState)** — baris 1315 — `  void _removeRunningText(String id) {`
+- `method` **_editRunningText (_RemoteHomeScreenState)** — baris 1335 — `  void _editRunningText(RunningTextMessage item) {`
+- `method` **_addBanner (_RemoteHomeScreenState)** — baris 1370 — `  void _addBanner(String? base64Image) {`
+- `method` **_removeBanner (_RemoteHomeScreenState)** — baris 1405 — `  void _removeBanner(String id) {`
+- `method` **_toggleBanner (_RemoteHomeScreenState)** — baris 1423 — `  void _toggleBanner(String id, bool val) {`
+- `method` **_sendSideImagesIfConnected (_RemoteHomeScreenState)** — baris 1442 — `  void _sendSideImagesIfConnected() {`
+- `method` **_addSideImage (_RemoteHomeScreenState)** — baris 1451 — `  void _addSideImage(String caption, String base64Image) {`
+- `method` **_removeSideImage (_RemoteHomeScreenState)** — baris 1464 — `  void _removeSideImage(String id) {`
+- `method` **_toggleSideImage (_RemoteHomeScreenState)** — baris 1482 — `  void _toggleSideImage(String id, bool val) {`
+- `method` **_reorderRunningTexts (_RemoteHomeScreenState)** — baris 1497 — `  void _reorderRunningTexts(int oldIndex, int newIndex) {`
+- `method` **_reorderBanners (_RemoteHomeScreenState)** — baris 1506 — `  void _reorderBanners(int oldIndex, int newIndex) {`
+- `method` **_reorderSideImages (_RemoteHomeScreenState)** — baris 1515 — `  void _reorderSideImages(int oldIndex, int newIndex) {`
+- `method` **_sendBackgroundImagesIfConnected (_RemoteHomeScreenState)** — baris 1528 — `  void _sendBackgroundImagesIfConnected() {`
+- `method` **_mirrorBackgroundImagesToBt (_RemoteHomeScreenState)** — baris 1546 — `  Future<void> _mirrorBackgroundImagesToBt(SyncPacket packet) async {`
+- `method` **_sendLogoIfConnected (_RemoteHomeScreenState)** — baris 1577 — `  void _sendLogoIfConnected() {`
+- `method` **_mirrorLogoToBt (_RemoteHomeScreenState)** — baris 1592 — `  Future<void> _mirrorLogoToBt(SyncPacket packet) async {`
+- `method` **_pickMosqueLogo (_RemoteHomeScreenState)** — baris 1617 — `  Future<void> _pickMosqueLogo() async {`
+- `method` **_removeMosqueLogo (_RemoteHomeScreenState)** — baris 1639 — `  void _removeMosqueLogo() {`
+- `method` **_addBackgroundImage (_RemoteHomeScreenState)** — baris 1655 — `  void _addBackgroundImage(String base64Image) {`
+- `method` **_removeBackgroundImage (_RemoteHomeScreenState)** — baris 1667 — `  void _removeBackgroundImage(String id) {`
+- `method` **_toggleBackgroundImage (_RemoteHomeScreenState)** — baris 1685 — `  void _toggleBackgroundImage(String id, bool val) {`
+- `method` **_reorderBackgroundImages (_RemoteHomeScreenState)** — baris 1697 — `  void _reorderBackgroundImages(int oldIndex, int newIndex) {`
+- `method` **_onBgSendUncompressedChanged (_RemoteHomeScreenState)** — baris 1708 — `  void _onBgSendUncompressedChanged(bool value) {`
+- `method` **_editBanner (_RemoteHomeScreenState)** — baris 1715 — `  void _editBanner(MediaBanner banner) {`
+- `method` **_addKasTransaction (_RemoteHomeScreenState)** — baris 1804 — `  void _addKasTransaction() {`
+- `method` **_removeKasTransaction (_RemoteHomeScreenState)** — baris 1831 — `  void _removeKasTransaction(String id) {`
+- `method` **_startBtScan (_RemoteHomeScreenState)** — baris 1849 — `  void _startBtScan() {`
+- `method` **_stopBtScan (_RemoteHomeScreenState)** — baris 1857 — `  void _stopBtScan() {`
+- `method` **_connectBt (_RemoteHomeScreenState)** — baris 1865 — `  void _connectBt(BluetoothDeviceInfo device) {`
+- `method` **_showScheduleSimulation (_RemoteHomeScreenState)** — baris 1875 — `  void _showScheduleSimulation(MosqueConfig formConfig) {`
+- `method` **dispose (_RemoteHomeScreenState)** — baris 1886 — `  void dispose() {`
+- `method` **build (_RemoteHomeScreenState)** — baris 1921 — `  Widget build(BuildContext context) {`
+- `method` **_handleDestinationSelected (_RemoteHomeScreenState)** — baris 2163 — `  Future<void> _handleDestinationSelected(int index) async {`
+- `getter` **_transportLabel (_RemoteHomeScreenState)** — baris 2201 — `  String get _transportLabel =>`
+- `method` **_buildConnectionStatusStrip (_RemoteHomeScreenState)** — baris 2206 — `  Widget _buildConnectionStatusStrip(ThemeData theme, ColorScheme colorScheme) {`
+- `method` **_showConnectionSheet (_RemoteHomeScreenState)** — baris 2249 — `  void _showConnectionSheet() {`
+- `method` **_buildDisconnectedBanner (_RemoteHomeScreenState)** — baris 2323 — `  Widget _buildDisconnectedBanner(ThemeData theme, ColorScheme colorScheme) {`
+- `method` **_buildContentTabBar (_RemoteHomeScreenState)** — baris 2350 — `  Widget _buildContentTabBar(ThemeData theme, ColorScheme colorScheme) {`
+- `method` **_buildUnsyncedBanner (_RemoteHomeScreenState)** — baris 2381 — `  Widget _buildUnsyncedBanner(ThemeData theme, ColorScheme colorScheme) {`
+- `class` **MasjidYouRemoteApp** — baris 2409 — `class MasjidYouRemoteApp extends StatefulWidget {`
+- `method` **createState (MasjidYouRemoteApp)** — baris 2413 — `  State<MasjidYouRemoteApp> createState() => _MasjidYouRemoteAppState();`
+- `class` **_MasjidYouRemoteAppState** — baris 2416 — `class _MasjidYouRemoteAppState extends State<MasjidYouRemoteApp> {`
+- `field` **_themeMode (_MasjidYouRemoteAppState)** — baris 2417 — `  ThemeMode _themeMode = ThemeMode.system;`
+- `field` **_colorSource (_MasjidYouRemoteAppState)** — baris 2418 — `  AppColorSource _colorSource = AppColorSource.dynamic;`
+- `method` **initState (_MasjidYouRemoteAppState)** — baris 2421 — `  void initState() {`
+- `method` **_loadThemePreferences (_MasjidYouRemoteAppState)** — baris 2426 — `  Future<void> _loadThemePreferences() async {`
+- `method` **_setThemeMode (_MasjidYouRemoteAppState)** — baris 2436 — `  Future<void> _setThemeMode(ThemeMode mode) async {`
+- `method` **_setColorSource (_MasjidYouRemoteAppState)** — baris 2441 — `  Future<void> _setColorSource(AppColorSource source) async {`
+- `method` **build (_MasjidYouRemoteAppState)** — baris 2447 — `  Widget build(BuildContext context) {`
+- `function` **main** — baris 2483 — `Future<void> main() async {`
 
 ### `apps/mobile_remote/lib/screens/connection/connection_gateway_screen.dart`
 - `class` **ConnectionGatewayScreen** — baris 4 — `class ConnectionGatewayScreen extends StatelessWidget {`
@@ -418,6 +417,19 @@ Total simbol: **1179**
 - `method` **build (_SettingsGroup)** — baris 645 — `  Widget build(BuildContext context) {`
 - `typedef` **VoidRefCallback** — baris 672 — `typedef VoidRefCallback = void Function();`
 
+### `apps/mobile_remote/lib/screens/simulation/schedule_simulation_dialog.dart`
+- `class` **ScheduleSimulationDialog** — baris 18 — `class ScheduleSimulationDialog extends StatefulWidget {`
+- `field` **config (ScheduleSimulationDialog)** — baris 20 — `  final MosqueConfig config;`
+- `field` **hasFridayPrayer (ScheduleSimulationDialog)** — baris 23 — `  final bool hasFridayPrayer;`
+- `field` **initialDateTime (ScheduleSimulationDialog)** — baris 27 — `  final DateTime? initialDateTime;`
+- `method` **createState (ScheduleSimulationDialog)** — baris 37 — `  State<ScheduleSimulationDialog> createState() =>`
+- `method` **_ScheduleSimulationDialogState (ScheduleSimulationDialog)** — baris 38 — `      _ScheduleSimulationDialogState();`
+- `class` **_ScheduleSimulationDialogState** — baris 41 — `class _ScheduleSimulationDialogState extends State<ScheduleSimulationDialog> {`
+- `field` **_simDateTime (_ScheduleSimulationDialogState)** — baris 42 — `  late DateTime _simDateTime;`
+- `method` **initState (_ScheduleSimulationDialogState)** — baris 45 — `  void initState() {`
+- `method` **build (_ScheduleSimulationDialogState)** — baris 51 — `  Widget build(BuildContext context) {`
+- `method` **_formatDurationShort (_ScheduleSimulationDialogState)** — baris 177 — `  String _formatDurationShort(Duration? duration) {`
+
 ### `apps/mobile_remote/lib/screens/simulation/simulation_tab.dart`
 - `class` **SimulationTab** — baris 4 — `class SimulationTab extends StatelessWidget {`
 - `field` **isConnected (SimulationTab)** — baris 5 — `  final bool isConnected;`
@@ -597,55 +609,55 @@ Total simbol: **1179**
 - `method` **build (StepperRow)** — baris 42 — `  Widget build(BuildContext context) {`
 
 ### `apps/tv_display/lib/main.dart`
-- `function` **main** — baris 26 — `void main() async {`
-- `class` **MasjidYouTVApp** — baris 42 — `class MasjidYouTVApp extends StatelessWidget {`
-- `method` **build (MasjidYouTVApp)** — baris 46 — `  Widget build(BuildContext context) {`
-- `class` **MasjidDisplayScreen** — baris 56 — `class MasjidDisplayScreen extends StatefulWidget {`
-- `field` **initialConfig (MasjidDisplayScreen)** — baris 64 — `  final MosqueConfig? initialConfig;`
-- `field` **autoPrayerCycle (MasjidDisplayScreen)** — baris 67 — `  final bool autoPrayerCycle;`
-- `method` **createState (MasjidDisplayScreen)** — baris 70 — `  State<MasjidDisplayScreen> createState() => _MasjidDisplayScreenState();`
-- `class` **_MasjidDisplayScreenState** — baris 73 — `class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {`
-- `field` **_now (_MasjidDisplayScreenState)** — baris 74 — `  DateTime _now = DateTime.now();`
-- `field` **_clockTimer (_MasjidDisplayScreenState)** — baris 75 — `  Timer? _clockTimer;`
-- `field` **_localServer (_MasjidDisplayScreenState)** — baris 76 — `  LocalServer? _localServer;`
-- `field` **_btHost (_MasjidDisplayScreenState)** — baris 79 — `  BluetoothHostService? _btHost;`
-- `field` **_btState (_MasjidDisplayScreenState)** — baris 80 — `  BluetoothHostState? _btState;`
-- `field` **_btEnabled (_MasjidDisplayScreenState)** — baris 84 — `  bool _btEnabled = false;`
-- `field` **_showAdminMenu (_MasjidDisplayScreenState)** — baris 87 — `  bool _showAdminMenu = false;`
-- `field` **_localIp (_MasjidDisplayScreenState)** — baris 91 — `  String? _localIp;`
-- `field` **_config (_MasjidDisplayScreenState)** — baris 93 — `  MosqueConfig _config = const MosqueConfig(`
-- `field` **_prayerStateMachine (_MasjidDisplayScreenState)** — baris 100 — `  final PrayerStateMachine _prayerStateMachine = PrayerStateMachine();`
-- `field` **_sideImages (_MasjidDisplayScreenState)** — baris 103 — `  List<SpecialImage> _sideImages = const [];`
-- `field` **_backgroundImages (_MasjidDisplayScreenState)** — baris 106 — `  List<BackgroundImage> _backgroundImages = const [];`
-- `field` **_mosqueLogoBase64 (_MasjidDisplayScreenState)** — baris 113 — `  String? _mosqueLogoBase64;`
-- `field` **_mosqueLogoBytes (_MasjidDisplayScreenState)** — baris 114 — `  Uint8List? _mosqueLogoBytes;`
-- `method` **_applyMosqueLogo (_MasjidDisplayScreenState)** — baris 118 — `  void _applyMosqueLogo(String? logoBase64) {`
-- `field` **_chunkReassembler (_MasjidDisplayScreenState)** — baris 135 — `  final ChunkReassembler _chunkReassembler = ChunkReassembler();`
-- `field` **_runningTexts (_MasjidDisplayScreenState)** — baris 137 — `  List<RunningTextMessage> _runningTexts = const [`
-- `field` **_banners (_MasjidDisplayScreenState)** — baris 152 — `  List<MediaBanner> _banners = const [`
-- `field` **_kasTransactions (_MasjidDisplayScreenState)** — baris 169 — `  List<KasTransaction> _kasTransactions = [`
-- `field` **_prayerSchedule (_MasjidDisplayScreenState)** — baris 193 — `  late PrayerSchedule _prayerSchedule;`
-- `field` **_store (_MasjidDisplayScreenState)** — baris 196 — `  final TvStore _store = TvStore();`
-- `field` **_hasStoredData (_MasjidDisplayScreenState)** — baris 200 — `  bool _hasStoredData = false;`
-- `field` **_muted (_MasjidDisplayScreenState)** — baris 204 — `  bool _muted = false;`
-- `field` **_standby (_MasjidDisplayScreenState)** — baris 205 — `  bool _standby = false;`
-- `method` **initState (_MasjidDisplayScreenState)** — baris 208 — `  void initState() {`
-- `method` **_initFromStore (_MasjidDisplayScreenState)** — baris 240 — `  Future<void> _initFromStore() async {`
-- `method` **_recalculateSchedule (_MasjidDisplayScreenState)** — baris 278 — `  void _recalculateSchedule() {`
-- `method` **_initLocalServer (_MasjidDisplayScreenState)** — baris 282 — `  Future<void> _initLocalServer() async {`
-- `method` **_handleSyncPacket (_MasjidDisplayScreenState)** — baris 295 — `  void _handleSyncPacket(SyncPacket packet) {`
-- `field` **_btStateSub (_MasjidDisplayScreenState)** — baris 443 — `  StreamSubscription<BluetoothHostState>? _btStateSub;`
-- `method` **_initBluetoothHost (_MasjidDisplayScreenState)** — baris 445 — `  Future<void> _initBluetoothHost() async {`
-- `method` **_maybeRunIntroPairing (_MasjidDisplayScreenState)** — baris 477 — `  Future<void> _maybeRunIntroPairing() async {`
-- `method` **_startPairingMode (_MasjidDisplayScreenState)** — baris 497 — `  Future<void> _startPairingMode() async {`
-- `method` **_refreshLocalIp (_MasjidDisplayScreenState)** — baris 509 — `  Future<void> _refreshLocalIp() async {`
-- `method` **_toggleBluetooth (_MasjidDisplayScreenState)** — baris 524 — `  Future<void> _toggleBluetooth(bool enable) async {`
-- `method` **_broadcastSnapshot (_MasjidDisplayScreenState)** — baris 554 — `  void _broadcastSnapshot() {`
-- `method` **_broadcastState (_MasjidDisplayScreenState)** — baris 573 — `  void _broadcastState() {`
-- `method` **_handleTvRemoteKey (_MasjidDisplayScreenState)** — baris 596 — `  bool _handleTvRemoteKey(KeyEvent event) {`
-- `method` **_onStateMachineChanged (_MasjidDisplayScreenState)** — baris 608 — `  void _onStateMachineChanged() {`
-- `method` **dispose (_MasjidDisplayScreenState)** — baris 614 — `  void dispose() {`
-- `method` **build (_MasjidDisplayScreenState)** — baris 627 — `  Widget build(BuildContext context) {`
+- `function` **main** — baris 27 — `void main() async {`
+- `class` **MasjidYouTVApp** — baris 48 — `class MasjidYouTVApp extends StatelessWidget {`
+- `method` **build (MasjidYouTVApp)** — baris 52 — `  Widget build(BuildContext context) {`
+- `class` **MasjidDisplayScreen** — baris 62 — `class MasjidDisplayScreen extends StatefulWidget {`
+- `field` **initialConfig (MasjidDisplayScreen)** — baris 70 — `  final MosqueConfig? initialConfig;`
+- `field` **autoPrayerCycle (MasjidDisplayScreen)** — baris 73 — `  final bool autoPrayerCycle;`
+- `method` **createState (MasjidDisplayScreen)** — baris 76 — `  State<MasjidDisplayScreen> createState() => _MasjidDisplayScreenState();`
+- `class` **_MasjidDisplayScreenState** — baris 79 — `class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {`
+- `field` **_now (_MasjidDisplayScreenState)** — baris 80 — `  DateTime _now = DateTime.now();`
+- `field` **_clockTimer (_MasjidDisplayScreenState)** — baris 81 — `  Timer? _clockTimer;`
+- `field` **_localServer (_MasjidDisplayScreenState)** — baris 82 — `  LocalServer? _localServer;`
+- `field` **_btHost (_MasjidDisplayScreenState)** — baris 85 — `  BluetoothHostService? _btHost;`
+- `field` **_btState (_MasjidDisplayScreenState)** — baris 86 — `  BluetoothHostState? _btState;`
+- `field` **_btEnabled (_MasjidDisplayScreenState)** — baris 90 — `  bool _btEnabled = false;`
+- `field` **_showAdminMenu (_MasjidDisplayScreenState)** — baris 93 — `  bool _showAdminMenu = false;`
+- `field` **_localIp (_MasjidDisplayScreenState)** — baris 97 — `  String? _localIp;`
+- `field` **_config (_MasjidDisplayScreenState)** — baris 99 — `  MosqueConfig _config = const MosqueConfig(`
+- `field` **_prayerStateMachine (_MasjidDisplayScreenState)** — baris 106 — `  final PrayerStateMachine _prayerStateMachine = PrayerStateMachine();`
+- `field` **_sideImages (_MasjidDisplayScreenState)** — baris 109 — `  List<SpecialImage> _sideImages = const [];`
+- `field` **_backgroundImages (_MasjidDisplayScreenState)** — baris 112 — `  List<BackgroundImage> _backgroundImages = const [];`
+- `field` **_mosqueLogoBase64 (_MasjidDisplayScreenState)** — baris 119 — `  String? _mosqueLogoBase64;`
+- `field` **_mosqueLogoBytes (_MasjidDisplayScreenState)** — baris 120 — `  Uint8List? _mosqueLogoBytes;`
+- `method` **_applyMosqueLogo (_MasjidDisplayScreenState)** — baris 124 — `  void _applyMosqueLogo(String? logoBase64) {`
+- `field` **_chunkReassembler (_MasjidDisplayScreenState)** — baris 141 — `  final ChunkReassembler _chunkReassembler = ChunkReassembler();`
+- `field` **_runningTexts (_MasjidDisplayScreenState)** — baris 143 — `  List<RunningTextMessage> _runningTexts = const [`
+- `field` **_banners (_MasjidDisplayScreenState)** — baris 158 — `  List<MediaBanner> _banners = const [`
+- `field` **_kasTransactions (_MasjidDisplayScreenState)** — baris 175 — `  List<KasTransaction> _kasTransactions = [`
+- `field` **_prayerSchedule (_MasjidDisplayScreenState)** — baris 199 — `  late PrayerSchedule _prayerSchedule;`
+- `field` **_store (_MasjidDisplayScreenState)** — baris 202 — `  final TvStore _store = TvStore();`
+- `field` **_hasStoredData (_MasjidDisplayScreenState)** — baris 206 — `  bool _hasStoredData = false;`
+- `field` **_muted (_MasjidDisplayScreenState)** — baris 210 — `  bool _muted = false;`
+- `field` **_standby (_MasjidDisplayScreenState)** — baris 211 — `  bool _standby = false;`
+- `method` **initState (_MasjidDisplayScreenState)** — baris 214 — `  void initState() {`
+- `method` **_initFromStore (_MasjidDisplayScreenState)** — baris 246 — `  Future<void> _initFromStore() async {`
+- `method` **_recalculateSchedule (_MasjidDisplayScreenState)** — baris 284 — `  void _recalculateSchedule() {`
+- `method` **_initLocalServer (_MasjidDisplayScreenState)** — baris 288 — `  Future<void> _initLocalServer() async {`
+- `method` **_handleSyncPacket (_MasjidDisplayScreenState)** — baris 301 — `  void _handleSyncPacket(SyncPacket packet) {`
+- `field` **_btStateSub (_MasjidDisplayScreenState)** — baris 449 — `  StreamSubscription<BluetoothHostState>? _btStateSub;`
+- `method` **_initBluetoothHost (_MasjidDisplayScreenState)** — baris 451 — `  Future<void> _initBluetoothHost() async {`
+- `method` **_maybeRunIntroPairing (_MasjidDisplayScreenState)** — baris 483 — `  Future<void> _maybeRunIntroPairing() async {`
+- `method` **_startPairingMode (_MasjidDisplayScreenState)** — baris 503 — `  Future<void> _startPairingMode() async {`
+- `method` **_refreshLocalIp (_MasjidDisplayScreenState)** — baris 515 — `  Future<void> _refreshLocalIp() async {`
+- `method` **_toggleBluetooth (_MasjidDisplayScreenState)** — baris 530 — `  Future<void> _toggleBluetooth(bool enable) async {`
+- `method` **_broadcastSnapshot (_MasjidDisplayScreenState)** — baris 560 — `  void _broadcastSnapshot() {`
+- `method` **_broadcastState (_MasjidDisplayScreenState)** — baris 579 — `  void _broadcastState() {`
+- `method` **_handleTvRemoteKey (_MasjidDisplayScreenState)** — baris 602 — `  bool _handleTvRemoteKey(KeyEvent event) {`
+- `method` **_onStateMachineChanged (_MasjidDisplayScreenState)** — baris 614 — `  void _onStateMachineChanged() {`
+- `method` **dispose (_MasjidDisplayScreenState)** — baris 620 — `  void dispose() {`
+- `method` **build (_MasjidDisplayScreenState)** — baris 633 — `  Widget build(BuildContext context) {`
 
 ### `apps/tv_display/lib/server/bluetooth_host_service.dart`
 - `enum` **BluetoothHostStatus** — baris 10 — `enum BluetoothHostStatus {`
