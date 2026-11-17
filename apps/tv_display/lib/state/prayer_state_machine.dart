@@ -14,6 +14,7 @@ import 'package:shared_models/shared_models.dart';
 ///
 /// Di-drive oleh clock timer 1 detik di `_MasjidDisplayScreenState` (via `tick`),
 /// sehingga tidak ada timer internal sendiri — bebas drift & bebas resource.
+/// - Tombol OK remote TV melewati fase lewat `skipToNextPhase()` (ADR-030).
 class PrayerStateMachine extends ChangeNotifier {
   MosqueConfig _config = const MosqueConfig();
   PrayerPhase _phase = PrayerPhase.normal;
@@ -122,6 +123,17 @@ class PrayerStateMachine extends ChangeNotifier {
     if (_phase == PrayerPhase.shalat) {
       _enter(PrayerPhase.normal, null, DateTime.now());
     }
+  }
+
+  /// Lewati fase saat ini langsung ke fase berikutnya (tombol OK pada
+  /// remote TV fisik, ADR-030).
+  ///
+  /// Memakai logika transisi [_advance] yang sama dengan timer — satu
+  /// sumber kebenaran, termasuk aturan Jumat (adhan Dzuhur -> khutbah)
+  /// dan shalat -> normal. No-op saat fase `normal`.
+  void skipToNextPhase({DateTime? now}) {
+    if (_phase == PrayerPhase.normal) return;
+    _advance(now ?? DateTime.now());
   }
 
   /// Paksa masuk fase tertentu (dari Menu Tes di Remote).

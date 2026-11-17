@@ -785,3 +785,20 @@ Temuan tes emulator 17 Nov 2026 (plan Perbaikan Pool Babak 2, item C+D): dialog 
 - Regresi dikunci 25 test baru: bluetooth_sync +2 (parsing `getBondedDevices`), tv_display +17 (host service: start tanpa discoverable, pairing tepat sekali 300 detik, jendela berakhir sendiri tanpa panggilan susulan; TvStore flag intro; pemilih IP & format teks; overlay: IP tampil, aksi Mode Pairing, countdown), mobile_remote +6 (service perangkat dikenal, widget gerbang). Total: bluetooth_sync 30 -> 32, tv_display 67 -> 84, mobile_remote 99 -> 105 (2 kegagalan lama `home_tab_test.dart` yang bergantung tanggal sistem tidak berubah).
 
 ---
+
+## ADR-030 — Tombol OK Remote TV Melewati Fase Shalat
+
+### Konteks
+Permintaan DKM dari tes emulator 17 Nov 2026 (plan Perbaikan Pool Babak 2, item B): saat rangkaian shalat berjalan di TV (azan, khutbah, menunggu iqomah, shalat), admin yang memegang remote TV fisik perlu cara cepat melompat ke fase berikutnya tanpa membuka HP — misalnya azan sudah selesai dibaca muadzin sebelum timer habis, atau shalat selesai lebih cepat. Satu-satunya jalur skip yang ada sebelumnya adalah Menu Tes di Remote HP.
+
+### Keputusan
+1. **`PrayerStateMachine.skipToNextPhase({DateTime? now})`**: metode publik baru yang memanggil logika transisi `_advance()` yang sama dengan jalur timer — satu sumber kebenaran untuk urutan fase, termasuk aturan Jumat (adhan Dzuhur -> khutbah bila `hasFridayPrayer`) dan shalat -> normal (membersihkan prayer/remaining/deadline). No-op saat fase `normal`. Khutbah bisa dilewati seperti fase lain.
+2. **Handler tombol di layar utama TV** (`_MasjidDisplayScreenState`): `HardwareKeyboard.instance.addHandler` didaftarkan di `initState` dan dilepas di `dispose`. Handler hanya menangani `KeyDownEvent` (bukan repeat) untuk `LogicalKeyboardKey.select`/`enter` (DPAD_CENTER remote TV), dan hanya bila **menu admin tertutup** dan fase != `normal` — saat itu memanggil `skipToNextPhase(now: _now)` dan mengembalikan `true` (event dikonsumsi).
+3. **Menu admin terbuka tidak berubah**: handler mengembalikan `false` sehingga event diteruskan ke rantai fokus — OK tetap memilih item menu lewat `Focus.onKeyEvent` di `admin_menu_overlay.dart` seperti sebelumnya, tanpa double-trigger (handler tingkat HardwareKeyboard berjalan lebih dulu, tetapi melepaskan event ke fokus adalah perilaku standarnya).
+
+### Konsekuensi
+- DKM bisa mempercepat seluruh rangkaian dari remote TV: preAdhan -> adhan -> (khutbah Jumat) -> preIqomah -> shalat -> normal, satu fase per tekanan OK.
+- Tidak ada jalur skip baru yang bisa menyimpang dari aturan fase timer, karena keduanya memakai `_advance()` yang sama.
+- Regresi dikunci 10 test baru: 8 unit test transisi `skipToNextPhase` (semua fase + rantai penuh + no-op normal, termasuk adhan Jumat -> khutbah) dan 2 widget test handler tombol (OK no-op aman saat menu tertutup & fase normal; OK mengaktifkan item menu saat menu terbuka). Catatan harness: widget test layar TV wajib memakai `SharedPreferences.setMockInitialValues` + `runAsync` agar rantai init (store -> server lokal -> host BT) selesai di lingkungan test. Total: tv_display 84 -> 94.
+
+---

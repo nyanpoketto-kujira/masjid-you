@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-17T04:26:43.535887",
+  "generatedAt": "2026-11-17T04:39:47.107831",
   "roots": [
     "apps/tv_display/lib",
     "apps/mobile_remote/lib",
@@ -7,7 +7,7 @@
     "packages/bluetooth_sync/lib",
     "packages/flutter_p2p_connection/lib"
   ],
-  "symbolCount": 1037,
+  "symbolCount": 1038,
   "symbols": [
     {
       "kind": "class",
@@ -3815,7 +3815,7 @@
       "kind": "method",
       "name": "_initFromStore",
       "file": "apps/tv_display/lib/main.dart",
-      "line": 200,
+      "line": 206,
       "parent": "_MasjidDisplayScreenState",
       "signature": "  Future<void> _initFromStore() async {"
     },
@@ -3823,7 +3823,7 @@
       "kind": "method",
       "name": "_recalculateSchedule",
       "file": "apps/tv_display/lib/main.dart",
-      "line": 236,
+      "line": 242,
       "parent": "_MasjidDisplayScreenState",
       "signature": "  void _recalculateSchedule() {"
     },
@@ -3831,7 +3831,7 @@
       "kind": "method",
       "name": "_initLocalServer",
       "file": "apps/tv_display/lib/main.dart",
-      "line": 240,
+      "line": 246,
       "parent": "_MasjidDisplayScreenState",
       "signature": "  Future<void> _initLocalServer() async {"
     },
@@ -3839,7 +3839,7 @@
       "kind": "method",
       "name": "_handleSyncPacket",
       "file": "apps/tv_display/lib/main.dart",
-      "line": 253,
+      "line": 259,
       "parent": "_MasjidDisplayScreenState",
       "signature": "  void _handleSyncPacket(SyncPacket packet) {"
     },
@@ -3847,7 +3847,7 @@
       "kind": "field",
       "name": "_btStateSub",
       "file": "apps/tv_display/lib/main.dart",
-      "line": 364,
+      "line": 370,
       "parent": "_MasjidDisplayScreenState",
       "signature": "  StreamSubscription<BluetoothHostState>? _btStateSub;"
     },
@@ -3855,7 +3855,7 @@
       "kind": "method",
       "name": "_initBluetoothHost",
       "file": "apps/tv_display/lib/main.dart",
-      "line": 366,
+      "line": 372,
       "parent": "_MasjidDisplayScreenState",
       "signature": "  Future<void> _initBluetoothHost() async {"
     },
@@ -3863,7 +3863,7 @@
       "kind": "method",
       "name": "_maybeRunIntroPairing",
       "file": "apps/tv_display/lib/main.dart",
-      "line": 398,
+      "line": 404,
       "parent": "_MasjidDisplayScreenState",
       "signature": "  Future<void> _maybeRunIntroPairing() async {"
     },
@@ -3871,7 +3871,7 @@
       "kind": "method",
       "name": "_startPairingMode",
       "file": "apps/tv_display/lib/main.dart",
-      "line": 418,
+      "line": 424,
       "parent": "_MasjidDisplayScreenState",
       "signature": "  Future<void> _startPairingMode() async {"
     },
@@ -3879,7 +3879,7 @@
       "kind": "method",
       "name": "_refreshLocalIp",
       "file": "apps/tv_display/lib/main.dart",
-      "line": 430,
+      "line": 436,
       "parent": "_MasjidDisplayScreenState",
       "signature": "  Future<void> _refreshLocalIp() async {"
     },
@@ -3887,7 +3887,7 @@
       "kind": "method",
       "name": "_toggleBluetooth",
       "file": "apps/tv_display/lib/main.dart",
-      "line": 445,
+      "line": 451,
       "parent": "_MasjidDisplayScreenState",
       "signature": "  Future<void> _toggleBluetooth(bool enable) async {"
     },
@@ -3895,7 +3895,7 @@
       "kind": "method",
       "name": "_broadcastSnapshot",
       "file": "apps/tv_display/lib/main.dart",
-      "line": 475,
+      "line": 481,
       "parent": "_MasjidDisplayScreenState",
       "signature": "  void _broadcastSnapshot() {"
     },
@@ -3903,15 +3903,23 @@
       "kind": "method",
       "name": "_broadcastState",
       "file": "apps/tv_display/lib/main.dart",
-      "line": 492,
+      "line": 498,
       "parent": "_MasjidDisplayScreenState",
       "signature": "  void _broadcastState() {"
     },
     {
       "kind": "method",
+      "name": "_handleTvRemoteKey",
+      "file": "apps/tv_display/lib/main.dart",
+      "line": 521,
+      "parent": "_MasjidDisplayScreenState",
+      "signature": "  bool _handleTvRemoteKey(KeyEvent event) {"
+    },
+    {
+      "kind": "method",
       "name": "_onStateMachineChanged",
       "file": "apps/tv_display/lib/main.dart",
-      "line": 508,
+      "line": 533,
       "parent": "_MasjidDisplayScreenState",
       "signature": "  void _onStateMachineChanged() {"
     },
@@ -3919,7 +3927,7 @@
       "kind": "method",
       "name": "dispose",
       "file": "apps/tv_display/lib/main.dart",
-      "line": 514,
+      "line": 539,
       "parent": "_MasjidDisplayScreenState",
       "signature": "  void dispose() {"
     },
@@ -3927,7 +3935,7 @@
       "kind": "method",
       "name": "build",
       "file": "apps/tv_display/lib/main.dart",
-      "line": 526,
+      "line": 552,
       "parent": "_MasjidDisplayScreenState",
       "signature": "  Widget build(BuildContext context) {"
     },
@@ -4438,14 +4446,14 @@
       "kind": "class",
       "name": "PrayerStateMachine",
       "file": "apps/tv_display/lib/state/prayer_state_machine.dart",
-      "line": 17,
+      "line": 18,
       "signature": "class PrayerStateMachine extends ChangeNotifier {"
     },
     {
       "kind": "field",
       "name": "_config",
       "file": "apps/tv_display/lib/state/prayer_state_machine.dart",
-      "line": 18,
+      "line": 19,
       "parent": "PrayerStateMachine",
       "signature": "  MosqueConfig _config = const MosqueConfig();"
     },
@@ -4453,7 +4461,7 @@
       "kind": "field",
       "name": "_phase",
       "file": "apps/tv_display/lib/state/prayer_state_machine.dart",
-      "line": 19,
+      "line": 20,
       "parent": "PrayerStateMachine",
       "signature": "  PrayerPhase _phase = PrayerPhase.normal;"
     },
@@ -4461,7 +4469,7 @@
       "kind": "field",
       "name": "_prayer",
       "file": "apps/tv_display/lib/state/prayer_state_machine.dart",
-      "line": 20,
+      "line": 21,
       "parent": "PrayerStateMachine",
       "signature": "  PrayerType? _prayer;"
     },
@@ -4469,7 +4477,7 @@
       "kind": "field",
       "name": "_deadline",
       "file": "apps/tv_display/lib/state/prayer_state_machine.dart",
-      "line": 21,
+      "line": 22,
       "parent": "PrayerStateMachine",
       "signature": "  DateTime _deadline = DateTime.now();"
     },
@@ -4477,7 +4485,7 @@
       "kind": "field",
       "name": "_remaining",
       "file": "apps/tv_display/lib/state/prayer_state_machine.dart",
-      "line": 22,
+      "line": 23,
       "parent": "PrayerStateMachine",
       "signature": "  Duration _remaining = Duration.zero;"
     },
@@ -4485,7 +4493,7 @@
       "kind": "field",
       "name": "_total",
       "file": "apps/tv_display/lib/state/prayer_state_machine.dart",
-      "line": 23,
+      "line": 24,
       "parent": "PrayerStateMachine",
       "signature": "  Duration _total = Duration.zero;"
     },
@@ -4493,7 +4501,7 @@
       "kind": "field",
       "name": "_autoCycle",
       "file": "apps/tv_display/lib/state/prayer_state_machine.dart",
-      "line": 24,
+      "line": 25,
       "parent": "PrayerStateMachine",
       "signature": "  bool _autoCycle = true;"
     },
@@ -4501,7 +4509,7 @@
       "kind": "getter",
       "name": "phase",
       "file": "apps/tv_display/lib/state/prayer_state_machine.dart",
-      "line": 26,
+      "line": 27,
       "parent": "PrayerStateMachine",
       "signature": "  PrayerPhase get phase => _phase;"
     },
@@ -4509,7 +4517,7 @@
       "kind": "getter",
       "name": "prayer",
       "file": "apps/tv_display/lib/state/prayer_state_machine.dart",
-      "line": 27,
+      "line": 28,
       "parent": "PrayerStateMachine",
       "signature": "  PrayerType? get prayer => _prayer;"
     },
@@ -4517,7 +4525,7 @@
       "kind": "getter",
       "name": "remaining",
       "file": "apps/tv_display/lib/state/prayer_state_machine.dart",
-      "line": 28,
+      "line": 29,
       "parent": "PrayerStateMachine",
       "signature": "  Duration get remaining => _remaining;"
     },
@@ -4525,7 +4533,7 @@
       "kind": "getter",
       "name": "total",
       "file": "apps/tv_display/lib/state/prayer_state_machine.dart",
-      "line": 29,
+      "line": 30,
       "parent": "PrayerStateMachine",
       "signature": "  Duration get total => _total;"
     },
@@ -4533,7 +4541,7 @@
       "kind": "getter",
       "name": "autoCycle",
       "file": "apps/tv_display/lib/state/prayer_state_machine.dart",
-      "line": 30,
+      "line": 31,
       "parent": "PrayerStateMachine",
       "signature": "  bool get autoCycle => _autoCycle;"
     },
@@ -4541,7 +4549,7 @@
       "kind": "getter",
       "name": "deadline",
       "file": "apps/tv_display/lib/state/prayer_state_machine.dart",
-      "line": 36,
+      "line": 37,
       "parent": "PrayerStateMachine",
       "signature": "  DateTime get deadline => _deadline;"
     },
@@ -4549,7 +4557,7 @@
       "kind": "getter",
       "name": "progress",
       "file": "apps/tv_display/lib/state/prayer_state_machine.dart",
-      "line": 38,
+      "line": 39,
       "parent": "PrayerStateMachine",
       "signature": "  double get progress {"
     },
@@ -4557,7 +4565,7 @@
       "kind": "method",
       "name": "updateConfig",
       "file": "apps/tv_display/lib/state/prayer_state_machine.dart",
-      "line": 51,
+      "line": 52,
       "parent": "PrayerStateMachine",
       "signature": "  void updateConfig(MosqueConfig config, DateTime now) {"
     },
@@ -4565,7 +4573,7 @@
       "kind": "method",
       "name": "tick",
       "file": "apps/tv_display/lib/state/prayer_state_machine.dart",
-      "line": 65,
+      "line": 66,
       "parent": "PrayerStateMachine",
       "signature": "  void tick(DateTime now, PrayerSchedule schedule) {"
     },
@@ -4573,7 +4581,7 @@
       "kind": "method",
       "name": "startIqomah",
       "file": "apps/tv_display/lib/state/prayer_state_machine.dart",
-      "line": 107,
+      "line": 108,
       "parent": "PrayerStateMachine",
       "signature": "  void startIqomah() {"
     },
@@ -4581,7 +4589,7 @@
       "kind": "method",
       "name": "startShalat",
       "file": "apps/tv_display/lib/state/prayer_state_machine.dart",
-      "line": 114,
+      "line": 115,
       "parent": "PrayerStateMachine",
       "signature": "  void startShalat() {"
     },
@@ -4589,7 +4597,7 @@
       "kind": "method",
       "name": "finishShalat",
       "file": "apps/tv_display/lib/state/prayer_state_machine.dart",
-      "line": 121,
+      "line": 122,
       "parent": "PrayerStateMachine",
       "signature": "  void finishShalat() {"
     },
@@ -4597,7 +4605,7 @@
       "kind": "method",
       "name": "_advance",
       "file": "apps/tv_display/lib/state/prayer_state_machine.dart",
-      "line": 157,
+      "line": 169,
       "parent": "PrayerStateMachine",
       "signature": "  void _advance(DateTime now) {"
     },
@@ -4605,7 +4613,7 @@
       "kind": "method",
       "name": "_isFridayPrayerDay",
       "file": "apps/tv_display/lib/state/prayer_state_machine.dart",
-      "line": 182,
+      "line": 194,
       "parent": "PrayerStateMachine",
       "signature": "  bool _isFridayPrayerDay(DateTime date) =>"
     },
@@ -4613,7 +4621,7 @@
       "kind": "method",
       "name": "_enter",
       "file": "apps/tv_display/lib/state/prayer_state_machine.dart",
-      "line": 185,
+      "line": 197,
       "parent": "PrayerStateMachine",
       "signature": "  void _enter(PrayerPhase phase, PrayerType? prayer, DateTime now) {"
     },

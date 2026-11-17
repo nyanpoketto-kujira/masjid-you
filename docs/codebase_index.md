@@ -2,13 +2,13 @@
 
 > Dibuat otomatis oleh `dart run tools/codebase_index.dart`. Jangan edit manual — regenerate setelah perubahan kode.
 
-Total simbol: **1037**
+Total simbol: **1038**
 
 | Kategori | Jumlah |
 |---|---:|
 | `class` | 104 |
 | `field` | 488 |
-| `method` | 359 |
+| `method` | 360 |
 | `getter` | 41 |
 | `function` | 20 |
 | `constructor` | 1 |
@@ -537,21 +537,22 @@ Total simbol: **1037**
 - `field` **_muted (_MasjidDisplayScreenState)** — baris 170 — `  bool _muted = false;`
 - `field` **_standby (_MasjidDisplayScreenState)** — baris 171 — `  bool _standby = false;`
 - `method` **initState (_MasjidDisplayScreenState)** — baris 174 — `  void initState() {`
-- `method` **_initFromStore (_MasjidDisplayScreenState)** — baris 200 — `  Future<void> _initFromStore() async {`
-- `method` **_recalculateSchedule (_MasjidDisplayScreenState)** — baris 236 — `  void _recalculateSchedule() {`
-- `method` **_initLocalServer (_MasjidDisplayScreenState)** — baris 240 — `  Future<void> _initLocalServer() async {`
-- `method` **_handleSyncPacket (_MasjidDisplayScreenState)** — baris 253 — `  void _handleSyncPacket(SyncPacket packet) {`
-- `field` **_btStateSub (_MasjidDisplayScreenState)** — baris 364 — `  StreamSubscription<BluetoothHostState>? _btStateSub;`
-- `method` **_initBluetoothHost (_MasjidDisplayScreenState)** — baris 366 — `  Future<void> _initBluetoothHost() async {`
-- `method` **_maybeRunIntroPairing (_MasjidDisplayScreenState)** — baris 398 — `  Future<void> _maybeRunIntroPairing() async {`
-- `method` **_startPairingMode (_MasjidDisplayScreenState)** — baris 418 — `  Future<void> _startPairingMode() async {`
-- `method` **_refreshLocalIp (_MasjidDisplayScreenState)** — baris 430 — `  Future<void> _refreshLocalIp() async {`
-- `method` **_toggleBluetooth (_MasjidDisplayScreenState)** — baris 445 — `  Future<void> _toggleBluetooth(bool enable) async {`
-- `method` **_broadcastSnapshot (_MasjidDisplayScreenState)** — baris 475 — `  void _broadcastSnapshot() {`
-- `method` **_broadcastState (_MasjidDisplayScreenState)** — baris 492 — `  void _broadcastState() {`
-- `method` **_onStateMachineChanged (_MasjidDisplayScreenState)** — baris 508 — `  void _onStateMachineChanged() {`
-- `method` **dispose (_MasjidDisplayScreenState)** — baris 514 — `  void dispose() {`
-- `method` **build (_MasjidDisplayScreenState)** — baris 526 — `  Widget build(BuildContext context) {`
+- `method` **_initFromStore (_MasjidDisplayScreenState)** — baris 206 — `  Future<void> _initFromStore() async {`
+- `method` **_recalculateSchedule (_MasjidDisplayScreenState)** — baris 242 — `  void _recalculateSchedule() {`
+- `method` **_initLocalServer (_MasjidDisplayScreenState)** — baris 246 — `  Future<void> _initLocalServer() async {`
+- `method` **_handleSyncPacket (_MasjidDisplayScreenState)** — baris 259 — `  void _handleSyncPacket(SyncPacket packet) {`
+- `field` **_btStateSub (_MasjidDisplayScreenState)** — baris 370 — `  StreamSubscription<BluetoothHostState>? _btStateSub;`
+- `method` **_initBluetoothHost (_MasjidDisplayScreenState)** — baris 372 — `  Future<void> _initBluetoothHost() async {`
+- `method` **_maybeRunIntroPairing (_MasjidDisplayScreenState)** — baris 404 — `  Future<void> _maybeRunIntroPairing() async {`
+- `method` **_startPairingMode (_MasjidDisplayScreenState)** — baris 424 — `  Future<void> _startPairingMode() async {`
+- `method` **_refreshLocalIp (_MasjidDisplayScreenState)** — baris 436 — `  Future<void> _refreshLocalIp() async {`
+- `method` **_toggleBluetooth (_MasjidDisplayScreenState)** — baris 451 — `  Future<void> _toggleBluetooth(bool enable) async {`
+- `method` **_broadcastSnapshot (_MasjidDisplayScreenState)** — baris 481 — `  void _broadcastSnapshot() {`
+- `method` **_broadcastState (_MasjidDisplayScreenState)** — baris 498 — `  void _broadcastState() {`
+- `method` **_handleTvRemoteKey (_MasjidDisplayScreenState)** — baris 521 — `  bool _handleTvRemoteKey(KeyEvent event) {`
+- `method` **_onStateMachineChanged (_MasjidDisplayScreenState)** — baris 533 — `  void _onStateMachineChanged() {`
+- `method` **dispose (_MasjidDisplayScreenState)** — baris 539 — `  void dispose() {`
+- `method` **build (_MasjidDisplayScreenState)** — baris 552 — `  Widget build(BuildContext context) {`
 
 ### `apps/tv_display/lib/server/bluetooth_host_service.dart`
 - `enum` **BluetoothHostStatus** — baris 10 — `enum BluetoothHostStatus {`
@@ -624,29 +625,29 @@ Total simbol: **1037**
 - `function` **formatTvIpText** — baris 68 — `String formatTvIpText(String? ip) =>`
 
 ### `apps/tv_display/lib/state/prayer_state_machine.dart`
-- `class` **PrayerStateMachine** — baris 17 — `class PrayerStateMachine extends ChangeNotifier {`
-- `field` **_config (PrayerStateMachine)** — baris 18 — `  MosqueConfig _config = const MosqueConfig();`
-- `field` **_phase (PrayerStateMachine)** — baris 19 — `  PrayerPhase _phase = PrayerPhase.normal;`
-- `field` **_prayer (PrayerStateMachine)** — baris 20 — `  PrayerType? _prayer;`
-- `field` **_deadline (PrayerStateMachine)** — baris 21 — `  DateTime _deadline = DateTime.now();`
-- `field` **_remaining (PrayerStateMachine)** — baris 22 — `  Duration _remaining = Duration.zero;`
-- `field` **_total (PrayerStateMachine)** — baris 23 — `  Duration _total = Duration.zero;`
-- `field` **_autoCycle (PrayerStateMachine)** — baris 24 — `  bool _autoCycle = true;`
-- `getter` **phase (PrayerStateMachine)** — baris 26 — `  PrayerPhase get phase => _phase;`
-- `getter` **prayer (PrayerStateMachine)** — baris 27 — `  PrayerType? get prayer => _prayer;`
-- `getter` **remaining (PrayerStateMachine)** — baris 28 — `  Duration get remaining => _remaining;`
-- `getter` **total (PrayerStateMachine)** — baris 29 — `  Duration get total => _total;`
-- `getter` **autoCycle (PrayerStateMachine)** — baris 30 — `  bool get autoCycle => _autoCycle;`
-- `getter` **deadline (PrayerStateMachine)** — baris 36 — `  DateTime get deadline => _deadline;`
-- `getter` **progress (PrayerStateMachine)** — baris 38 — `  double get progress {`
-- `method` **updateConfig (PrayerStateMachine)** — baris 51 — `  void updateConfig(MosqueConfig config, DateTime now) {`
-- `method` **tick (PrayerStateMachine)** — baris 65 — `  void tick(DateTime now, PrayerSchedule schedule) {`
-- `method` **startIqomah (PrayerStateMachine)** — baris 107 — `  void startIqomah() {`
-- `method` **startShalat (PrayerStateMachine)** — baris 114 — `  void startShalat() {`
-- `method` **finishShalat (PrayerStateMachine)** — baris 121 — `  void finishShalat() {`
-- `method` **_advance (PrayerStateMachine)** — baris 157 — `  void _advance(DateTime now) {`
-- `method` **_isFridayPrayerDay (PrayerStateMachine)** — baris 182 — `  bool _isFridayPrayerDay(DateTime date) =>`
-- `method` **_enter (PrayerStateMachine)** — baris 185 — `  void _enter(PrayerPhase phase, PrayerType? prayer, DateTime now) {`
+- `class` **PrayerStateMachine** — baris 18 — `class PrayerStateMachine extends ChangeNotifier {`
+- `field` **_config (PrayerStateMachine)** — baris 19 — `  MosqueConfig _config = const MosqueConfig();`
+- `field` **_phase (PrayerStateMachine)** — baris 20 — `  PrayerPhase _phase = PrayerPhase.normal;`
+- `field` **_prayer (PrayerStateMachine)** — baris 21 — `  PrayerType? _prayer;`
+- `field` **_deadline (PrayerStateMachine)** — baris 22 — `  DateTime _deadline = DateTime.now();`
+- `field` **_remaining (PrayerStateMachine)** — baris 23 — `  Duration _remaining = Duration.zero;`
+- `field` **_total (PrayerStateMachine)** — baris 24 — `  Duration _total = Duration.zero;`
+- `field` **_autoCycle (PrayerStateMachine)** — baris 25 — `  bool _autoCycle = true;`
+- `getter` **phase (PrayerStateMachine)** — baris 27 — `  PrayerPhase get phase => _phase;`
+- `getter` **prayer (PrayerStateMachine)** — baris 28 — `  PrayerType? get prayer => _prayer;`
+- `getter` **remaining (PrayerStateMachine)** — baris 29 — `  Duration get remaining => _remaining;`
+- `getter` **total (PrayerStateMachine)** — baris 30 — `  Duration get total => _total;`
+- `getter` **autoCycle (PrayerStateMachine)** — baris 31 — `  bool get autoCycle => _autoCycle;`
+- `getter` **deadline (PrayerStateMachine)** — baris 37 — `  DateTime get deadline => _deadline;`
+- `getter` **progress (PrayerStateMachine)** — baris 39 — `  double get progress {`
+- `method` **updateConfig (PrayerStateMachine)** — baris 52 — `  void updateConfig(MosqueConfig config, DateTime now) {`
+- `method` **tick (PrayerStateMachine)** — baris 66 — `  void tick(DateTime now, PrayerSchedule schedule) {`
+- `method` **startIqomah (PrayerStateMachine)** — baris 108 — `  void startIqomah() {`
+- `method` **startShalat (PrayerStateMachine)** — baris 115 — `  void startShalat() {`
+- `method` **finishShalat (PrayerStateMachine)** — baris 122 — `  void finishShalat() {`
+- `method` **_advance (PrayerStateMachine)** — baris 169 — `  void _advance(DateTime now) {`
+- `method` **_isFridayPrayerDay (PrayerStateMachine)** — baris 194 — `  bool _isFridayPrayerDay(DateTime date) =>`
+- `method` **_enter (PrayerStateMachine)** — baris 197 — `  void _enter(PrayerPhase phase, PrayerType? prayer, DateTime now) {`
 
 ### `apps/tv_display/lib/state/side_card_playlist.dart`
 - `enum` **SideCardKind** — baris 4 — `enum SideCardKind {`

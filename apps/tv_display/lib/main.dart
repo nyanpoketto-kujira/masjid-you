@@ -183,6 +183,12 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
     );
     _prayerStateMachine.addListener(_onStateMachineChanged);
 
+    // Tombol OK remote TV = skip fase (ADR-030). Handler tingkat
+    // HardwareKeyboard agar tetap bekerja walau fokus sedang di konten
+    // utama; handler mengembalikan false saat menu admin terbuka supaya
+    // OK tetap memilih item menu (lihat _handleTvRemoteKey).
+    HardwareKeyboard.instance.addHandler(_handleTvRemoteKey);
+
     _clockTimer = Timer.periodic(const Duration(seconds: 1), (_) {
       setState(() {
         _now = DateTime.now();
@@ -505,6 +511,25 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
     _btHost?.broadcast(packet);
   }
 
+  /// Handler tombol remote TV fisik (ADR-030).
+  ///
+  /// OK (`select`/`enter`, DPAD_CENTER) saat menu admin TERTUTUP dan ada
+  /// fase shalat aktif -> lewati ke fase berikutnya. Di luar kondisi itu
+  /// handler mengembalikan `false` agar event diteruskan ke rantai fokus:
+  /// menu admin yang terbuka tetap memakai OK untuk memilih item, dan
+  /// fase `normal` tidak terpengaruh.
+  bool _handleTvRemoteKey(KeyEvent event) {
+    if (event is! KeyDownEvent) return false;
+    if (_showAdminMenu) return false;
+    if (event.logicalKey != LogicalKeyboardKey.select &&
+        event.logicalKey != LogicalKeyboardKey.enter) {
+      return false;
+    }
+    if (_prayerStateMachine.phase == PrayerPhase.normal) return false;
+    _prayerStateMachine.skipToNextPhase(now: _now);
+    return true;
+  }
+
   void _onStateMachineChanged() {
     if (!mounted) return;
     _broadcastState();
@@ -512,6 +537,7 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
 
   @override
   void dispose() {
+    HardwareKeyboard.instance.removeHandler(_handleTvRemoteKey);
     _prayerStateMachine.removeListener(_onStateMachineChanged);
     _prayerStateMachine.dispose();
     _clockTimer?.cancel();
