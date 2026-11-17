@@ -25,15 +25,15 @@ Sistem Tampilan Masjid (TV Kiosk) + Remote HP pendamping — monorepo Flutter, b
 
 | Workspace | Analyze | Test | APK Universal |
 |---|---|---|---|
-| `packages/shared_models` | ✅ bersih | ✅ 70 pass | — |
-| `packages/bluetooth_sync` | ✅ bersih | ✅ 30 pass | — |
-| `apps/tv_display` | ✅ bersih | ✅ 67 pass | ✅ debug APK sukses |
-| `apps/mobile_remote` | ✅ bersih | ✅ 93 pass | ✅ debug APK sukses |
+| `packages/shared_models` | ✅ bersih | ✅ 94 pass | — |
+| `packages/bluetooth_sync` | ✅ bersih | ✅ 32 pass | — |
+| `apps/tv_display` | ✅ bersih | ✅ 110 pass | ✅ debug APK sukses |
+| `apps/mobile_remote` | ✅ bersih | ✅ 150 pass | ✅ debug APK sukses |
 
 ## Fitur Utama
 
 - Sinkronisasi lokal via **WebSocket** (`ws://<ip-TV>:8080`) — tanpa cloud.
-- Koneksi **Bluetooth Classic (RFCOMM)** via `packages/bluetooth_sync` — jalur sync utama tanpa router. Host di TV diaktifkan lewat toggle menu admin (bukan auto-start), discoverable (re-arm tiap 110 detik), dan diamankan PIN challenge-response; Remote scan lalu sambung.
+- Koneksi **Bluetooth Classic (RFCOMM)** via `packages/bluetooth_sync` — jalur sync utama tanpa router. Host di TV diaktifkan lewat toggle menu admin (bukan auto-start), discoverable hanya selama Mode Pairing 300 detik (berjalan otomatis sekali saat instalasi baru, selebihnya dipicu manual dari menu admin TV), dan diamankan PIN challenge-response; Remote scan lalu sambung, atau ketuk TV dari daftar perangkat yang sudah dikenal.
 - **WiFi Direct sudah dicabut.** Jalurnya tidak dibawa `mobile_remote`, dan kode host-nya di `tv_display` (`P2pHostService` / `P2pMode`) sudah dihapus. Jalur tanpa router yang aktif adalah Bluetooth Classic di atas.
 - Jadwal sholat **offline** dari koordinat (manual / GPS), dengan offset per sholat & simulasi.
 - Indikator **Unsaved Changes** + tombol "Kirim Ke TV" di Remote.
