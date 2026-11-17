@@ -66,6 +66,20 @@ final GlobalKey<NavigatorState> appNavigatorKey = GlobalKey<NavigatorState>();
 final GlobalKey<ScaffoldMessengerState> appMessengerKey =
     GlobalKey<ScaffoldMessengerState>();
 
+/// Indeks tab Pengaturan pada NavigationBar menu utama
+/// (0 Beranda, 1 Konten, 2 Pengaturan, 3 Tes).
+const int settingsTabIndex = 2;
+
+/// Banner "Ada perubahan belum dikirim ke TV" hanya tampil di luar tab
+/// Pengaturan. Di tab Pengaturan, perubahan config sudah ditangani sticky
+/// bar "Simpan & Update Ke TV", jadi banner di sana hanya menduplikasi
+/// pesan & tombol yang sama (ADR-028).
+bool shouldShowUnsyncedBanner({
+  required bool hasUnsyncedChanges,
+  required int tabIndex,
+}) =>
+    hasUnsyncedChanges && tabIndex != settingsTabIndex;
+
 /// Dialog input PIN 4-digit untuk autentikasi Bluetooth.
 ///
 /// Widget ini MEMILIKI [TextEditingController]-nya sendiri dan membuangnya
@@ -1809,7 +1823,10 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
             children: [
               if (_showDisconnectedNotice)
                 _buildDisconnectedBanner(theme, colorScheme),
-              if (_hasUnsyncedChanges) _buildUnsyncedBanner(theme, colorScheme),
+              if (shouldShowUnsyncedBanner(
+                  hasUnsyncedChanges: _hasUnsyncedChanges,
+                  tabIndex: _tabIndex))
+                _buildUnsyncedBanner(theme, colorScheme),
               _buildConnectionStatusStrip(theme, colorScheme),
               Expanded(
                 child: IndexedStack(

@@ -748,3 +748,20 @@ Melanjutkan ADR-026; fase terakhir refaktor bertahap ADR-022. Audit akhir sebelu
 - Status akhir maraton (branch `feat/remote-ui-refactor-pool`, tanpa menyentuh `main` sesuai /NNM): shared_models 70, bluetooth_sync 30, tv_display 67, mobile_remote 93 test — semua hijau; root `flutter analyze` tanpa issue.
 
 ---
+
+## ADR-028 — Banner Belum Terkirim Disembunyikan di Tab Pengaturan
+
+### Konteks
+Temuan tes emulator 17 Nov 2026 (plan Perbaikan Pool Babak 2, item A): di tab Pengaturan, dua mekanisme "perubahan belum tersimpan" tampil bersamaan — banner atas lama "Ada perubahan belum dikirim ke TV" + tombol "Kirim ke TV" (`_buildUnsyncedBanner`, memanggil `_pushAllToTv`) dan sticky bar Fase 2 "Ada perubahan belum disimpan" + "Simpan & Update Ke TV" (simpan config). Mengedit satu field Pengaturan menyalakan keduanya; pesan dan tombolnya tumpang tindih dan membingungkan.
+
+### Keputusan
+1. Banner atas **tidak dirender saat tab aktif adalah Pengaturan** (indeks 2). Di tab Pengaturan, sticky bar adalah satu-satunya jalur simpan config.
+2. Banner tetap tampil di tab lain (Beranda, Konten, Tes) seperti biasa, karena di sana tidak ada sticky bar dan perubahan konten memang perlu jalur "Kirim ke TV".
+3. Aturan render diekstrak sebagai predikat murni `shouldShowUnsyncedBanner({hasUnsyncedChanges, tabIndex})` + konstanta `settingsTabIndex` di `apps/mobile_remote/lib/main.dart`, agar bisa diuji tanpa merakit harness koneksi penuh. Flag `_hasUnsyncedChanges` dan kedua jalur kirim tidak diubah (penyatuan flag dicatat sebagai utang teknis terpisah).
+
+### Konsekuensi
+- Tab Pengaturan kini punya satu pesan + satu tombol simpan yang tidak ambigu.
+- Perilaku di tab lain tidak berubah sama sekali.
+- Regresi dikunci 6 test baru (`unsynced_banner_test.dart`: tabel kebenaran predikat + render kondisional dalam pohon widget minimal). Total: mobile_remote 93 -> 99 (di luar 2 kegagalan lama `home_tab_test.dart` yang bergantung tanggal sistem, lihat catatan status).
+
+---
