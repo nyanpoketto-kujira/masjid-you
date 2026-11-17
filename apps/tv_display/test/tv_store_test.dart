@@ -104,5 +104,18 @@ void main() {
       // Blok yang belum pernah dikirim tetap memakai default aman.
       expect(loaded.config, equals(const MosqueConfig()));
     });
+
+    test('flag intro Mode Pairing: default belum, persisten setelah disimpan, '
+        'dan tidak menandai data resmi (ADR-029)', () async {
+      final store = TvStore();
+      expect(await store.loadPairingIntroDone(), isFalse);
+
+      await store.savePairingIntroDone();
+
+      // Instance baru (simulasi reboot TV) membaca flag yang sama.
+      expect(await TvStore().loadPairingIntroDone(), isTrue);
+      // Flag perangkat, bukan data resmi DKM.
+      expect(await store.load(), isNull);
+    });
   });
 }

@@ -242,6 +242,9 @@ class BluetoothSyncPlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
                     .coerceIn(1, MAX_DISCOVERABLE_SECONDS)
                 makeDiscoverable(seconds, result)
             }
+            "getBondedDevices" -> {
+                result.success(getBondedDevices())
+            }
             "startHost" -> {
                 val serviceName = call.argument<String>("serviceName") ?: "MasjidYou"
                 startHost(serviceName)
@@ -499,6 +502,42 @@ class BluetoothSyncPlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
             pending.success(false)
         } else {
             pending.success(true)
+        }
+    }
+
+    // ---- Perangkat dikenal (bonded) ------------------------------------
+
+    /**
+     * Daftar perangkat yang sudah ter-bond dengan HP ini, untuk koneksi
+     * harian tanpa discovery (ADR-029). Gagal-soft: daftar kosong bila
+     * adapter tidak ada, Bluetooth mati, atau izin client belum diberikan
+     * (membaca bondedDevices butuh BLUETOOTH_CONNECT di Android 12+).
+     */
+    private fun getBondedDevices(): List<Map<String, Any?>> {
+        val adapter = getAdapter() ?: return emptyList()
+        if (!adapter.isEnabled) return emptyList()
+        if (!hasPermission("client")) return emptyList()
+        val devices = try {
+            adapter.bondedDevices
+        } catch (e: SecurityException) {
+            null
+        } ?: return emptyList()
+        return devices.map { device ->
+            val name = try {
+                device.name
+            } catch (e: SecurityException) {
+                null
+            }
+            val address = try {
+                device.address
+            } catch (e: SecurityException) {
+                null
+            }
+            mapOf(
+                "name" to name,
+                "address" to address,
+                "bonded" to true,
+            )
         }
     }
 

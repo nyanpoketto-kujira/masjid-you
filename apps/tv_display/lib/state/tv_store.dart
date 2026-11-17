@@ -20,6 +20,11 @@ class TvStore {
   static const String mutedKey = 'tv_muted';
   static const String standbyKey = 'tv_standby';
 
+  /// Flag permanen: jendela Mode Pairing otomatis (instalasi baru) sudah
+  /// pernah dijalankan. Sekali terpasang, TV tidak pernah membuka Mode
+  /// Pairing sendiri lagi — hanya manual dari menu admin (ADR-029).
+  static const String pairingIntroDoneKey = 'tv_btPairingIntroDone';
+
   /// Muat data tersimpan. `null` = TV belum pernah diisi.
   Future<StateSnapshot?> load() async {
     try {
@@ -86,6 +91,20 @@ class TvStore {
   Future<void> saveMuted(bool muted) => _saveBool(mutedKey, muted);
 
   Future<void> saveStandby(bool standby) => _saveBool(standbyKey, standby);
+
+  /// `true` bila jendela Mode Pairing otomatis instalasi baru sudah pernah
+  /// dijalankan (ADR-029). Bukan data resmi: tidak menandai `tv_hasData`.
+  Future<bool> loadPairingIntroDone() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getBool(pairingIntroDoneKey) ?? false;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<void> savePairingIntroDone() =>
+      _saveBool(pairingIntroDoneKey, true);
 
   Future<void> _saveBool(String key, bool value) async {
     try {

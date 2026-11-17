@@ -4,8 +4,13 @@ import 'package:flutter/services.dart';
 /// Side panel menu admin TV — slide-in dari sisi KANAN, full height.
 ///
 /// Dibuka dengan menekan tombol Back pada remote. Berisi:
-/// - Toggle "Nyalakan Koneksi" (baru di sini Bluetooth discoverable
-///   diminta, sehingga tidak ada popup sistem saat app pertama dibuka).
+/// - Toggle "Nyalakan Koneksi" untuk host Bluetooth (RFCOMM standby;
+///   menyalakan host TIDAK meminta discoverable — ADR-029).
+/// - Aksi "Mode Pairing": satu-satunya jalur discoverable. Membuka
+///   jendela 300 detik agar HP baru bisa menemukan TV (dialog sistem
+///   muncul sekali, saat admin memang memegang remote TV). Saat aktif,
+///   sisa waktu jendela ditampilkan sebagai countdown.
+/// - Alamat IP lokal TV (untuk koneksi Remote jalur IP/Wi-Fi).
 /// - PIN 4 digit acak yang harus dimasukkan Remote agar bisa terhubung.
 ///   Kartu PIN ditampilkan besar di bagian atas panel.
 ///
@@ -33,6 +38,18 @@ class AdminMenuOverlay extends StatefulWidget {
   /// `true` bila status host menandakan error (untuk warna status).
   final bool isError;
 
+  /// Teks alamat IP lokal TV ("IP TV: 192.168.x.x" / tanpa jaringan).
+  final String ipText;
+
+  /// `true` selama jendela Mode Pairing aktif (untuk countdown).
+  final bool pairingActive;
+
+  /// Sisa detik jendela Mode Pairing (dihitung ulang tiap build induk).
+  final int pairingRemainingSeconds;
+
+  /// Dipanggil saat aksi "Mode Pairing" diaktifkan.
+  final VoidCallback onStartPairingMode;
+
   /// Dipanggil saat toggle koneksi diubah.
   final ValueChanged<bool> onToggleBluetooth;
 
@@ -44,8 +61,12 @@ class AdminMenuOverlay extends StatefulWidget {
     required this.pin,
     required this.statusText,
     required this.isError,
+    required this.ipText,
+    required this.onStartPairingMode,
     required this.onToggleBluetooth,
     required this.onClose,
+    this.pairingActive = false,
+    this.pairingRemainingSeconds = 0,
   });
 
 
@@ -109,7 +130,8 @@ class _AdminMenuOverlayState extends State<AdminMenuOverlay>
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    // Daftar aksi D-Pad: toggle di awal (autofocus), kembali di akhir.
+    // Daftar aksi D-Pad: toggle di awal (autofocus), Mode Pairing saat
+    // koneksi aktif, kembali di akhir.
     final showPin = widget.btEnabled && widget.pin != null;
     final actions = <_AdminAction>[
       _AdminAction(
@@ -121,6 +143,16 @@ class _AdminMenuOverlayState extends State<AdminMenuOverlay>
         selected: widget.btEnabled,
         onActivate: () => widget.onToggleBluetooth(!widget.btEnabled),
       ),
+      if (widget.btEnabled)
+        _AdminAction(
+          icon: Icons.bluetooth_searching,
+          label: 'Mode Pairing',
+          subtitle: widget.pairingActive
+              ? 'Sedang aktif — TV terlihat untuk pairing HP baru'
+              : 'Buat TV terlihat 5 menit untuk pairing HP baru',
+          selected: widget.pairingActive,
+          onActivate: widget.onStartPairingMode,
+        ),
       _AdminAction(
         icon: Icons.arrow_back,
         label: 'Kembali',
@@ -282,6 +314,58 @@ class _AdminMenuOverlayState extends State<AdminMenuOverlay>
                                       ),
                                     ],
                                   ),
+
+                                  // Countdown Mode Pairing (ADR-029):
+                                  // hanya tampil selama jendelanya aktif.
+                                  if (widget.pairingActive) ...[
+                                    const SizedBox(height: 8),
+                                    Row(
+                                      children: [
+                                        Icon(
+                                          Icons.timer_outlined,
+                                          size: 18,
+                                          color: colorScheme.primary,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: Text(
+                                            'Mode Pairing aktif — '
+                                            '${formatPairingCountdown(widget.pairingRemainingSeconds)}',
+                                            style: theme.textTheme.bodySmall
+                                                ?.copyWith(
+                                              color: colorScheme.primary,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+
+                                  const SizedBox(height: 8),
+
+                                  // Alamat IP lokal TV (ADR-029): dibaca
+                                  // DKM untuk koneksi Remote jalur IP.
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.wifi,
+                                        size: 18,
+                                        color: colorScheme.onSurfaceVariant,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Text(
+                                          widget.ipText,
+                                          style: theme.textTheme.bodySmall
+                                              ?.copyWith(
+                                            color:
+                                                colorScheme.onSurfaceVariant,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ],
                               ),
                             ),
@@ -298,6 +382,15 @@ class _AdminMenuOverlayState extends State<AdminMenuOverlay>
       ),
     );
   }
+}
+
+/// Format sisa detik Mode Pairing sebagai `mm:ss` (mis. 272 -> "04:32").
+/// Nilai negatif dianggap nol.
+String formatPairingCountdown(int totalSeconds) {
+  final clamped = totalSeconds < 0 ? 0 : totalSeconds;
+  final minutes = (clamped ~/ 60).toString().padLeft(2, '0');
+  final seconds = (clamped % 60).toString().padLeft(2, '0');
+  return '$minutes:$seconds';
 }
 
 /// Definisi satu aksi di daftar menu admin.

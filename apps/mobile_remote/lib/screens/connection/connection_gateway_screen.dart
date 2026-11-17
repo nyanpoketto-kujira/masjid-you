@@ -8,6 +8,10 @@ class ConnectionGatewayScreen extends StatelessWidget {
 
   final bool btIsScanning;
   final List<BluetoothDeviceInfo> btDevices;
+
+  /// Perangkat yang sudah ter-bond (dikenal): koneksi langsung tanpa
+  /// discovery (ADR-029). Kosong = bagian ini tidak ditampilkan.
+  final List<BluetoothDeviceInfo> btKnownDevices;
   final String btStatus;
   final VoidCallback onBtStartScan;
   final VoidCallback onBtStopScan;
@@ -24,12 +28,21 @@ class ConnectionGatewayScreen extends StatelessWidget {
     required this.onBtStartScan,
     required this.onBtStopScan,
     required this.onBtConnect,
+    this.btKnownDevices = const [],
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+
+    // Hasil scan yang sudah ada di daftar dikenal tidak ditampilkan dua
+    // kali (ADR-029).
+    final knownAddresses = {for (final d in btKnownDevices) d.address};
+    final discoveredDevices = [
+      for (final d in btDevices)
+        if (!knownAddresses.contains(d.address)) d,
+    ];
 
     return Scaffold(
       body: SafeArea(
@@ -106,7 +119,39 @@ class ConnectionGatewayScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    if (btDevices.isEmpty)
+                    if (btKnownDevices.isNotEmpty) ...[
+                      Text(
+                        'Perangkat Dikenal',
+                        style: theme.textTheme.labelLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Sudah pernah terhubung — ketuk untuk menyambung '
+                        'langsung, tanpa perlu mencari lagi.',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      for (final device in btKnownDevices)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Card(
+                            color: colorScheme.surfaceContainerHigh,
+                            child: ListTile(
+                              leading: const Icon(Icons.tv),
+                              title: Text(device.name),
+                              subtitle: Text(device.address),
+                              trailing: const Icon(Icons.link),
+                              onTap: () => onBtConnect(device),
+                            ),
+                          ),
+                        ),
+                      const SizedBox(height: 4),
+                    ],
+                    if (discoveredDevices.isEmpty && btKnownDevices.isEmpty)
                       Text(
                         btIsScanning
                             ? 'Mencari perangkat TV...'
@@ -116,7 +161,7 @@ class ConnectionGatewayScreen extends StatelessWidget {
                         ),
                       )
                     else
-                      for (final device in btDevices)
+                      for (final device in discoveredDevices)
                         Padding(
                           padding: const EdgeInsets.only(bottom: 8),
                           child: Card(

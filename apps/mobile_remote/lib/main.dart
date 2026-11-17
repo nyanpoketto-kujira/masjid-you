@@ -191,6 +191,10 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
   bool _btIsScanning = false;
   bool _btConnected = false;
   List<BluetoothDeviceInfo> _btDevices = [];
+
+  /// Perangkat yang sudah ter-bond (dikenal) untuk koneksi langsung
+  /// tanpa discovery (ADR-029).
+  List<BluetoothDeviceInfo> _btKnownDevices = [];
   String _btStatus = 'Bluetooth: Stanby';
   StreamSubscription<BluetoothClientState>? _btStateSub;
 
@@ -365,6 +369,7 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
       setState(() {
         _btConnected = state.isConnected;
         _btDevices = state.devices;
+        _btKnownDevices = state.knownDevices;
         _btIsScanning = state.isScanning;
         switch (state.status) {
           case BluetoothClientStatus.connected:
@@ -395,6 +400,9 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
         _handleTransportDisconnected();
       }
     });
+    // Gerbang tampil sejak awal: muat daftar perangkat dikenal agar TV
+    // yang sudah pernah pairing bisa langsung diklik (ADR-029).
+    unawaited(_btClient.refreshKnownDevices());
     _loadStartupData();
   }
 
@@ -631,6 +639,7 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
     setState(() {
       _btConnected = pending.isConnected;
       _btDevices = pending.devices;
+      _btKnownDevices = pending.knownDevices;
       _btIsScanning = pending.isScanning;
       switch (pending.status) {
         case BluetoothClientStatus.connected:
@@ -1813,6 +1822,7 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
             onConnectIp: _connectToTv,
             btIsScanning: _btIsScanning,
             btDevices: _btDevices,
+            btKnownDevices: _btKnownDevices,
             btStatus: _btStatus,
             onBtStartScan: _startBtScan,
             onBtStopScan: _stopBtScan,

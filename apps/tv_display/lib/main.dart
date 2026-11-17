@@ -17,6 +17,7 @@ import 'widgets/material_blob_background.dart';
 import 'widgets/admin_menu_overlay.dart';
 import 'state/prayer_state_machine.dart';
 import 'state/tv_store.dart';
+import 'state/local_ip.dart';
 import 'server/local_ws_server.dart';
 import 'server/bluetooth_host_service.dart';
 
@@ -82,6 +83,10 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
 
   /// Overlay menu admin tampil saat tombol Back remote ditekan.
   bool _showAdminMenu = false;
+
+  /// Alamat IPv4 lokal TV untuk menu admin (ADR-029); di-refresh tiap
+  /// menu admin dibuka. `null` = belum dimuat / tidak ada jaringan.
+  String? _localIp;
 
   MosqueConfig _config = const MosqueConfig(
     name: 'Masjid Agung Al-Hikmah',
@@ -381,14 +386,62 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
           _btState = _btHost!.currentState;
         });
       }
+      await _maybeRunIntroPairing();
+    }
+  }
+
+  /// Jendela Mode Pairing otomatis SATU kali untuk instalasi baru
+  /// (ADR-029): setelah host start, bila flag permanen belum terpasang,
+  /// pasang flag lebih dulu (reboot di tengah jendela tidak mengulang),
+  /// lalu buka Mode Pairing 300 detik agar pairing pertama gampang.
+  /// Setelah itu TV tidak pernah membuka discoverable sendiri lagi.
+  Future<void> _maybeRunIntroPairing() async {
+    final host = _btHost;
+    if (host == null || !host.isRunning) return;
+    bool done;
+    try {
+      done = await _store.loadPairingIntroDone();
+    } catch (_) {
+      done = false;
+    }
+    if (done) return;
+    await _store.savePairingIntroDone();
+    await host.startPairingMode();
+    if (mounted) {
+      setState(() {
+        _btState = host.currentState;
+      });
+    }
+  }
+
+  /// Pemicu manual Mode Pairing dari menu admin TV (ADR-029).
+  Future<void> _startPairingMode() async {
+    final host = _btHost;
+    if (host == null || !mounted) return;
+    await host.startPairingMode();
+    if (mounted) {
+      setState(() {
+        _btState = host.currentState;
+      });
+    }
+  }
+
+  /// Muat ulang alamat IP lokal TV (untuk teks IP di menu admin).
+  Future<void> _refreshLocalIp() async {
+    final ip = await loadLocalIpv4();
+    if (mounted) {
+      setState(() {
+        _localIp = ip;
+      });
     }
   }
 
   /// Nyalakan/matikan koneksi Bluetooth dari menu admin.
   ///
-  /// Saat ON: regenerate PIN (dilakukan di dalam service), mulai host, dan
-  /// minta TV terlihat (popup discoverable hanya muncul di sini). Saat OFF:
-  /// stop host dan putuskan koneksi.
+  /// Saat ON: regenerate PIN (dilakukan di dalam service) dan mulai host.
+  /// Host tidak lagi meminta discoverable berkala (ADR-029); satu-satunya
+  /// discoverable otomatis adalah jendela intro instalasi baru lewat
+  /// [_maybeRunIntroPairing]. Saat OFF: stop host dan putuskan koneksi.
   Future<void> _toggleBluetooth(bool enable) async {
     final host = _btHost;
     if (host == null || !mounted) return;
@@ -405,6 +458,7 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
           _btState = host.currentState;
         });
       }
+      await _maybeRunIntroPairing();
     } else {
       await host.stop();
       if (mounted) {
@@ -515,6 +569,8 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
           setState(() {
             _showAdminMenu = true;
           });
+          // Segarkan alamat IP yang ditampilkan di menu admin (ADR-029).
+          unawaited(_refreshLocalIp());
         }
       },
       child: Scaffold(
@@ -648,6 +704,11 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
                 pin: _btHost?.pin,
                 statusText: btStatus,
                 isError: btError,
+                ipText: formatTvIpText(_localIp),
+                pairingActive: _btHost?.pairingActive ?? false,
+                pairingRemainingSeconds:
+                    _btHost?.pairingRemaining.inSeconds ?? 0,
+                onStartPairingMode: _startPairingMode,
                 onToggleBluetooth: _toggleBluetooth,
                 onClose: () {
                   setState(() {

@@ -765,3 +765,23 @@ Temuan tes emulator 17 Nov 2026 (plan Perbaikan Pool Babak 2, item A): di tab Pe
 - Regresi dikunci 6 test baru (`unsynced_banner_test.dart`: tabel kebenaran predikat + render kondisional dalam pohon widget minimal). Total: mobile_remote 93 -> 99 (di luar 2 kegagalan lama `home_tab_test.dart` yang bergantung tanggal sistem, lihat catatan status).
 
 ---
+
+## ADR-029 — Mode Pairing Bluetooth 300 Detik, Perangkat Dikenal, dan IP TV di Menu Admin
+
+### Konteks
+Temuan tes emulator 17 Nov 2026 (plan Perbaikan Pool Babak 2, item C+D): dialog sistem Android "Make visible to other Bluetooth devices?" menutupi layar TV dan muncul **berulang tanpa henti**. Akar masalah: `BluetoothHostService` menjalankan timer re-arm discoverable tiap 110 detik (tiap permintaan 120 detik) selama host aktif — setiap permintaan memunculkan satu dialog yang harus dijawab manual dengan remote TV. DKM yang lupa mematikan Bluetooth akan menghadapi dialog ini selamanya. Selain itu, koneksi harian Remote selalu lewat discovery (yang mensyaratkan TV discoverable), dan alamat IP TV tidak terlihat di mana pun di TV sehingga jalur IP sulit dipakai.
+
+### Keputusan
+1. **Timer re-arm discoverable dihapus total.** `BluetoothHostService.start()` tidak lagi meminta discoverable sama sekali; host RFCOMM standby menerima koneksi dari perangkat yang sudah dikenal tanpa dialog apa pun. Tidak ada alur nyala/matikan Bluetooth manual yang ditambahkan — host boleh dibiarkan menyala terus.
+2. **Mode Pairing adalah satu-satunya jalur discoverable**: metode `startPairingMode()` memanggil `BluetoothSync.makeDiscoverable(300)` tepat satu kali, mencatat deadline 300 detik, dan memakai timer **satu-kali** (bukan berkala) untuk menutup status pairing. `BluetoothHostState` membawa `pairingActive`/`pairingRemainingSeconds`; menu admin TV menampilkan aksi "Mode Pairing" + countdown "Mode Pairing aktif — mm:ss".
+3. **Otomatis satu kali saat instalasi baru**: setelah host start, bila flag permanen `tv_btPairingIntroDone` (SharedPreferences via `TvStore`) belum terpasang, flag dipasang **lebih dulu** lalu `startPairingMode()` dipanggil — reboot di tengah jendela tidak mengulang intro. Pemicu manual tetap tersedia di menu admin untuk pairing HP baru.
+4. **Perangkat dikenal di Remote**: API baru `BluetoothSync.getBondedDevices()` (method channel dari `adapter.bondedDevices` di Kotlin, gagal-soft tanpa izin/BT mati; Dart membuang entri tanpa alamat). `BluetoothClientService.refreshKnownDevices()` mengisi `BluetoothClientState.knownDevices` — dipanggil saat gerbang tampil dan otomatis setelah `discoveryFinished`; sengaja tidak meminta izin (izin diminta lewat alur Cari TV/connect yang sudah ada). Gerbang koneksi menampilkan bagian **"Perangkat Dikenal"** di kartu Bluetooth; ketuk barisnya menyambung langsung lewat `onBtConnect` yang sama. Hasil scan yang alamatnya sudah dikenal tidak ditampilkan dua kali.
+5. **IP TV di menu admin (item D)**: helper `pickLocalIpv4`/`loadLocalIpv4`/`formatTvIpText` di `lib/state/local_ip.dart` memilih IPv4 non-loopback/non-link-local pertama dengan prioritas antarmuka Wi-Fi lalu ethernet; menu admin menampilkan "IP TV: <alamat>" (di-refresh tiap menu dibuka) atau "IP TV: tidak ada jaringan".
+
+### Konsekuensi
+- Layar TV tidak pernah lagi diganggu dialog discoverable yang muncul sendiri; satu-satunya dialog adalah saat admin sengaja membuka Mode Pairing (atau jendela intro sekali seumur instalasi).
+- Koneksi harian: DKM mengetuk TV dari daftar Perangkat Dikenal — tanpa Mode Pairing dan tanpa dialog di TV. "Cari TV" tetap ada untuk pairing pertama.
+- Jalur IP kini praktis: IP dibaca langsung dari menu admin TV.
+- Regresi dikunci 25 test baru: bluetooth_sync +2 (parsing `getBondedDevices`), tv_display +17 (host service: start tanpa discoverable, pairing tepat sekali 300 detik, jendela berakhir sendiri tanpa panggilan susulan; TvStore flag intro; pemilih IP & format teks; overlay: IP tampil, aksi Mode Pairing, countdown), mobile_remote +6 (service perangkat dikenal, widget gerbang). Total: bluetooth_sync 30 -> 32, tv_display 67 -> 84, mobile_remote 99 -> 105 (2 kegagalan lama `home_tab_test.dart` yang bergantung tanggal sistem tidak berubah).
+
+---

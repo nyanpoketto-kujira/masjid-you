@@ -210,4 +210,64 @@ void main() {
     await sub.cancel();
     await service.stop();
   });
+
+  group('Mode Pairing (ADR-029)', () {
+    List<MethodCall> discoverableCalls() =>
+        calls.where((c) => c.method == 'makeDiscoverable').toList();
+
+    test('start() TIDAK pernah meminta discoverable', () async {
+      final service = BluetoothHostService(onPacketReceived: (_) {});
+      await service.start();
+      expect(service.isRunning, isTrue);
+      // Beri kesempatan async lanjutan; tidak boleh ada panggilan.
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      expect(discoverableCalls(), isEmpty);
+      await service.stop();
+    });
+
+    test('startPairingMode memanggil makeDiscoverable tepat sekali '
+        'dengan 300 detik dan state pairing aktif', () async {
+      final service = BluetoothHostService(onPacketReceived: (_) {});
+      await service.start();
+
+      final ok = await service.startPairingMode();
+      expect(ok, isTrue);
+      expect(discoverableCalls(), hasLength(1));
+      expect(
+        (discoverableCalls().single.arguments as Map)['seconds'],
+        300,
+      );
+      expect(service.pairingActive, isTrue);
+      expect(service.pairingRemaining.inSeconds, greaterThan(290));
+      expect(service.currentState.pairingActive, isTrue);
+
+      await service.stop();
+      expect(service.pairingActive, isFalse);
+    });
+
+    test('jendela pairing berakhir sendiri (timer satu-kali, bukan '
+        'berkala): tidak ada panggilan discoverable susulan', () async {
+      final service = BluetoothHostService(
+        onPacketReceived: (_) {},
+        pairingSeconds: 1,
+      );
+      await service.start();
+      await service.startPairingMode();
+      expect(service.pairingActive, isTrue);
+
+      // Lewati akhir jendela: status mati sendiri, panggilan tetap 1.
+      await Future<void>.delayed(const Duration(milliseconds: 1300));
+      expect(service.pairingActive, isFalse);
+      expect(discoverableCalls(), hasLength(1));
+
+      await service.stop();
+    });
+
+    test('startPairingMode sebelum start() host tidak memanggil apa pun',
+        () async {
+      final service = BluetoothHostService(onPacketReceived: (_) {});
+      expect(await service.startPairingMode(), isFalse);
+      expect(discoverableCalls(), isEmpty);
+    });
+  });
 }
