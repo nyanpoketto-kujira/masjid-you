@@ -121,6 +121,41 @@ void main() {
       expect(blank, equals(const StateSnapshot()));
     });
 
+    test('logo masjid ikut round-trip toMap/fromMap (ADR-032)', () {
+      const snapshot = StateSnapshot(mosqueLogo: 'TE9HTw==', hasData: true);
+      final restored = StateSnapshot.fromMap(snapshot.toMap());
+      expect(restored.mosqueLogo, 'TE9HTw==');
+      expect(restored, equals(snapshot));
+    });
+
+    test('snapshot lama tanpa kunci logo -> mosqueLogo null', () {
+      final map = buildSample().toMap()..remove('mosqueLogo');
+      expect(StateSnapshot.fromMap(map).mosqueLogo, isNull);
+      // String kosong juga berarti tanpa logo.
+      final empty = buildSample().toMap()..['mosqueLogo'] = '';
+      expect(StateSnapshot.fromMap(empty).mosqueLogo, isNull);
+      // Default snapshot memang tanpa logo.
+      expect(const StateSnapshot().mosqueLogo, isNull);
+    });
+
+    test('paket updateLogo round-trip lewat JSON (ADR-032)', () {
+      const packet = SyncPacket(
+        action: SyncAction.updateLogo,
+        payload: {'logoBase64': 'TE9HTw=='},
+      );
+      final restored = SyncPacket.fromJson(packet.toJson());
+      expect(restored.action, SyncAction.updateLogo);
+      expect(restored.payload['logoBase64'], 'TE9HTw==');
+      // Penghapusan logo: payload null tetap terbaca sebagai updateLogo.
+      const removal = SyncPacket(
+        action: SyncAction.updateLogo,
+        payload: {'logoBase64': null},
+      );
+      final restoredRemoval = SyncPacket.fromJson(removal.toJson());
+      expect(restoredRemoval.action, SyncAction.updateLogo);
+      expect(restoredRemoval.payload['logoBase64'], isNull);
+    });
+
     test('equality membedakan isi snapshot', () {
       final snapshot = buildSample();
       final same = StateSnapshot.fromMap(snapshot.toMap());

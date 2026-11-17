@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:animations/animations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:shared_models/shared_models.dart';
 import 'package:bluetooth_sync/bluetooth_sync.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -12,6 +14,7 @@ import '../services/ws_client.dart';
 import '../services/bluetooth_client_service.dart';
 import '../services/background_send_service.dart';
 import '../services/gps_location_service.dart';
+import '../services/logo_send_service.dart';
 import '../services/remote_cache_store.dart';
 import '../services/backup_service.dart';
 import '../theme/remote_theme.dart';
@@ -335,6 +338,16 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
   /// `null` = tidak ada pengiriman berjalan.
   double? _bgSendProgress;
 
+  /// Logo masjid untuk header TV (ADR-032): base64 gambar ASLI dari HP
+  /// (utuh, seperti gambar latar) + bytes hasil decode yang di-cache
+  /// untuk pratinjau di Pengaturan. `null` = tanpa logo.
+  String? _mosqueLogoBase64;
+  Uint8List? _mosqueLogoBytes;
+
+  /// Progress pengiriman logo ter-chunk via Bluetooth (0.0-1.0);
+  /// `null` = tidak ada pengiriman berjalan.
+  double? _logoSendProgress;
+
   @override
   void initState() {
     super.initState();
@@ -354,6 +367,8 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
     _client.onSendPacket = (packet) {
       if (packet.action == SyncAction.updateBackgroundImages) {
         unawaited(_mirrorBackgroundImagesToBt(packet));
+      } else if (packet.action == SyncAction.updateLogo) {
+        unawaited(_mirrorLogoToBt(packet));
       } else {
         _btClient.sendPacket(packet);
       }
@@ -546,7 +561,26 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
     _backgroundImages
       ..clear()
       ..addAll(snapshot.backgroundImages);
+    _setMosqueLogoLocal(snapshot.mosqueLogo);
     _syncConfigControllers();
+  }
+
+  /// Pasang state logo lokal (base64 + bytes pratinjau) TANPA mengirim
+  /// apa pun — dipakai saat menerapkan snapshot TV dan saat pengguna
+  /// memilih logo baru (pengiriman diatur pemanggil). Base64 rusak ->
+  /// bytes pratinjau `null` (fail-soft, sama seperti di TV).
+  void _setMosqueLogoLocal(String? logoBase64) {
+    _mosqueLogoBase64 =
+        (logoBase64 == null || logoBase64.isEmpty) ? null : logoBase64;
+    if (_mosqueLogoBase64 == null) {
+      _mosqueLogoBytes = null;
+      return;
+    }
+    try {
+      _mosqueLogoBytes = base64Decode(_mosqueLogoBase64!);
+    } catch (_) {
+      _mosqueLogoBytes = null;
+    }
   }
 
   /// Minta keadaan awal ke TV (TV sebagai trust source).
@@ -1536,6 +1570,87 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
     }
   }
 
+  /// Kirim logo terbaru ke TV bila terhubung (ADR-032). Pola sama
+  /// seperti gambar latar: jalur WebSocket membawa gambar asli,
+  /// mirror Bluetooth-nya di-intercept untuk diperkecil + chunking.
+  void _sendLogoIfConnected() {
+    if (_isConnected) {
+      _client.sendLogoUpdate(_mosqueLogoBase64);
+      setState(() {
+        _hasUnsyncedChanges = false;
+      });
+    }
+  }
+
+  /// Mirror khusus paket logo ke Bluetooth (ADR-032): logo diperkecil
+  /// dulu (maks 512 px, transparansi dijaga — lihat
+  /// `logo_send_service`), lalu dipecah menjadi chunk `chunkedData`
+  /// bila besar, dengan progress determinate untuk indikator di
+  /// Pengaturan. Paket kecil (termasuk penghapusan logo) dikirim
+  /// utuh seperti biasa.
+  Future<void> _mirrorLogoToBt(SyncPacket packet) async {
+    if (!_btClient.isConnected || !_btClient.isAuthenticated) return;
+    final effective = compressedLogoPacket(packet);
+    final encoding = encodeChunkedTransfer(effective);
+    if (!encoding.chunked) {
+      await _btClient.sendPacket(effective);
+      return;
+    }
+    if (mounted) setState(() => _logoSendProgress = 0);
+    try {
+      for (var i = 0; i < encoding.packets.length; i++) {
+        await _btClient.sendPacket(encoding.packets[i]);
+        if (mounted) {
+          setState(
+              () => _logoSendProgress = (i + 1) / encoding.packets.length);
+        }
+      }
+    } finally {
+      if (mounted) setState(() => _logoSendProgress = null);
+    }
+  }
+
+  /// Pilih logo masjid dari galeri HP. File asli tersimpan utuh di HP
+  /// (tanpa downscale, sama seperti gambar latar); perkecilan hanya
+  /// terjadi pada salinan kirim Bluetooth.
+  Future<void> _pickMosqueLogo() async {
+    try {
+      final picked = await ImagePicker().pickImage(
+        source: ImageSource.gallery,
+      );
+      if (picked == null) return;
+      final bytes = await picked.readAsBytes();
+      if (!mounted) return;
+      setState(() {
+        _setMosqueLogoLocal(base64Encode(bytes));
+        _hasUnsyncedChanges = true;
+      });
+      _sendLogoIfConnected();
+      _showSnack('Logo masjid dipasang. Lihat header TV.');
+    } catch (_) {
+      if (mounted) {
+        _showSnack('Gagal membaca gambar logo.');
+      }
+    }
+  }
+
+  /// Hapus logo masjid: header TV kembali seperti tanpa logo.
+  void _removeMosqueLogo() {
+    final previous = _mosqueLogoBase64;
+    setState(() {
+      _setMosqueLogoLocal(null);
+      _hasUnsyncedChanges = true;
+    });
+    _sendLogoIfConnected();
+    _showUndoSnack('Logo masjid dihapus', () {
+      setState(() {
+        _setMosqueLogoLocal(previous);
+        _hasUnsyncedChanges = true;
+      });
+      _sendLogoIfConnected();
+    });
+  }
+
   void _addBackgroundImage(String base64Image) {
     if (base64Image.isEmpty) return;
     setState(() {
@@ -2109,6 +2224,10 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
                       onThemeModeChanged: widget.onThemeModeChanged,
                       onColorSourceChanged: widget.onColorSourceChanged,
                       isDirty: _settingsDirty,
+                      logoBytes: _mosqueLogoBytes,
+                      logoSendProgress: _logoSendProgress,
+                      onPickLogo: _pickMosqueLogo,
+                      onRemoveLogo: _removeMosqueLogo,
                     ),
                     SimulationTab(
                       isConnected: _isConnected,

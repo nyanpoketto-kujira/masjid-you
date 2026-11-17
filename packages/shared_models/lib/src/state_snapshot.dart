@@ -52,6 +52,11 @@ class StateSnapshot {
 
   /// Gambar latar TV untuk slideshow (urutan = urutan tampil, ADR-031).
   final List<BackgroundImage> backgroundImages;
+
+  /// Logo masjid (base64 gambar asli, tanpa prefix `data:`) yang tampil
+  /// di header TV; `null` = tidak ada logo, header seperti biasa
+  /// (ADR-032).
+  final String? mosqueLogo;
   final bool hasData;
 
   const StateSnapshot({
@@ -61,6 +66,7 @@ class StateSnapshot {
     this.kasTransactions = const [],
     this.sideImages = const [],
     this.backgroundImages = const [],
+    this.mosqueLogo,
     this.hasData = false,
   });
 
@@ -75,6 +81,7 @@ class StateSnapshot {
         'backgroundImages': [
           for (final image in backgroundImages) image.toMap()
         ],
+        'mosqueLogo': mosqueLogo,
         'hasData': hasData,
       };
 
@@ -96,6 +103,12 @@ class StateSnapshot {
       // Snapshot lama belum punya kunci ini -> daftar kosong.
       backgroundImages:
           _parseList(map['backgroundImages'], BackgroundImage.fromMap),
+      // Snapshot lama belum punya kunci ini -> tanpa logo. String
+      // kosong juga diperlakukan sebagai tanpa logo.
+      mosqueLogo: map['mosqueLogo'] is String &&
+              (map['mosqueLogo'] as String).isNotEmpty
+          ? map['mosqueLogo'] as String
+          : null,
       hasData: rawHasData is bool ? rawHasData : false,
     );
   }
@@ -118,7 +131,8 @@ class StateSnapshot {
           _listsEqual(other.banners, banners) &&
           _listsEqual(other.kasTransactions, kasTransactions) &&
           _listsEqual(other.sideImages, sideImages) &&
-          _listsEqual(other.backgroundImages, backgroundImages);
+          _listsEqual(other.backgroundImages, backgroundImages) &&
+          other.mosqueLogo == mosqueLogo;
 
   @override
   int get hashCode => Object.hash(
@@ -129,6 +143,7 @@ class StateSnapshot {
         Object.hashAll(kasTransactions),
         Object.hashAll(sideImages),
         Object.hashAll(backgroundImages),
+        mosqueLogo,
       );
 
   @override
@@ -136,5 +151,6 @@ class StateSnapshot {
       'runningTexts: ${runningTexts.length}, banners: ${banners.length}, '
       'kasTransactions: ${kasTransactions.length}, '
       'sideImages: ${sideImages.length}, '
-      'backgroundImages: ${backgroundImages.length})';
+      'backgroundImages: ${backgroundImages.length}, '
+      'mosqueLogo: ${mosqueLogo == null ? 'null' : '[set]'})';
 }

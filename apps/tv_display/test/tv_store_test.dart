@@ -134,5 +134,41 @@ void main() {
       // Menyimpan gambar latar adalah data resmi -> hasData terpasang.
       expect(loaded.hasData, isTrue);
     });
+
+    test('logo masjid: simpan lalu muat kembali lewat load() (ADR-032)',
+        () async {
+      final store = TvStore();
+      await store.saveMosqueLogo('TE9HTw==');
+
+      final loaded = await TvStore().load();
+      expect(loaded, isNotNull);
+      expect(loaded!.mosqueLogo, 'TE9HTw==');
+      expect(loaded.hasData, isTrue);
+    });
+
+    test('logo masjid: simpan null/kosong menghapus logo tersimpan',
+        () async {
+      final store = TvStore();
+      await store.saveMosqueLogo('TE9HTw==');
+      await store.saveMosqueLogo(null);
+
+      final loaded = await TvStore().load();
+      expect(loaded, isNotNull);
+      expect(loaded!.mosqueLogo, isNull);
+
+      await store.saveMosqueLogo('TE9HTw==');
+      await store.saveMosqueLogo('');
+      final loadedAgain = await TvStore().load();
+      expect(loadedAgain!.mosqueLogo, isNull);
+    });
+
+    test('logo masjid: data lama tanpa kunci logo -> null', () async {
+      final store = TvStore();
+      await store.saveConfig(const MosqueConfig(name: 'Masjid Lama'));
+
+      final loaded = await TvStore().load();
+      expect(loaded, isNotNull);
+      expect(loaded!.mosqueLogo, isNull);
+    });
   });
 }

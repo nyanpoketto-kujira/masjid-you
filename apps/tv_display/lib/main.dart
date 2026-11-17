@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -103,6 +104,30 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
 
   /// Gambar latar slideshow (dikelola dari Remote, ADR-031).
   List<BackgroundImage> _backgroundImages = const [];
+
+  /// Logo masjid untuk header (dikelola dari Remote, ADR-032).
+  /// [_mosqueLogoBytes] adalah hasil decode [_mosqueLogoBase64] yang
+  /// di-cache: HeaderClock me-rebuild tiap detik untuk jam, jadi
+  /// decode base64 tidak boleh terjadi di jalur build. Base64 rusak
+  /// -> bytes `null` -> header tampil tanpa logo (fail-soft).
+  String? _mosqueLogoBase64;
+  Uint8List? _mosqueLogoBytes;
+
+  /// Pasang logo baru (atau hapus dengan `null`/kosong) + decode
+  /// sekali di sini. Dipanggil dalam konteks setState oleh pemanggil.
+  void _applyMosqueLogo(String? logoBase64) {
+    _mosqueLogoBase64 =
+        (logoBase64 == null || logoBase64.isEmpty) ? null : logoBase64;
+    if (_mosqueLogoBase64 == null) {
+      _mosqueLogoBytes = null;
+      return;
+    }
+    try {
+      _mosqueLogoBytes = base64Decode(_mosqueLogoBase64!);
+    } catch (_) {
+      _mosqueLogoBytes = null;
+    }
+  }
 
   /// Perangkai transfer ter-chunk Bluetooth (ADR-031): paket gambar
   /// besar tiba sebagai rangkaian `chunkedData` dan baru diterapkan
@@ -228,6 +253,7 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
         _kasTransactions = snapshot.kasTransactions;
         _sideImages = snapshot.sideImages;
         _backgroundImages = snapshot.backgroundImages;
+        _applyMosqueLogo(snapshot.mosqueLogo);
         _hasStoredData = true;
       });
       _recalculateSchedule();
@@ -365,6 +391,14 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
         _backgroundImages = list;
         _hasStoredData = true;
         _store.saveBackgroundImages(list);
+        break;
+      case SyncAction.updateLogo:
+        // Payload `logoBase64`: string base64 gambar asli; null /
+        // kosong / bukan string = logo dihapus (ADR-032).
+        final rawLogo = packet.payload['logoBase64'];
+        _applyMosqueLogo(rawLogo is String ? rawLogo : null);
+        _hasStoredData = true;
+        _store.saveMosqueLogo(_mosqueLogoBase64);
         break;
       case SyncAction.skipAdhan:
         _prayerStateMachine.skipAdhan(now: _now);
@@ -527,6 +561,7 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
         kasTransactions: _kasTransactions,
         sideImages: _sideImages,
         backgroundImages: _backgroundImages,
+        mosqueLogo: _mosqueLogoBase64,
         hasData: _hasStoredData,
       ).toMap(),
     );
@@ -684,6 +719,7 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
                           HeaderClock(
                             config: _config,
                             currentTime: _now,
+                            logoBytes: _mosqueLogoBytes,
                           ),
 
                           const SizedBox(height: 6),

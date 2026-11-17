@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:shared_models/shared_models.dart';
 import '../../theme/theme_preferences.dart';
@@ -52,6 +54,18 @@ class SettingsTab extends StatelessWidget {
   /// bila `true`.
   final bool isDirty;
 
+  /// Logo masjid (ADR-032): bytes gambar untuk pratinjau 1:1 di grup
+  /// Masjid (`null` = belum ada logo). Logo berlaku seketika lewat
+  /// aksi sync-nya sendiri — bukan bagian dari alur dirty/simpan
+  /// config — sama seperti editor konten.
+  final Uint8List? logoBytes;
+
+  /// Progress pengiriman logo via Bluetooth (0.0-1.0); `null` = tidak
+  /// ada pengiriman berjalan.
+  final double? logoSendProgress;
+  final VoidRefCallback? onPickLogo;
+  final VoidRefCallback? onRemoveLogo;
+
   const SettingsTab({
     super.key,
     required this.config,
@@ -85,6 +99,10 @@ class SettingsTab extends StatelessWidget {
     this.onThemeModeChanged,
     this.onColorSourceChanged,
     this.isDirty = false,
+    this.logoBytes,
+    this.logoSendProgress,
+    this.onPickLogo,
+    this.onRemoveLogo,
   });
 
   @override
@@ -102,6 +120,113 @@ class SettingsTab extends StatelessWidget {
                 title: 'Masjid',
                 footer: 'Nama dan alamat masjid yang tampil di layar TV.',
                 children: [
+                  // Logo masjid (ADR-032): pratinjau 1:1 persis seperti
+                  // tampilnya di header TV. Berlaku seketika saat
+                  // dipilih/dihapus (aksi sync sendiri), tidak menunggu
+                  // tombol Simpan config.
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ClipRRect(
+                        key: const Key('settings-logo-preview'),
+                        borderRadius: BorderRadius.circular(12),
+                        child: logoBytes != null
+                            ? Image.memory(
+                                logoBytes!,
+                                width: 72,
+                                height: 72,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => Container(
+                                  width: 72,
+                                  height: 72,
+                                  color: colorScheme.surfaceContainerHighest,
+                                  child: Icon(Icons.mosque,
+                                      color: colorScheme.primary),
+                                ),
+                              )
+                            : Container(
+                                width: 72,
+                                height: 72,
+                                decoration: BoxDecoration(
+                                  color: colorScheme.surfaceContainerHighest,
+                                  border: Border.all(
+                                    color: colorScheme.outlineVariant,
+                                  ),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Icon(
+                                  Icons.image_outlined,
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Logo Masjid',
+                              style: theme.textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              logoBytes != null
+                                  ? 'Tampil persegi (1:1) di kiri nama masjid '
+                                      'pada header TV.'
+                                  : 'Belum ada logo. Header TV tampil seperti '
+                                      'biasa, tanpa logo.',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Wrap(
+                              spacing: 8,
+                              children: [
+                                OutlinedButton.icon(
+                                  onPressed: onPickLogo,
+                                  icon: const Icon(
+                                      Icons.add_photo_alternate_outlined,
+                                      size: 18),
+                                  label: Text(logoBytes != null
+                                      ? 'Ganti Logo'
+                                      : 'Pilih Logo'),
+                                ),
+                                if (logoBytes != null)
+                                  TextButton.icon(
+                                    onPressed: onRemoveLogo,
+                                    icon: const Icon(Icons.delete_outline,
+                                        size: 18),
+                                    label: const Text('Hapus'),
+                                    style: TextButton.styleFrom(
+                                      foregroundColor: colorScheme.error,
+                                    ),
+                                  ),
+                              ],
+                            ),
+                            if (logoSendProgress != null) ...[
+                              const SizedBox(height: 8),
+                              LinearProgressIndicator(
+                                value: logoSendProgress,
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Mengirim logo '
+                                '${(logoSendProgress! * 100).round()}%',
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
                   TextFormField(
                     controller: nameController,
                     decoration: const InputDecoration(

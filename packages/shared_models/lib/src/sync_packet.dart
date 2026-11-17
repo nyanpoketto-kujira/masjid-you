@@ -15,6 +15,11 @@ enum SyncAction {
   /// adalah field config `backgroundSlideSeconds` (ADR-031).
   updateBackgroundImages,
 
+  /// Remote -> TV: logo masjid untuk header TV (payload: `logoBase64`,
+  /// string base64 gambar asli; `null`/hilang = logo dihapus dan header
+  /// kembali seperti tanpa logo). Lihat ADR-032.
+  updateLogo,
+
   /// Transfer ter-chunk untuk payload besar via Bluetooth: satu potongan
   /// string JSON paket lain (payload: `transferId`, `action`, `seq`,
   /// `total`, `data` — lihat `chunked_transfer.dart`, ADR-031). Paket ini

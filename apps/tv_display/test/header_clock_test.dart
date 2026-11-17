@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_models/shared_models.dart';
@@ -37,5 +39,62 @@ void main() {
     expect(find.textContaining('Mode Bluetooth'), findsNothing);
     expect(find.textContaining('Mode Direct'), findsNothing);
     expect(find.textContaining('Remote Sync IP'), findsNothing);
+  });
+
+  group('logo masjid (ADR-032)', () {
+    // PNG 1x1 valid sebagai bytes logo contoh.
+    final logoBytes = base64Decode(
+      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8'
+      'z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
+    );
+
+    testWidgets('tanpa logo: tidak ada kotak logo sama sekali',
+        (tester) async {
+      await _pump(
+        tester,
+        HeaderClock(
+          config: _config,
+          currentTime: DateTime(2026, 9, 12, 19, 16),
+        ),
+      );
+      expect(find.byKey(const Key('header-logo')), findsNothing);
+      expect(find.byType(Image), findsNothing);
+    });
+
+    testWidgets('dengan logo: kotak 1:1 tampil dan nama bergeser ke kanan',
+        (tester) async {
+      await _pump(
+        tester,
+        HeaderClock(
+          config: _config,
+          currentTime: DateTime(2026, 9, 12, 19, 16),
+        ),
+      );
+      final nameXWithoutLogo = tester.getTopLeft(find.text('Test Masjid')).dx;
+
+      await _pump(
+        tester,
+        HeaderClock(
+          config: _config,
+          currentTime: DateTime(2026, 9, 12, 19, 16),
+          logoBytes: logoBytes,
+        ),
+      );
+      final logoFinder = find.byKey(const Key('header-logo'));
+      expect(logoFinder, findsOneWidget);
+      expect(find.byType(Image), findsOneWidget);
+      // Kotak logo persis persegi 1:1 sebesar HeaderClock.logoSize.
+      final logoSize = tester.getSize(logoFinder);
+      expect(logoSize.width, HeaderClock.logoSize);
+      expect(logoSize.height, HeaderClock.logoSize);
+      expect(logoSize.width, logoSize.height);
+      // Nama masjid bergeser ke kanan sebesar lebar logo + jaraknya.
+      final nameXWithLogo = tester.getTopLeft(find.text('Test Masjid')).dx;
+      expect(nameXWithLogo, greaterThan(nameXWithoutLogo));
+      expect(
+        nameXWithLogo - nameXWithoutLogo,
+        HeaderClock.logoSize + 16,
+      );
+    });
   });
 }

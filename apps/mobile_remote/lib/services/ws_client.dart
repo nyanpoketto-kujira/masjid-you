@@ -136,6 +136,19 @@ class RemoteWsClient {
     ));
   }
 
+  /// Kirim logo masjid TV (ADR-032). Paket yang keluar lewat WebSocket
+  /// selalu gambar asli; mirror Bluetooth-nya di-intercept pemanggil
+  /// untuk diperkecil + chunking (lihat `logo_send_service`).
+  /// `logoBase64` null = logo dihapus dari TV.
+  void sendLogoUpdate(String? logoBase64) {
+    sendPacket(SyncPacket(
+      action: SyncAction.updateLogo,
+      payload: {
+        'logoBase64': logoBase64,
+      },
+    ));
+  }
+
   void sendKasUpdate(List<KasTransaction> transactions) {
     sendPacket(SyncPacket(
       action: SyncAction.updateKas,
