@@ -308,4 +308,164 @@ void main() {
       expect(machine.phase, PrayerPhase.preIqomah);
     });
   });
+
+  group('PrayerStateMachine — Musholla (hasFridayPrayer = false)', () {
+    const mushollaConfig = MosqueConfig(
+      preAdhanMinutes: 15,
+      adhanMinutes: 2,
+      preIqomahMinutes: 1,
+      shalatMinutes: 10,
+      hasFridayPrayer: false,
+    );
+
+    final friday = DateTime(2026, 8, 14, 12, 0); // Hari Jumat
+
+    test('auto-cycle Dzuhur hari Jumat TANPA khutbah: ADHAN -> PRE_IQOMAH',
+        () {
+      final machine = PrayerStateMachine()..initialize(mushollaConfig);
+
+      machine.tick(
+        friday,
+        _schedule(now: friday, nextPrayer: PrayerType.dhuhr, until: const Duration(minutes: 10)),
+      );
+      expect(machine.phase, PrayerPhase.preAdhan);
+
+      machine.tick(
+        friday.add(const Duration(minutes: 15)),
+        _schedule(now: friday, nextPrayer: PrayerType.dhuhr, until: Duration.zero),
+      );
+      expect(machine.phase, PrayerPhase.adhan);
+
+      // Azan selesai (2 menit): musholla langsung ke jeda ikamah,
+      // BUKAN khutbah seperti masjid dengan Jumatan.
+      machine.tick(
+        friday.add(const Duration(minutes: 17)),
+        _schedule(now: friday, nextPrayer: PrayerType.dhuhr, until: Duration.zero),
+      );
+      expect(machine.phase, PrayerPhase.preIqomah);
+      expect(machine.prayer, PrayerType.dhuhr);
+    });
+
+    test('skipAdhan hari Jumat langsung ke PRE_IQOMAH, bukan KHUTBAH', () {
+      final machine = PrayerStateMachine()..initialize(mushollaConfig);
+
+      machine.tick(
+        friday,
+        _schedule(now: friday, nextPrayer: PrayerType.dhuhr, until: Duration.zero),
+      );
+      expect(machine.phase, PrayerPhase.adhan);
+
+      machine.skipAdhan(now: friday);
+      expect(machine.phase, PrayerPhase.preIqomah);
+    });
+
+    test('updateConfig mematikan Jumatan di tengah jalan: '
+        'azan berikutnya tidak lagi masuk khutbah', () {
+      final machine = PrayerStateMachine()..initialize(config);
+
+      // TV awalnya masjid (Jumatan aktif), lalu Remote mematikan toggle-nya.
+      machine.updateConfig(mushollaConfig, friday);
+      machine.tick(
+        friday,
+        _schedule(now: friday, nextPrayer: PrayerType.dhuhr, until: Duration.zero),
+      );
+      expect(machine.phase, PrayerPhase.adhan);
+
+      machine.tick(
+        friday.add(const Duration(minutes: 2)),
+        _schedule(now: friday, nextPrayer: PrayerType.dhuhr, until: Duration.zero),
+      );
+      expect(machine.phase, PrayerPhase.preIqomah);
+    });
+  });
+
+  group('PrayerStateMachine — skipToNextPhase (ADR-030, tombol OK remote TV)',
+      () {
+    PrayerStateMachine machineIn(PrayerPhase phase, {DateTime? at}) {
+      final machine = PrayerStateMachine()..initialize(config);
+      machine.forcePhase(
+        phase,
+        now: at ?? now,
+        schedule: _schedule(
+          now: at ?? now,
+          nextPrayer: PrayerType.maghrib,
+          until: const Duration(minutes: 10),
+        ),
+      );
+      return machine;
+    }
+
+    test('normal: no-op', () {
+      final machine = PrayerStateMachine()..initialize(config);
+      machine.skipToNextPhase(now: now);
+      expect(machine.phase, PrayerPhase.normal);
+    });
+
+    test('preAdhan -> adhan', () {
+      final machine = machineIn(PrayerPhase.preAdhan);
+      machine.skipToNextPhase(now: now);
+      expect(machine.phase, PrayerPhase.adhan);
+      expect(machine.prayer, PrayerType.maghrib);
+    });
+
+    test('adhan -> preIqomah (hari biasa)', () {
+      final machine = machineIn(PrayerPhase.adhan);
+      machine.skipToNextPhase(now: now);
+      expect(machine.phase, PrayerPhase.preIqomah);
+    });
+
+    test('adhan Dzuhur hari Jumat -> khutbah', () {
+      final friday = DateTime(2026, 8, 14, 12, 0); // Jumat
+      final machine = PrayerStateMachine()..initialize(config);
+      machine.forcePhase(
+        PrayerPhase.adhan,
+        now: friday,
+        schedule: _schedule(
+          now: friday,
+          nextPrayer: PrayerType.dhuhr,
+          until: Duration.zero,
+        ),
+      );
+      machine.skipToNextPhase(now: friday);
+      expect(machine.phase, PrayerPhase.khutbah);
+      expect(machine.prayer, PrayerType.dhuhr);
+    });
+
+    test('khutbah -> preIqomah', () {
+      final friday = DateTime(2026, 8, 14, 12, 30); // Jumat
+      final machine = machineIn(PrayerPhase.khutbah, at: friday);
+      machine.skipToNextPhase(now: friday);
+      expect(machine.phase, PrayerPhase.preIqomah);
+    });
+
+    test('preIqomah -> shalat', () {
+      final machine = machineIn(PrayerPhase.preIqomah);
+      machine.skipToNextPhase(now: now);
+      expect(machine.phase, PrayerPhase.shalat);
+    });
+
+    test('shalat -> normal (mengakhiri fase)', () {
+      final machine = machineIn(PrayerPhase.shalat);
+      machine.skipToNextPhase(now: now);
+      expect(machine.phase, PrayerPhase.normal);
+      expect(machine.prayer, isNull);
+      expect(machine.remaining, Duration.zero);
+    });
+
+    test('rantai penuh hari biasa: preAdhan -> adhan -> preIqomah -> '
+        'shalat -> normal', () {
+      final machine = machineIn(PrayerPhase.preAdhan);
+      final seen = <PrayerPhase>[];
+      for (var i = 0; i < 4; i++) {
+        machine.skipToNextPhase(now: now);
+        seen.add(machine.phase);
+      }
+      expect(seen, [
+        PrayerPhase.adhan,
+        PrayerPhase.preIqomah,
+        PrayerPhase.shalat,
+        PrayerPhase.normal,
+      ]);
+    });
+  });
 }

@@ -1,27 +1,36 @@
 import 'dart:async';
+import 'dart:convert';
+import 'package:animations/animations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:intl/intl.dart';
-import 'package:geolocator/geolocator.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:shared_models/shared_models.dart';
 import 'package:bluetooth_sync/bluetooth_sync.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:dynamic_color/dynamic_color.dart';
 
 import '../services/ws_client.dart';
 import '../services/bluetooth_client_service.dart';
+import '../services/background_send_service.dart';
+import '../services/gps_location_service.dart';
+import '../services/logo_send_service.dart';
 import '../services/remote_cache_store.dart';
 import '../services/backup_service.dart';
 import '../theme/remote_theme.dart';
+import '../theme/theme_preferences.dart';
 
+import 'screens/home/home_tab.dart';
 import 'screens/settings/settings_tab.dart';
 import 'screens/content/running_text_subtab.dart';
 import 'screens/content/banners_subtab.dart';
 import 'screens/content/kas_subtab.dart';
+import 'screens/content/special_images_subtab.dart';
+import 'screens/content/background_images_subtab.dart';
 import 'screens/connection/connection_gateway_screen.dart';
 import 'screens/simulation/simulation_tab.dart';
+import 'screens/simulation/schedule_simulation_dialog.dart';
 
-import '../widgets/m3_pressable.dart';
-import '../widgets/playful_nav_icon.dart';
 
 const List<String> _runningCategories = [
   'Pengumuman',
@@ -33,7 +42,19 @@ const List<String> _runningCategories = [
 ];
 
 class RemoteHomeScreen extends StatefulWidget {
-  const RemoteHomeScreen({super.key});
+  const RemoteHomeScreen({
+    super.key,
+    this.themeMode = ThemeMode.system,
+    this.colorSource = AppColorSource.dynamic,
+    this.onThemeModeChanged,
+    this.onColorSourceChanged,
+  });
+
+  /// Preferensi tampilan aplikasi, diteruskan ke tab Pengaturan.
+  final ThemeMode themeMode;
+  final AppColorSource colorSource;
+  final ValueChanged<ThemeMode>? onThemeModeChanged;
+  final ValueChanged<AppColorSource>? onColorSourceChanged;
 
   @override
   State<RemoteHomeScreen> createState() => _RemoteHomeScreenState();
@@ -50,6 +71,20 @@ final GlobalKey<NavigatorState> appNavigatorKey = GlobalKey<NavigatorState>();
 /// subtree yang sedang dibongkar saat transisi gatekeeper <-> menu utama.
 final GlobalKey<ScaffoldMessengerState> appMessengerKey =
     GlobalKey<ScaffoldMessengerState>();
+
+/// Indeks tab Pengaturan pada NavigationBar menu utama
+/// (0 Beranda, 1 Konten, 2 Pengaturan, 3 Tes).
+const int settingsTabIndex = 2;
+
+/// Banner "Ada perubahan belum dikirim ke TV" hanya tampil di luar tab
+/// Pengaturan. Di tab Pengaturan, perubahan config sudah ditangani sticky
+/// bar "Simpan & Update Ke TV", jadi banner di sana hanya menduplikasi
+/// pesan & tombol yang sama (ADR-028).
+bool shouldShowUnsyncedBanner({
+  required bool hasUnsyncedChanges,
+  required int tabIndex,
+}) =>
+    hasUnsyncedChanges && tabIndex != settingsTabIndex;
 
 /// Dialog input PIN 4-digit untuk autentikasi Bluetooth.
 ///
@@ -136,11 +171,16 @@ class _PinDialogState extends State<_PinDialog> {
 
 class _RemoteHomeScreenState extends State<RemoteHomeScreen>
     with TickerProviderStateMixin, WidgetsBindingObserver {
+  /// Destinasi menu bawah aktif: 0 Beranda, 1 Konten, 2 Pengaturan, 3 Tes.
   int _tabIndex = 0;
 
-  late final TabController _mainTabController;
+  /// Controller sub-tab di dalam destinasi Konten saja (4 editor).
   late final TabController _subTabController;
-  bool _syncingControllers = false;
+
+  /// Status kontrol tampilan TV terakhir dari `stateUpdate` (Beranda):
+  /// mode senyap & standby.
+  bool _tvMuted = false;
+  bool _tvStandby = false;
 
   final _ipController = TextEditingController(text: '192.168.1.');
   final _client = RemoteWsClient();
@@ -157,10 +197,19 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
   bool _btIsScanning = false;
   bool _btConnected = false;
   List<BluetoothDeviceInfo> _btDevices = [];
+
+  /// Perangkat yang sudah ter-bond (dikenal) untuk koneksi langsung
+  /// tanpa discovery (ADR-029).
+  List<BluetoothDeviceInfo> _btKnownDevices = [];
   String _btStatus = 'Bluetooth: Stanby';
   StreamSubscription<BluetoothClientState>? _btStateSub;
 
   bool _hasUnsyncedChanges = false;
+
+  /// `true` bila ada perubahan config di form Pengaturan yang belum
+  /// disimpan (Fase 2, ADR-024): dilacak lewat listener semua controller
+  /// config; mengaktifkan tombol "Simpan & Update Ke TV" di sticky bar.
+  bool _settingsDirty = false;
 
   /// `true` bila dialog PIN sedang terbuka (dipakai `_closePinDialog`).
   bool _pinDialogOpen = false;
@@ -200,6 +249,17 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
   final _khutbahController = TextEditingController();
   final _fridayKhatibController = TextEditingController();
   final _fridayMuadzinController = TextEditingController();
+
+  /// Interval slideshow gambar latar TV (detik per gambar) — field
+  /// config `backgroundSlideSeconds`, diedit dari sub-tab Gambar Latar
+  /// lewat StepperRow (ADR-031); alur simpannya sama seperti controller
+  /// config lain (dirty -> simpan di Pengaturan / kirim semua).
+  final _backgroundSlideController = TextEditingController();
+
+  /// Nilai form toggle tampilan kartu samping TV (sumber kebenaran akhirnya
+  /// di [_config]; field ini mengikuti `_syncConfigControllers`).
+  bool _showKas = true;
+  bool _hasFridayPrayer = true;
   bool _isFetchingLocation = false;
   final _runningTextController = TextEditingController();
   String _runningCategory = _runningCategories.first;
@@ -265,14 +325,36 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
     ),
   ];
 
+  /// Kartu gambar khusus slot samping TV (urutan daftar = urutan rotasi).
+  final List<SpecialImage> _sideImages = [];
+
+  /// Gambar latar slideshow TV (urutan daftar = urutan tampil, ADR-031).
+  final List<BackgroundImage> _backgroundImages = [];
+
+  /// Opsi kirim gambar latar via Bluetooth tanpa kompresi (ADR-031);
+  /// tersimpan lokal di HP lewat [BackgroundSendPreferences].
+  bool _bgSendUncompressed = false;
+
+  /// Progress pengiriman gambar latar ter-chunk via Bluetooth (0.0-1.0);
+  /// `null` = tidak ada pengiriman berjalan.
+  double? _bgSendProgress;
+
+  /// Logo masjid untuk header TV (ADR-032): base64 gambar ASLI dari HP
+  /// (utuh, seperti gambar latar) + bytes hasil decode yang di-cache
+  /// untuk pratinjau di Pengaturan. `null` = tanpa logo.
+  String? _mosqueLogoBase64;
+  Uint8List? _mosqueLogoBytes;
+
+  /// Progress pengiriman logo ter-chunk via Bluetooth (0.0-1.0);
+  /// `null` = tidak ada pengiriman berjalan.
+  double? _logoSendProgress;
+
   @override
   void initState() {
     super.initState();
-    _mainTabController = TabController(length: 5, vsync: this);
-    _subTabController = TabController(length: 3, vsync: this);
-    _mainTabController.addListener(_handleMainTabChange);
-    _subTabController.addListener(_handleSubTabChange);
+    _subTabController = TabController(length: 5, vsync: this);
     _syncConfigControllers();
+    _attachConfigListeners();
 
     WidgetsBinding.instance.addObserver(this);
     _client.onPacket = _handleTvPacket;
@@ -280,10 +362,24 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
     _client.onDisconnected = _handleTransportDisconnected;
     _btClient.onPacket = _handleTvPacket;
     // Pasrik bacak keluar WS -> mirror ke Bluetooth (agar jalur BT saja
-    // yang tersambung, paket tetap terkirim).
+    // yang tersambung, paket tetap terkirim). Paket gambar latar
+    // di-intercept: jalur BT-nya lewat kompresi + chunking + progress
+    // (ADR-031), bukan kirim mentah seperti paket lain.
     _client.onSendPacket = (packet) {
-      _btClient.sendPacket(packet);
+      if (packet.action == SyncAction.updateBackgroundImages) {
+        unawaited(_mirrorBackgroundImagesToBt(packet));
+      } else if (packet.action == SyncAction.updateLogo) {
+        unawaited(_mirrorLogoToBt(packet));
+      } else {
+        _btClient.sendPacket(packet);
+      }
     };
+    // Muat opsi kirim gambar latar (tanpa kompresi?) dari penyimpanan HP.
+    unawaited(() async {
+      final uncompressed =
+          await BackgroundSendPreferences.loadSendUncompressed();
+      if (mounted) setState(() => _bgSendUncompressed = uncompressed);
+    }());
     // TV meminta PIN: tampilkan dialog PIN.
     _btClient.onAuthChallenge = (challenge) {
       _showPinDialog();
@@ -320,16 +416,19 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
       setState(() {
         _btConnected = state.isConnected;
         _btDevices = state.devices;
+        _btKnownDevices = state.knownDevices;
         _btIsScanning = state.isScanning;
         switch (state.status) {
           case BluetoothClientStatus.connected:
-            _btStatus = 'Bluetooth: Terhubung ke TV (${state.peerName ?? 'TV'})';
+            _btStatus =
+                'Bluetooth: Terhubung ke TV (${state.peerName ?? 'TV'})';
             break;
           case BluetoothClientStatus.error:
             _btStatus = 'Bluetooth: ${state.error ?? 'gagal'}';
             break;
           case BluetoothClientStatus.discovering:
-            _btStatus = 'Bluetooth: Mencari TV... (${state.devices.length} ditemukan)';
+            _btStatus =
+                'Bluetooth: Mencari TV... (${state.devices.length} ditemukan)';
             break;
           case BluetoothClientStatus.reconnecting:
             _btStatus = 'Bluetooth: Menyambung ulang...';
@@ -348,6 +447,9 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
         _handleTransportDisconnected();
       }
     });
+    // Gerbang tampil sejak awal: muat daftar perangkat dikenal agar TV
+    // yang sudah pernah pairing bisa langsung diklik (ADR-029).
+    unawaited(_btClient.refreshKnownDevices());
     _loadStartupData();
   }
 
@@ -362,57 +464,12 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
       }
       return;
     }
-    
+
     // resumed: cek status BT nyata daripada asumsikan terhubung.
     if (state == AppLifecycleState.resumed) {
       // Tidak ada yang perlu dilakukan di sini—state stream akan
       // memberitahu jika ada perubahan koneksi. Jangan paksa apapun.
     }
-  }
-
-  /// Sinkronkan dua `TabController` agar swipe antar halaman menyatu.
-  ///
-  /// `_mainTabController` (5 halaman) menggerakkan seluruh aplikasi, sedangkan
-  /// `_subTabController` (3 sub-tab Konten) hanya menggerakkan indikator
-  /// Top Tab Bar. `_syncingControllers` memutus loop antar-listener.
-  int _bottomNavIndexForPage(int page) {
-    if (page >= 1 && page <= 3) return 1; // Konten
-    if (page == 4) return 2; // Tes
-    return 0; // Pengaturan
-  }
-
-  int _mainPageForBottomNav(int bottom, int currentSub) {
-    switch (bottom) {
-      case 1:
-        return currentSub + 1; // Konten -> sub-tab terakhir dilihat
-      case 2:
-        return 4;
-      default:
-        return 0;
-    }
-  }
-
-  void _handleMainTabChange() {
-    if (_syncingControllers) return;
-    _syncingControllers = true;
-    final main = _mainTabController.index;
-    if (main >= 1 && main <= 3) {
-      _subTabController.index = main - 1;
-    }
-    if (mounted) {
-      setState(() {
-        _tabIndex = _bottomNavIndexForPage(main);
-      });
-    }
-    _syncingControllers = false;
-  }
-
-  void _handleSubTabChange() {
-    if (_syncingControllers) return;
-    if (_subTabController.indexIsChanging) return;
-    _syncingControllers = true;
-    _mainTabController.animateTo(_subTabController.index + 1);
-    _syncingControllers = false;
   }
 
   /// Isi seluruh field form dari [_config] (dipakai saat startup & setelah
@@ -432,6 +489,44 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
     _khutbahController.text = _config.khutbahMinutes.toString();
     _fridayKhatibController.text = _config.fridayKhatib;
     _fridayMuadzinController.text = _config.fridayMuadzin;
+    _backgroundSlideController.text =
+        _config.backgroundSlideSeconds.toString();
+    _showKas = _config.showKas;
+    _hasFridayPrayer = _config.hasFridayPrayer;
+  }
+
+  /// Pasang listener ke semua controller config agar perubahan form
+  /// Pengaturan langsung menandai dirty (tombol simpan sticky aktif).
+  /// Dipanggil sekali di [initState], setelah controller diisi dari
+  /// [_config] agar nilai awal tidak terhitung sebagai perubahan.
+  void _attachConfigListeners() {
+    final controllers = <TextEditingController>[
+      _nameController,
+      _addressController,
+      _latitudeController,
+      _longitudeController,
+      ..._prayerOffsetControllers.values,
+      _preAdhanController,
+      _adhanController,
+      _preIqomahController,
+      _shalatController,
+      _khutbahController,
+      _fridayKhatibController,
+      _fridayMuadzinController,
+      _backgroundSlideController,
+    ];
+    for (final controller in controllers) {
+      controller.addListener(_onConfigControllerChanged);
+    }
+  }
+
+  /// Hitung ulang dirty: form dianggap berubah bila config yang dibangun
+  /// dari controller berbeda dari [_config] yang tersimpan.
+  void _onConfigControllerChanged() {
+    final dirty = _buildConfigFromForm() != _config;
+    if (dirty != _settingsDirty) {
+      setState(() => _settingsDirty = dirty);
+    }
   }
 
   /// Nilai awal form saat startup.
@@ -461,7 +556,32 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
     _kasTransactions
       ..clear()
       ..addAll(snapshot.kasTransactions);
+    _sideImages
+      ..clear()
+      ..addAll(snapshot.sideImages);
+    _backgroundImages
+      ..clear()
+      ..addAll(snapshot.backgroundImages);
+    _setMosqueLogoLocal(snapshot.mosqueLogo);
     _syncConfigControllers();
+  }
+
+  /// Pasang state logo lokal (base64 + bytes pratinjau) TANPA mengirim
+  /// apa pun — dipakai saat menerapkan snapshot TV dan saat pengguna
+  /// memilih logo baru (pengiriman diatur pemanggil). Base64 rusak ->
+  /// bytes pratinjau `null` (fail-soft, sama seperti di TV).
+  void _setMosqueLogoLocal(String? logoBase64) {
+    _mosqueLogoBase64 =
+        (logoBase64 == null || logoBase64.isEmpty) ? null : logoBase64;
+    if (_mosqueLogoBase64 == null) {
+      _mosqueLogoBytes = null;
+      return;
+    }
+    try {
+      _mosqueLogoBytes = base64Decode(_mosqueLogoBase64!);
+    } catch (_) {
+      _mosqueLogoBytes = null;
+    }
   }
 
   /// Minta keadaan awal ke TV (TV sebagai trust source).
@@ -480,17 +600,61 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
   /// `appMessengerKey.currentState ?? ScaffoldMessenger.of(context)...`:
   /// operator `??` mengembalikan operand kiri bila non-null sehingga
   /// `showSnackBar(...)` tidak pernah dievaluasi (umpan balik hilang).
-   void _showSnack(String message, {Color? background}) {
-     final messenger = appMessengerKey.currentState;
-     if (messenger == null) return;
-     messenger.showSnackBar(
-       SnackBar(
-         content: Text(message),
-         backgroundColor: background,
-       ),
-     );
-   }
- 
+  void _showSnack(String message, {Color? background}) {
+    final messenger = appMessengerKey.currentState;
+    if (messenger == null) return;
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: background,
+      ),
+    );
+  }
+
+  /// SnackBar hapus rutin (Fase 3): item hilang + aksi "Urungkan" ±5 detik
+  /// yang mengembalikan item lewat [onUndo]. Dipasang ke messenger global
+  /// agar tetap tampil walau subtree sedang bertransisi.
+  void _showUndoSnack(String message, VoidCallback onUndo) {
+    final messenger = appMessengerKey.currentState;
+    if (messenger == null) return;
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(message),
+        duration: const Duration(seconds: 5),
+        action: SnackBarAction(label: 'Urungkan', onPressed: onUndo),
+      ),
+    );
+  }
+
+  /// Pola kirim daftar ke TV bila terhubung (kalau tidak, tandai belum
+  /// tersinkron agar bisa dikirim lewat banner "Kirim ke TV").
+  void _sendRunningTextsIfConnected() {
+    if (_isConnected) {
+      _client.sendRunningTextsUpdate(_runningTexts);
+      setState(() {
+        _hasUnsyncedChanges = false;
+      });
+    }
+  }
+
+  void _sendBannersIfConnected() {
+    if (_isConnected) {
+      _client.sendBannersUpdate(_banners);
+      setState(() {
+        _hasUnsyncedChanges = false;
+      });
+    }
+  }
+
+  void _sendKasIfConnected() {
+    if (_isConnected) {
+      _client.sendKasUpdate(_kasTransactions);
+      setState(() {
+        _hasUnsyncedChanges = false;
+      });
+    }
+  }
+
   /// Tampilkan dialog input PIN 4 digit yang diminta TV. PIN dikirim via
   /// [BluetoothClientService.respondWithPin]; dialog menutup sendiri saat
   /// TV mengirim `authSuccess`.
@@ -547,6 +711,7 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
     setState(() {
       _btConnected = pending.isConnected;
       _btDevices = pending.devices;
+      _btKnownDevices = pending.knownDevices;
       _btIsScanning = pending.isScanning;
       switch (pending.status) {
         case BluetoothClientStatus.connected:
@@ -583,7 +748,12 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
     try {
       final prefs = await SharedPreferences.getInstance();
       final saved = prefs.getInt('preAdhanMinutes');
-      if (saved == null || !mounted) return;
+      final savedShowKas = prefs.getBool('showKas');
+      final savedHasFriday = prefs.getBool('hasFridayPrayer');
+      if ((saved == null && savedShowKas == null && savedHasFriday == null) ||
+          !mounted) {
+        return;
+      }
       setState(() {
         _config = _config.copyWith(
           preAdhanMinutes:
@@ -591,14 +761,14 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
           adhanMinutes: prefs.getInt('adhanMinutes') ?? _config.adhanMinutes,
           preIqomahMinutes:
               prefs.getInt('preIqomahMinutes') ?? _config.preIqomahMinutes,
-          shalatMinutes:
-              prefs.getInt('shalatMinutes') ?? _config.shalatMinutes,
+          shalatMinutes: prefs.getInt('shalatMinutes') ?? _config.shalatMinutes,
           khutbahMinutes:
               prefs.getInt('khutbahMinutes') ?? _config.khutbahMinutes,
-          fridayKhatib:
-              prefs.getString('fridayKhatib') ?? _config.fridayKhatib,
+          fridayKhatib: prefs.getString('fridayKhatib') ?? _config.fridayKhatib,
           fridayMuadzin:
               prefs.getString('fridayMuadzin') ?? _config.fridayMuadzin,
+          showKas: savedShowKas ?? _config.showKas,
+          hasFridayPrayer: savedHasFriday ?? _config.hasFridayPrayer,
         );
         _preAdhanController.text = _config.preAdhanMinutes.toString();
         _adhanController.text = _config.adhanMinutes.toString();
@@ -607,6 +777,8 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
         _khutbahController.text = _config.khutbahMinutes.toString();
         _fridayKhatibController.text = _config.fridayKhatib;
         _fridayMuadzinController.text = _config.fridayMuadzin;
+        _showKas = _config.showKas;
+        _hasFridayPrayer = _config.hasFridayPrayer;
       });
     } catch (_) {
       // Plugin tidak tersedia (mis. test) -> gunakan default.
@@ -624,6 +796,8 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
       await prefs.setInt('khutbahMinutes', config.khutbahMinutes);
       await prefs.setString('fridayKhatib', config.fridayKhatib);
       await prefs.setString('fridayMuadzin', config.fridayMuadzin);
+      await prefs.setBool('showKas', config.showKas);
+      await prefs.setBool('hasFridayPrayer', config.hasFridayPrayer);
     } catch (_) {
       // Plugin tidak tersedia (mis. test) -> abaikan.
     }
@@ -645,14 +819,17 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
   }
 
   /// Perbarui indikator fase TV dari `SyncAction.stateUpdate`.
+  /// Payload juga membawa status kontrol tampilan (`muted`, `standby`)
+  /// bila TV mendukungnya — TV lama tanpa kunci ini tidak mengubah status.
   void _applyTvPhase(SyncPacket packet) {
     final phaseName = packet.payload['phase'] as String?;
     if (phaseName == null || !mounted) return;
     setState(() {
-      _tvPhase = PrayerPhase.values.firstWhere(
-        (p) => p.name == phaseName,
-        orElse: () => PrayerPhase.normal,
-      );
+      _tvPhase = PrayerPhase.fromName(phaseName);
+      final muted = packet.payload['muted'];
+      if (muted is bool) _tvMuted = muted;
+      final standby = packet.payload['standby'];
+      if (standby is bool) _tvStandby = standby;
     });
   }
 
@@ -687,6 +864,8 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
     _client.sendRunningTextsUpdate(_runningTexts);
     _client.sendBannersUpdate(_banners);
     _client.sendKasUpdate(_kasTransactions);
+    _client.sendSideImagesUpdate(_sideImages);
+    _client.sendBackgroundImagesUpdate(_backgroundImages);
   }
 
   /// Export snapshot keadaan saat ini ke file backup JSON.
@@ -696,6 +875,8 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
       runningTexts: List.of(_runningTexts),
       banners: List.of(_banners),
       kasTransactions: List.of(_kasTransactions),
+      sideImages: List.of(_sideImages),
+      backgroundImages: List.of(_backgroundImages),
       hasData: true,
     );
     final savedPath = await _backupService.exportToFile(
@@ -737,25 +918,23 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
               Text('Running Text: ${snapshot.runningTexts.length}'),
               Text('Banner: ${snapshot.banners.length}'),
               Text('Transaksi Kas: ${snapshot.kasTransactions.length}'),
+              Text('Gambar Khusus: ${snapshot.sideImages.length}'),
+              Text('Gambar Latar: ${snapshot.backgroundImages.length}'),
               const SizedBox(height: 12),
               const Text('Sure ingin terapkan backup ini?'),
             ],
           ),
           actions: [
-            M3Pressable(
-              child: TextButton(
-                onPressed: () => Navigator.pop(dialogContext),
-                child: const Text('Batal'),
-              ),
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Batal'),
             ),
-            M3Pressable(
-              child: FilledButton(
-                onPressed: () async {
-                  Navigator.pop(dialogContext);
-                  await _applyImportedBackup(bundle);
-                },
-                child: const Text('Terapkan'),
-              ),
+            FilledButton(
+              onPressed: () async {
+                Navigator.pop(dialogContext);
+                await _applyImportedBackup(bundle);
+              },
+              child: const Text('Terapkan'),
             ),
           ],
         );
@@ -772,6 +951,8 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
       runningTexts: List.of(_runningTexts),
       banners: List.of(_banners),
       kasTransactions: List.of(_kasTransactions),
+      sideImages: List.of(_sideImages),
+      backgroundImages: List.of(_backgroundImages),
       hasData: true,
     );
     await _cacheStore.save(oldSnapshot);
@@ -799,7 +980,8 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
         setState(() {
           _isConnected = _btConnected;
         });
-        _showSnack('Koneksi gagal: alamat IP tidak valid atau TV tidak terhubung');
+        _showSnack(
+            'Koneksi gagal: alamat IP tidak valid atau TV tidak terhubung');
       }
       // Sukses: `_handleConnectionEstablished('ip')` dipanggil oleh
       // callback `onConnected` dari RemoteWsClient.
@@ -921,27 +1103,33 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
       address: _addressController.text.trim().isEmpty
           ? _config.address
           : _addressController.text.trim(),
-      latitude: double.tryParse(_latitudeController.text.trim()) ??
-          _config.latitude,
+      latitude:
+          double.tryParse(_latitudeController.text.trim()) ?? _config.latitude,
       longitude: double.tryParse(_longitudeController.text.trim()) ??
           _config.longitude,
       prayerOffsets: {
         for (final type in kAllPrayerTypes)
           type: int.tryParse(_prayerOffsetControllers[type]!.text.trim()) ?? 0,
       },
-      preAdhanMinutes: _minutesFrom(_preAdhanController, _config.preAdhanMinutes),
+      preAdhanMinutes:
+          _minutesFrom(_preAdhanController, _config.preAdhanMinutes),
       adhanMinutes: _minutesFrom(_adhanController, _config.adhanMinutes),
       preIqomahMinutes:
           _minutesFrom(_preIqomahController, _config.preIqomahMinutes),
       shalatMinutes: _minutesFrom(_shalatController, _config.shalatMinutes),
-      khutbahMinutes:
-          _minutesFrom(_khutbahController, _config.khutbahMinutes),
+      khutbahMinutes: _minutesFrom(_khutbahController, _config.khutbahMinutes),
       fridayKhatib: _fridayKhatibController.text.trim().isEmpty
           ? _config.fridayKhatib
           : _fridayKhatibController.text.trim(),
       fridayMuadzin: _fridayMuadzinController.text.trim().isEmpty
           ? _config.fridayMuadzin
           : _fridayMuadzinController.text.trim(),
+      showKas: _showKas,
+      hasFridayPrayer: _hasFridayPrayer,
+      backgroundSlideSeconds: MosqueConfig.clampBackgroundSlideSeconds(
+        _minutesFrom(
+            _backgroundSlideController, _config.backgroundSlideSeconds),
+      ),
     );
   }
 
@@ -960,6 +1148,8 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
     _client.sendRunningTextsUpdate(_runningTexts);
     _client.sendBannersUpdate(_banners);
     _client.sendKasUpdate(_kasTransactions);
+    _client.sendSideImagesUpdate(_sideImages);
+    _client.sendBackgroundImagesUpdate(_backgroundImages);
   }
 
   void _pushAllToTv() {
@@ -972,7 +1162,7 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
     setState(() {
       _hasUnsyncedChanges = false;
     });
-    _showSnack('Semua data berhasil dikirim ke TV!');
+    _showSnack('Tersimpan & ditampilkan di TV');
   }
 
   void _sendConfigUpdate() {
@@ -985,13 +1175,46 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
       setState(() {
         _hasUnsyncedChanges = false;
       });
-      _showSnack('Pengaturan berhasil diperbarui di TV!');
+      _showSnack('Tersimpan & ditampilkan di TV');
     } else {
       setState(() {
         _hasUnsyncedChanges = true;
       });
-      _showSnack('Pengaturan disimpan lokal (belum dikirim).');
+      _showSnack('Tersimpan di HP — TV belum terhubung');
     }
+    // Config tersimpan == isi form: tidak ada lagi perubahan tertunda.
+    if (_settingsDirty) {
+      setState(() => _settingsDirty = false);
+    }
+  }
+
+  /// Total kas per tipe (untuk ringkasan di Beranda).
+  int _totalKas(KasType type) => _kasTransactions
+      .where((t) => t.type == type)
+      .fold(0, (sum, t) => sum + t.amount);
+
+  /// Toggle mode senyap TV dari Beranda (optimistis; dikonfirmasi balik
+  /// oleh `stateUpdate` TV).
+  void _toggleTvMuted() {
+    if (!_isConnected) {
+      _showSnack('Belum terhubung ke TV. Sambungkan dulu.');
+      return;
+    }
+    final next = !_tvMuted;
+    setState(() => _tvMuted = next);
+    _client.sendSetMuted(next);
+  }
+
+  /// Toggle standby TV dari Beranda (optimistis; dikonfirmasi balik
+  /// oleh `stateUpdate` TV).
+  void _toggleTvStandby() {
+    if (!_isConnected) {
+      _showSnack('Belum terhubung ke TV. Sambungkan dulu.');
+      return;
+    }
+    final next = !_tvStandby;
+    setState(() => _tvStandby = next);
+    _client.sendSetStandby(next);
   }
 
   /// Kirim aksi cepat (skip) ke TV. Valid hanya saat TV berada di fase terkait.
@@ -1028,50 +1251,33 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
       _isFetchingLocation = true;
     });
     try {
-      final isEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!isEnabled) {
-        if (mounted) {
-          _showSnack('Layanan lokasi (GPS) tidak aktif.');
-        }
-        return;
-      }
-
-      var permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied) {
-          if (mounted) {
-            _showSnack('Izin lokasi GPS ditolak.');
-          }
-          return;
-        }
-      }
-
-      if (permission == LocationPermission.deniedForever) {
-        if (mounted) {
-          _showSnack('Izin GPS ditolak permanen.');
-        }
-        return;
-      }
-
-      final pos = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.high,
-          timeLimit: Duration(seconds: 15),
-        ),
-      );
-
-      if (mounted) {
-        setState(() {
-          _latitudeController.text = pos.latitude.toStringAsFixed(6);
-          _longitudeController.text = pos.longitude.toStringAsFixed(6);
-          _hasUnsyncedChanges = true;
-        });
-        _showSnack('Koordinat GPS berhasil diambil!');
-      }
-    } catch (e) {
-      if (mounted) {
-        _showSnack('Gagal mengambil GPS: $e');
+      // Alur GPS (izin, akurasi, fallback posisi terakhir) ada di
+      // GpsLocationService; di sini hasilnya dipetakan ke SnackBar.
+      final result = await GpsLocationService().fetchCoordinates();
+      if (!mounted) return;
+      switch (result.status) {
+        case GpsLocationStatus.success:
+        case GpsLocationStatus.successLastKnown:
+          setState(() {
+            _latitudeController.text = result.latitude!.toStringAsFixed(6);
+            _longitudeController.text = result.longitude!.toStringAsFixed(6);
+            _hasUnsyncedChanges = true;
+          });
+          _showSnack(result.status == GpsLocationStatus.success
+              ? 'Koordinat GPS berhasil diambil!'
+              : 'Sinyal GPS lambat — memakai lokasi terakhir yang '
+                  'diketahui.');
+        case GpsLocationStatus.serviceDisabled:
+          _showSnack('Layanan lokasi (GPS) tidak aktif. Nyalakan dulu, '
+              'lalu coba lagi.');
+        case GpsLocationStatus.permissionDenied:
+          _showSnack('Izin lokasi GPS ditolak.');
+        case GpsLocationStatus.permissionDeniedForever:
+          _showSnack('Izin GPS ditolak permanen. Aktifkan dari '
+              'Pengaturan Android.');
+        case GpsLocationStatus.unavailable:
+          _showSnack('Sinyal GPS tidak ditemukan. Coba di area yang '
+              'lebih terbuka, atau isi koordinat secara manual.');
       }
     } finally {
       if (mounted) {
@@ -1104,106 +1310,71 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
     }
   }
 
+  /// Hapus rutin (Fase 3): item hilang + SnackBar "Urungkan" yang
+  /// mengembalikannya di indeks semula + kirim ulang ke TV.
   void _removeRunningText(String id) {
+    final index = _runningTexts.indexWhere((t) => t.id == id);
+    if (index < 0) return;
+    final removed = _runningTexts[index];
     setState(() {
-      _runningTexts.removeWhere((t) => t.id == id);
+      _runningTexts.removeAt(index);
       _hasUnsyncedChanges = true;
     });
-    if (_isConnected) {
-      _client.sendRunningTextsUpdate(_runningTexts);
+    _sendRunningTextsIfConnected();
+    _showUndoSnack('Teks berjalan dihapus', () {
       setState(() {
-        _hasUnsyncedChanges = false;
+        _runningTexts.insert(index, removed);
+        _hasUnsyncedChanges = true;
       });
-    }
+      _sendRunningTextsIfConnected();
+    });
   }
 
+  /// Edit teks berjalan memakai dialog full-screen yang sama dengan form
+  /// tambah (Fase 3): isi + kategori + tombol Simpan eksplisit.
   void _editRunningText(RunningTextMessage item) {
     final textController = TextEditingController(text: item.content);
-    String selectedCategory = item.category;
+    var selectedCategory = item.category;
 
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (dialogContext) {
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            return AlertDialog(
-              title: const Text('Edit Teks Berjalan'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextFormField(
-                    controller: textController,
-                    decoration: const InputDecoration(labelText: 'Isi Pesan'),
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      const Text('Kategori: '),
-                      DropdownButton<String>(
-                        value: selectedCategory,
-                        items: _runningCategories.map((c) {
-                          return DropdownMenuItem(value: c, child: Text(c));
-                        }).toList(),
-                        onChanged: (v) {
-                          if (v != null) {
-                            setDialogState(() {
-                              selectedCategory = v;
-                            });
-                          }
-                        },
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              actions: [
-                M3Pressable(
-                  child: TextButton(
-                    onPressed: () => Navigator.pop(dialogContext),
-                    child: const Text('Batal'),
-                  ),
-                ),
-                M3Pressable(
-                  child: FilledButton(
-                    onPressed: () {
-                      final newContent = textController.text.trim();
-                      if (newContent.isEmpty) return;
-                      setState(() {
-                        final index =
-                            _runningTexts.indexWhere((t) => t.id == item.id);
-                        if (index >= 0) {
-                          _runningTexts[index] = RunningTextMessage(
-                            id: item.id,
-                            content: newContent,
-                            category: selectedCategory,
-                            isActive: item.isActive,
-                          );
-                        }
-                        _hasUnsyncedChanges = true;
-                      });
-                      if (_isConnected) {
-                        _client.sendRunningTextsUpdate(_runningTexts);
-                        setState(() {
-                          _hasUnsyncedChanges = false;
-                        });
-                      }
-                      Navigator.pop(dialogContext);
-                    },
-                    child: const Text('Simpan'),
-                  ),
-                ),
-              ],
-            );
+        return RunningTextFormDialog(
+          title: 'Edit Teks Berjalan',
+          textController: textController,
+          category: item.category,
+          categories: _runningCategories,
+          onCategoryChanged: (cat) => selectedCategory = cat,
+          onSave: () {
+            final newContent = textController.text.trim();
+            if (newContent.isEmpty) return;
+            setState(() {
+              final index = _runningTexts.indexWhere((t) => t.id == item.id);
+              if (index >= 0) {
+                _runningTexts[index] = RunningTextMessage(
+                  id: item.id,
+                  content: newContent,
+                  category: selectedCategory,
+                  isActive: item.isActive,
+                );
+              }
+              _hasUnsyncedChanges = true;
+            });
+            _sendRunningTextsIfConnected();
           },
         );
       },
-    );
+    ).then((_) => textController.dispose());
   }
 
   void _addBanner(String? base64Image) {
     final title = _bannerTitleController.text.trim();
     final content = _bannerContentController.text.trim();
-    if (title.isEmpty && content.isEmpty && (base64Image == null || base64Image.isEmpty)) return;
+    if (title.isEmpty &&
+        content.isEmpty &&
+        (base64Image == null || base64Image.isEmpty)) {
+      return;
+    }
 
     setState(() {
       _banners.add(MediaBanner(
@@ -1232,16 +1403,21 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
   }
 
   void _removeBanner(String id) {
+    final index = _banners.indexWhere((b) => b.id == id);
+    if (index < 0) return;
+    final removed = _banners[index];
     setState(() {
-      _banners.removeWhere((b) => b.id == id);
+      _banners.removeAt(index);
       _hasUnsyncedChanges = true;
     });
-    if (_isConnected) {
-      _client.sendBannersUpdate(_banners);
+    _sendBannersIfConnected();
+    _showUndoSnack('Banner dihapus', () {
       setState(() {
-        _hasUnsyncedChanges = false;
+        _banners.insert(index, removed);
+        _hasUnsyncedChanges = true;
       });
-    }
+      _sendBannersIfConnected();
+    });
   }
 
   void _toggleBanner(String id, bool val) {
@@ -1260,82 +1436,369 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
     }
   }
 
+  /// Pola kirim gambar khusus sama seperti banner: ubah state lokal, lalu
+  /// kirim daftar terbaru ke TV bila terhubung (kalau tidak, tandai belum
+  /// tersinkron agar bisa dikirim lewat banner "Kirim ke TV").
+  void _sendSideImagesIfConnected() {
+    if (_isConnected) {
+      _client.sendSideImagesUpdate(_sideImages);
+      setState(() {
+        _hasUnsyncedChanges = false;
+      });
+    }
+  }
+
+  void _addSideImage(String caption, String base64Image) {
+    if (base64Image.isEmpty) return;
+    setState(() {
+      _sideImages.add(SpecialImage(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        caption: caption,
+        base64Image: base64Image,
+      ));
+      _hasUnsyncedChanges = true;
+    });
+    _sendSideImagesIfConnected();
+  }
+
+  void _removeSideImage(String id) {
+    final index = _sideImages.indexWhere((i) => i.id == id);
+    if (index < 0) return;
+    final removed = _sideImages[index];
+    setState(() {
+      _sideImages.removeAt(index);
+      _hasUnsyncedChanges = true;
+    });
+    _sendSideImagesIfConnected();
+    _showUndoSnack('Gambar khusus dihapus', () {
+      setState(() {
+        _sideImages.insert(index, removed);
+        _hasUnsyncedChanges = true;
+      });
+      _sendSideImagesIfConnected();
+    });
+  }
+
+  void _toggleSideImage(String id, bool val) {
+    setState(() {
+      final index = _sideImages.indexWhere((i) => i.id == id);
+      if (index >= 0) {
+        _sideImages[index] = _sideImages[index].copyWith(isActive: val);
+      }
+      _hasUnsyncedChanges = true;
+    });
+    _sendSideImagesIfConnected();
+  }
+
+  /// Ubah urutan putar lewat drag & drop (Fase 3): `onReorderItem` sudah
+  /// menyesuaikan `newIndex` terhadap item yang dilepas, jadi langsung
+  /// pindah; tandai belum tersinkron, lalu kirim daftar terbaru ke TV
+  /// bila terhubung.
+  void _reorderRunningTexts(int oldIndex, int newIndex) {
+    setState(() {
+      final item = _runningTexts.removeAt(oldIndex);
+      _runningTexts.insert(newIndex, item);
+      _hasUnsyncedChanges = true;
+    });
+    _sendRunningTextsIfConnected();
+  }
+
+  void _reorderBanners(int oldIndex, int newIndex) {
+    setState(() {
+      final item = _banners.removeAt(oldIndex);
+      _banners.insert(newIndex, item);
+      _hasUnsyncedChanges = true;
+    });
+    _sendBannersIfConnected();
+  }
+
+  void _reorderSideImages(int oldIndex, int newIndex) {
+    setState(() {
+      final item = _sideImages.removeAt(oldIndex);
+      _sideImages.insert(newIndex, item);
+      _hasUnsyncedChanges = true;
+    });
+    _sendSideImagesIfConnected();
+  }
+
+  /// Pola kirim gambar latar sama seperti gambar khusus (ADR-031): ubah
+  /// state lokal, lalu kirim daftar terbaru bila terhubung. Jalur
+  /// WebSocket membawa gambar asli; mirror Bluetooth-nya di-intercept
+  /// untuk kompresi + chunking (lihat [_mirrorBackgroundImagesToBt]).
+  void _sendBackgroundImagesIfConnected() {
+    if (_isConnected) {
+      _client.sendBackgroundImagesUpdate(_backgroundImages);
+      setState(() {
+        _hasUnsyncedChanges = false;
+      });
+    }
+  }
+
+  /// Mirror khusus paket gambar latar ke Bluetooth (ADR-031).
+  ///
+  /// Dipanggil dari `RemoteWsClient.onSendPacket` menggantikan mirror
+  /// mentah: paket dikompresi dulu (kecuali opsi tanpa kompresi aktif),
+  /// lalu dipecah menjadi chunk `chunkedData` bila besar — dengan
+  /// progress determinate per chunk untuk indikator di editor. Paket
+  /// kecil tetap dikirim utuh seperti biasa. Bluetooth yang tidak
+  /// tersambung/terautentikasi membuat seluruh proses ini no-op, sama
+  /// seperti `BluetoothClientService.sendPacket` biasa.
+  Future<void> _mirrorBackgroundImagesToBt(SyncPacket packet) async {
+    if (!_btClient.isConnected || !_btClient.isAuthenticated) return;
+    var effective = packet;
+    if (shouldCompressBackgroundForSend(
+      transport: BackgroundSendTransport.bluetooth,
+      sendUncompressed: _bgSendUncompressed,
+    )) {
+      effective = compressedBackgroundPacket(packet);
+    }
+    final encoding = encodeChunkedTransfer(effective);
+    if (!encoding.chunked) {
+      await _btClient.sendPacket(effective);
+      return;
+    }
+    if (mounted) setState(() => _bgSendProgress = 0);
+    try {
+      for (var i = 0; i < encoding.packets.length; i++) {
+        await _btClient.sendPacket(encoding.packets[i]);
+        if (mounted) {
+          setState(
+              () => _bgSendProgress = (i + 1) / encoding.packets.length);
+        }
+      }
+    } finally {
+      if (mounted) setState(() => _bgSendProgress = null);
+    }
+  }
+
+  /// Kirim logo terbaru ke TV bila terhubung (ADR-032). Pola sama
+  /// seperti gambar latar: jalur WebSocket membawa gambar asli,
+  /// mirror Bluetooth-nya di-intercept untuk diperkecil + chunking.
+  void _sendLogoIfConnected() {
+    if (_isConnected) {
+      _client.sendLogoUpdate(_mosqueLogoBase64);
+      setState(() {
+        _hasUnsyncedChanges = false;
+      });
+    }
+  }
+
+  /// Mirror khusus paket logo ke Bluetooth (ADR-032): logo diperkecil
+  /// dulu (maks 512 px, transparansi dijaga — lihat
+  /// `logo_send_service`), lalu dipecah menjadi chunk `chunkedData`
+  /// bila besar, dengan progress determinate untuk indikator di
+  /// Pengaturan. Paket kecil (termasuk penghapusan logo) dikirim
+  /// utuh seperti biasa.
+  Future<void> _mirrorLogoToBt(SyncPacket packet) async {
+    if (!_btClient.isConnected || !_btClient.isAuthenticated) return;
+    final effective = compressedLogoPacket(packet);
+    final encoding = encodeChunkedTransfer(effective);
+    if (!encoding.chunked) {
+      await _btClient.sendPacket(effective);
+      return;
+    }
+    if (mounted) setState(() => _logoSendProgress = 0);
+    try {
+      for (var i = 0; i < encoding.packets.length; i++) {
+        await _btClient.sendPacket(encoding.packets[i]);
+        if (mounted) {
+          setState(
+              () => _logoSendProgress = (i + 1) / encoding.packets.length);
+        }
+      }
+    } finally {
+      if (mounted) setState(() => _logoSendProgress = null);
+    }
+  }
+
+  /// Pilih logo masjid dari galeri HP. File asli tersimpan utuh di HP
+  /// (tanpa downscale, sama seperti gambar latar); perkecilan hanya
+  /// terjadi pada salinan kirim Bluetooth.
+  Future<void> _pickMosqueLogo() async {
+    try {
+      final picked = await ImagePicker().pickImage(
+        source: ImageSource.gallery,
+      );
+      if (picked == null) return;
+      final bytes = await picked.readAsBytes();
+      if (!mounted) return;
+      setState(() {
+        _setMosqueLogoLocal(base64Encode(bytes));
+        _hasUnsyncedChanges = true;
+      });
+      _sendLogoIfConnected();
+      _showSnack('Logo masjid dipasang. Lihat header TV.');
+    } catch (_) {
+      if (mounted) {
+        _showSnack('Gagal membaca gambar logo.');
+      }
+    }
+  }
+
+  /// Hapus logo masjid: header TV kembali seperti tanpa logo.
+  void _removeMosqueLogo() {
+    final previous = _mosqueLogoBase64;
+    setState(() {
+      _setMosqueLogoLocal(null);
+      _hasUnsyncedChanges = true;
+    });
+    _sendLogoIfConnected();
+    _showUndoSnack('Logo masjid dihapus', () {
+      setState(() {
+        _setMosqueLogoLocal(previous);
+        _hasUnsyncedChanges = true;
+      });
+      _sendLogoIfConnected();
+    });
+  }
+
+  void _addBackgroundImage(String base64Image) {
+    if (base64Image.isEmpty) return;
+    setState(() {
+      _backgroundImages.add(BackgroundImage(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        base64Image: base64Image,
+      ));
+      _hasUnsyncedChanges = true;
+    });
+    _sendBackgroundImagesIfConnected();
+  }
+
+  void _removeBackgroundImage(String id) {
+    final index = _backgroundImages.indexWhere((i) => i.id == id);
+    if (index < 0) return;
+    final removed = _backgroundImages[index];
+    setState(() {
+      _backgroundImages.removeAt(index);
+      _hasUnsyncedChanges = true;
+    });
+    _sendBackgroundImagesIfConnected();
+    _showUndoSnack('Gambar latar dihapus', () {
+      setState(() {
+        _backgroundImages.insert(index, removed);
+        _hasUnsyncedChanges = true;
+      });
+      _sendBackgroundImagesIfConnected();
+    });
+  }
+
+  void _toggleBackgroundImage(String id, bool val) {
+    setState(() {
+      final index = _backgroundImages.indexWhere((i) => i.id == id);
+      if (index >= 0) {
+        _backgroundImages[index] =
+            _backgroundImages[index].copyWith(isActive: val);
+      }
+      _hasUnsyncedChanges = true;
+    });
+    _sendBackgroundImagesIfConnected();
+  }
+
+  void _reorderBackgroundImages(int oldIndex, int newIndex) {
+    setState(() {
+      final item = _backgroundImages.removeAt(oldIndex);
+      _backgroundImages.insert(newIndex, item);
+      _hasUnsyncedChanges = true;
+    });
+    _sendBackgroundImagesIfConnected();
+  }
+
+  /// Sakelar "kirim tanpa kompresi" di editor Gambar Latar: state lokal
+  /// HP, langsung disimpan persisten (ADR-031).
+  void _onBgSendUncompressedChanged(bool value) {
+    setState(() => _bgSendUncompressed = value);
+    unawaited(BackgroundSendPreferences.saveSendUncompressed(value));
+  }
+
+  /// Edit banner dalam dialog full-screen (Fase 3). Gambar banner
+  /// dipertahankan (perilaku lama: edit membuang `base64Image`).
   void _editBanner(MediaBanner banner) {
     final headerController = TextEditingController(text: banner.header);
     final titleController = TextEditingController(text: banner.title);
     final contentController = TextEditingController(text: banner.content);
     final footerController = TextEditingController(text: banner.footer);
 
-    showDialog(
+    void save() {
+      setState(() {
+        final index = _banners.indexWhere((b) => b.id == banner.id);
+        if (index >= 0) {
+          _banners[index] = MediaBanner(
+            id: banner.id,
+            header: headerController.text.trim().isEmpty
+                ? 'INFO MASJID'
+                : headerController.text.trim(),
+            title: titleController.text.trim(),
+            content: contentController.text.trim(),
+            footer: footerController.text.trim(),
+            base64Image: banner.base64Image,
+            isActive: banner.isActive,
+          );
+        }
+        _hasUnsyncedChanges = true;
+      });
+      _sendBannersIfConnected();
+    }
+
+    showDialog<void>(
       context: context,
       builder: (dialogContext) {
-        return AlertDialog(
-          title: const Text('Edit Banner Informasi'),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
+        return Dialog.fullscreen(
+          child: Scaffold(
+            appBar: AppBar(
+              leading: IconButton(
+                icon: const Icon(Icons.close),
+                tooltip: 'Tutup',
+                onPressed: () => Navigator.of(dialogContext).pop(),
+              ),
+              title: const Text('Edit Banner Informasi'),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    save();
+                    Navigator.of(dialogContext).pop();
+                  },
+                  child: const Text('Simpan'),
+                ),
+              ],
+            ),
+            body: ListView(
+              padding: const EdgeInsets.all(16.0),
               children: [
                 TextFormField(
                   controller: headerController,
-                  decoration: const InputDecoration(labelText: 'Header/Kategori'),
+                  decoration:
+                      const InputDecoration(labelText: 'Header/Kategori'),
                 ),
+                const SizedBox(height: 12),
                 TextFormField(
                   controller: titleController,
-                  decoration: const InputDecoration(labelText: 'Judul Utama'),
+                  decoration:
+                      const InputDecoration(labelText: 'Judul Utama'),
                 ),
+                const SizedBox(height: 12),
                 TextFormField(
                   controller: contentController,
                   maxLines: 3,
-                  decoration: const InputDecoration(labelText: 'Konten/Isi'),
+                  decoration:
+                      const InputDecoration(labelText: 'Konten/Isi'),
                 ),
+                const SizedBox(height: 12),
                 TextFormField(
                   controller: footerController,
-                  decoration: const InputDecoration(labelText: 'Catatan Kaki'),
+                  decoration:
+                      const InputDecoration(labelText: 'Catatan Kaki'),
                 ),
               ],
             ),
           ),
-          actions: [
-            M3Pressable(
-              child: TextButton(
-                onPressed: () => Navigator.pop(dialogContext),
-                child: const Text('Batal'),
-              ),
-            ),
-            M3Pressable(
-              child: FilledButton(
-                onPressed: () {
-                  setState(() {
-                    final index = _banners.indexWhere((b) => b.id == banner.id);
-                    if (index >= 0) {
-                      _banners[index] = MediaBanner(
-                        id: banner.id,
-                        header: headerController.text.trim().isEmpty
-                            ? 'INFO MASJID'
-                            : headerController.text.trim(),
-                        title: titleController.text.trim(),
-                        content: contentController.text.trim(),
-                        footer: footerController.text.trim(),
-                        isActive: banner.isActive,
-                      );
-                    }
-                    _hasUnsyncedChanges = true;
-                  });
-                  if (_isConnected) {
-                    _client.sendBannersUpdate(_banners);
-                    setState(() {
-                      _hasUnsyncedChanges = false;
-                    });
-                  }
-                  Navigator.pop(dialogContext);
-                },
-                child: const Text('Simpan'),
-              ),
-            ),
-          ],
         );
       },
-    );
+    ).then((_) {
+      headerController.dispose();
+      titleController.dispose();
+      contentController.dispose();
+      footerController.dispose();
+    });
   }
 
   void _addKasTransaction() {
@@ -1366,16 +1829,21 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
   }
 
   void _removeKasTransaction(String id) {
+    final index = _kasTransactions.indexWhere((t) => t.id == id);
+    if (index < 0) return;
+    final removed = _kasTransactions[index];
     setState(() {
-      _kasTransactions.removeWhere((t) => t.id == id);
+      _kasTransactions.removeAt(index);
       _hasUnsyncedChanges = true;
     });
-    if (_isConnected) {
-      _client.sendKasUpdate(_kasTransactions);
+    _sendKasIfConnected();
+    _showUndoSnack('Transaksi kas dihapus', () {
       setState(() {
-        _hasUnsyncedChanges = false;
+        _kasTransactions.insert(index, removed);
+        _hasUnsyncedChanges = true;
       });
-    }
+      _sendKasIfConnected();
+    });
   }
 
   void _startBtScan() {
@@ -1405,163 +1873,13 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
   }
 
   void _showScheduleSimulation(MosqueConfig formConfig) {
-    var simDateTime = DateTime.now();
     showDialog(
       context: context,
-      builder: (ctx) {
-        return StatefulBuilder(
-          builder: (dialogContext, setDialogState) {
-            final schedule = PrayerSchedule.calculate(formConfig, simDateTime);
-            final dateFormat = DateFormat('EEEE, d MMMM yyyy', 'id_ID');
-
-            return AlertDialog(
-              title: const Text('Simulasi Perhitungan Jadwal'),
-              content: SizedBox(
-                width: double.maxFinite,
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Text(
-                        'Pilih tanggal dan jam di bawah untuk mensimulasikan countdown shalat berikutnya.',
-                        style: TextStyle(fontSize: 12),
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: M3Pressable(
-                              child: OutlinedButton.icon(
-                                icon: const Icon(Icons.calendar_today, size: 18),
-                                label: Text(
-                                  dateFormat.format(simDateTime),
-                                ),
-                                onPressed: () async {
-                                  final picked = await showDatePicker(
-                                    context: context,
-                                    initialDate: simDateTime,
-                                    firstDate: DateTime(2020),
-                                    lastDate: DateTime(2100),
-                                  );
-                                  if (picked != null) {
-                                    setDialogState(() {
-                                      simDateTime = DateTime(
-                                        picked.year,
-                                        picked.month,
-                                        picked.day,
-                                        simDateTime.hour,
-                                        simDateTime.minute,
-                                      );
-                                    });
-                                  }
-                                },
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: M3Pressable(
-                              child: OutlinedButton.icon(
-                                icon: const Icon(Icons.access_time, size: 18),
-                                label: Text(
-                                  DateFormat('HH:mm').format(simDateTime),
-                                ),
-                                onPressed: () async {
-                                  final picked = await showTimePicker(
-                                    context: context,
-                                    initialTime: TimeOfDay.fromDateTime(
-                                      simDateTime,
-                                    ),
-                                  );
-                                  if (picked != null) {
-                                    setDialogState(() {
-                                      simDateTime = DateTime(
-                                        simDateTime.year,
-                                        simDateTime.month,
-                                        simDateTime.day,
-                                        picked.hour,
-                                        picked.minute,
-                                      );
-                                    });
-                                  }
-                                },
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        'Lokasi: ${formConfig.latitude.toStringAsFixed(4)}, ${formConfig.longitude.toStringAsFixed(4)} (dihitung offline)',
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                      const SizedBox(height: 8),
-                      for (final item in schedule.items)
-                        _buildSimulationRow(
-                          context,
-                          schedule,
-                          item,
-                        ),
-                    ],
-                  ),
-                ),
-              ),
-              actions: [
-                M3Pressable(
-                  child: TextButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: const Text('Tutup'),
-                  ),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
-
-  Widget _buildSimulationRow(
-    BuildContext context,
-    PrayerSchedule schedule,
-    PrayerScheduleItem item,
-  ) {
-    final isNext = schedule.nextPrayer == item.type;
-    return Card(
-      margin: const EdgeInsets.only(bottom: 6),
-      color: isNext
-          ? Theme.of(context).colorScheme.primaryContainer
-          : null,
-      child: ListTile(
-        dense: true,
-        leading: Icon(
-          isNext ? Icons.alarm_on : Icons.schedule,
-          color: isNext
-              ? Theme.of(context).colorScheme.onPrimaryContainer
-              : null,
-        ),
-        title: Text(
-          item.type.displayNameForDate(item.time),
-          style: isNext
-              ? const TextStyle(fontWeight: FontWeight.bold)
-              : null,
-        ),
-        trailing: isNext
-            ? Text(
-                '${item.formattedTime}\nSELANJUTNYA · ${_formatDurationShort(schedule.timeUntilNextPrayer)}',
-                textAlign: TextAlign.right,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              )
-            : Text(item.formattedTime),
+      builder: (ctx) => ScheduleSimulationDialog(
+        config: formConfig,
+        hasFridayPrayer: _hasFridayPrayer,
       ),
     );
-  }
-
-  String _formatDurationShort(Duration? duration) {
-    if (duration == null || duration.isNegative) return '00:00';
-    final minutes = duration.inMinutes;
-    final seconds = duration.inSeconds.remainder(60);
-    return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
   }
 
   @override
@@ -1579,6 +1897,7 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
     _preIqomahController.dispose();
     _shalatController.dispose();
     _khutbahController.dispose();
+    _backgroundSlideController.dispose();
     _fridayKhatibController.dispose();
     _fridayMuadzinController.dispose();
     _runningTextController.dispose();
@@ -1588,7 +1907,6 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
     _bannerFooterController.dispose();
     _kasAmountController.dispose();
     _kasDescriptionController.dispose();
-    _mainTabController.dispose();
     _subTabController.dispose();
     WidgetsBinding.instance.removeObserver(this);
     _btClient.disconnect();
@@ -1610,126 +1928,193 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
     // yang sama agar context & navigator tidak hancur di tengah transisi.
     final body = !_isConnected
         ? ConnectionGatewayScreen(
+            key: const ValueKey('gate'),
             ipController: _ipController,
             isConnecting: _isConnecting,
             onConnectIp: _connectToTv,
             btIsScanning: _btIsScanning,
             btDevices: _btDevices,
+            btKnownDevices: _btKnownDevices,
             btStatus: _btStatus,
             onBtStartScan: _startBtScan,
             onBtStopScan: _stopBtScan,
             onBtConnect: _connectBt,
           )
         : Column(
+            key: const ValueKey('main'),
             children: [
-          if (_showDisconnectedNotice)
-            _buildDisconnectedBanner(theme, colorScheme),
-          if (_hasUnsyncedChanges) _buildUnsyncedBanner(theme, colorScheme),
-          AnimatedBuilder(
-            animation: _mainTabController.animation!,
-            builder: (context, child) {
-              final val = _mainTabController.animation!.value;
-              double factor;
-              if (val < 1) {
-                factor = val;
-              } else if (val <= 3) {
-                factor = 1;
-              } else if (val < 4) {
-                factor = 4 - val;
-              } else {
-                factor = 0;
-              }
-              factor = factor.clamp(0.0, 1.0);
-              return ClipRect(
-                child: Align(
-                  alignment: Alignment.topCenter,
-                  heightFactor: factor,
-                  child: Opacity(
-                    opacity: factor,
-                    child: child,
-                  ),
+              if (_showDisconnectedNotice)
+                _buildDisconnectedBanner(theme, colorScheme),
+              if (shouldShowUnsyncedBanner(
+                  hasUnsyncedChanges: _hasUnsyncedChanges,
+                  tabIndex: _tabIndex))
+                _buildUnsyncedBanner(theme, colorScheme),
+              _buildConnectionStatusStrip(theme, colorScheme),
+              Expanded(
+                child: IndexedStack(
+                  index: _tabIndex,
+                  children: [
+                    HomeTab(
+                      mosqueName: _config.name,
+                      transportLabel: _transportLabel,
+                      tvPhase: _tvPhase,
+                      tvMuted: _tvMuted,
+                      tvStandby: _tvStandby,
+                      config: _config,
+                      totalKasMasuk: _totalKas(KasType.masuk),
+                      totalKasKeluar: _totalKas(KasType.keluar),
+                      onToggleMuted: _toggleTvMuted,
+                      onToggleStandby: _toggleTvStandby,
+                      onSyncNow: _pushAllToTv,
+                    ),
+                    Column(
+                      children: [
+                        _buildContentTabBar(theme, colorScheme),
+                        Expanded(
+                          child: TabBarView(
+                            controller: _subTabController,
+                            children: [
+                              RunningTextSubtab(
+                                runningTexts: _runningTexts,
+                                runningTextController: _runningTextController,
+                                selectedCategory: _runningCategory,
+                                categories: _runningCategories,
+                                onCategoryChanged: (cat) {
+                                  setState(() {
+                                    _runningCategory = cat;
+                                  });
+                                },
+                                onAddMessage: _addRunningText,
+                                onEditMessage: _editRunningText,
+                                onRemoveMessage: _removeRunningText,
+                                onReorder: _reorderRunningTexts,
+                              ),
+                              BannersSubtab(
+                                banners: _banners,
+                                headerController: _bannerHeaderController,
+                                titleController: _bannerTitleController,
+                                contentController: _bannerContentController,
+                                footerController: _bannerFooterController,
+                                onAddBanner: _addBanner,
+                                onEditBanner: _editBanner,
+                                onRemoveBanner: _removeBanner,
+                                onToggleBanner: _toggleBanner,
+                                onReorder: _reorderBanners,
+                              ),
+                              KasSubtab(
+                                transactions: _kasTransactions,
+                                amountController: _kasAmountController,
+                                descriptionController:
+                                    _kasDescriptionController,
+                                kasType: _kasType,
+                                onTypeChanged: (type) {
+                                  setState(() {
+                                    _kasType = type;
+                                  });
+                                },
+                                onAddTransaction: _addKasTransaction,
+                                onRemoveTransaction: _removeKasTransaction,
+                              ),
+                              SpecialImagesSubtab(
+                                images: _sideImages,
+                                onAddImage: _addSideImage,
+                                onRemoveImage: _removeSideImage,
+                                onToggleImage: _toggleSideImage,
+                                onReorder: _reorderSideImages,
+                              ),
+                              BackgroundImagesSubtab(
+                                images: _backgroundImages,
+                                onAddImage: _addBackgroundImage,
+                                onRemoveImage: _removeBackgroundImage,
+                                onToggleImage: _toggleBackgroundImage,
+                                onReorder: _reorderBackgroundImages,
+                                intervalController: _backgroundSlideController,
+                                sendUncompressed: _bgSendUncompressed,
+                                onSendUncompressedChanged:
+                                    _onBgSendUncompressedChanged,
+                                sendProgress: _bgSendProgress,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    SettingsTab(
+                      config: _config,
+                      nameController: _nameController,
+                      addressController: _addressController,
+                      latitudeController: _latitudeController,
+                      longitudeController: _longitudeController,
+                      prayerOffsetControllers: _prayerOffsetControllers,
+                      preAdhanController: _preAdhanController,
+                      adhanController: _adhanController,
+                      preIqomahController: _preIqomahController,
+                      shalatController: _shalatController,
+                      khutbahController: _khutbahController,
+                      fridayKhatibController: _fridayKhatibController,
+                      fridayMuadzinController: _fridayMuadzinController,
+                      showKas: _showKas,
+                      hasFridayPrayer: _hasFridayPrayer,
+                      // Toggle Tampilan TV bersifat instant-apply (Fase 2):
+                      // langsung kirim ke TV setelah setState.
+                      onShowKasChanged: (val) {
+                        setState(() {
+                          _showKas = val;
+                        });
+                        _sendConfigUpdate();
+                      },
+                      onHasFridayPrayerChanged: (val) {
+                        setState(() {
+                          _hasFridayPrayer = val;
+                        });
+                        _sendConfigUpdate();
+                      },
+                      isFetchingLocation: _isFetchingLocation,
+                      isConnected: _isConnected,
+                      tvPhase: _tvPhase,
+                      onFetchLocation: _getLocationFromGps,
+                      onSaveConfig: _sendConfigUpdate,
+                      onSendQuickAction: _sendQuickAction,
+                      onShowSimulation: _showScheduleSimulation,
+                      onExportBackup: _exportBackup,
+                      onImportBackup: _importBackup,
+                      themeMode: widget.themeMode,
+                      colorSource: widget.colorSource,
+                      onThemeModeChanged: widget.onThemeModeChanged,
+                      onColorSourceChanged: widget.onColorSourceChanged,
+                      isDirty: _settingsDirty,
+                      logoBytes: _mosqueLogoBytes,
+                      logoSendProgress: _logoSendProgress,
+                      onPickLogo: _pickMosqueLogo,
+                      onRemoveLogo: _removeMosqueLogo,
+                    ),
+                    SimulationTab(
+                      isConnected: _isConnected,
+                      tvPhase: _tvPhase,
+                      onSendForcePhase: _sendForcePhase,
+                    ),
+                  ],
                 ),
+              ),
+            ],
+          );
+    final connected = _isConnected;
+    // Transisi gate -> menu utama (Fase 4): fade-through resmi dari
+    // package `animations`. Bila `MediaQuery.disableAnimations` aktif
+    // (pengguna mematikan animasi sistem), pergantian tanpa animasi.
+    final animatedBody = MediaQuery.disableAnimationsOf(context)
+        ? body
+        : PageTransitionSwitcher(
+            duration: const Duration(milliseconds: 300),
+            transitionBuilder: (child, animation, secondaryAnimation) {
+              return FadeThroughTransition(
+                animation: animation,
+                secondaryAnimation: secondaryAnimation,
+                child: child,
               );
             },
-            child: _buildContentTabBar(theme, colorScheme),
-          ),
-          Expanded(
-            child: TabBarView(
-              controller: _mainTabController,
-              children: [
-                SettingsTab(
-                  config: _config,
-                  nameController: _nameController,
-                  addressController: _addressController,
-                  latitudeController: _latitudeController,
-                  longitudeController: _longitudeController,
-                  prayerOffsetControllers: _prayerOffsetControllers,
-                  preAdhanController: _preAdhanController,
-                  adhanController: _adhanController,
-                  preIqomahController: _preIqomahController,
-                  shalatController: _shalatController,
-                  khutbahController: _khutbahController,
-                  fridayKhatibController: _fridayKhatibController,
-                  fridayMuadzinController: _fridayMuadzinController,
-                  isFetchingLocation: _isFetchingLocation,
-                  isConnected: _isConnected,
-                  tvPhase: _tvPhase,
-                  onFetchLocation: _getLocationFromGps,
-                  onSaveConfig: _sendConfigUpdate,
-                  onSendQuickAction: _sendQuickAction,
-                  onShowSimulation: _showScheduleSimulation,
-                  onExportBackup: _exportBackup,
-                  onImportBackup: _importBackup,
-                ),
-                RunningTextSubtab(
-                  runningTexts: _runningTexts,
-                  runningTextController: _runningTextController,
-                  selectedCategory: _runningCategory,
-                  categories: _runningCategories,
-                  onCategoryChanged: (cat) {
-                    setState(() {
-                      _runningCategory = cat;
-                    });
-                  },
-                  onAddMessage: _addRunningText,
-                  onEditMessage: _editRunningText,
-                  onRemoveMessage: _removeRunningText,
-                ),
-                BannersSubtab(
-                  banners: _banners,
-                  headerController: _bannerHeaderController,
-                  titleController: _bannerTitleController,
-                  contentController: _bannerContentController,
-                  footerController: _bannerFooterController,
-                  onAddBanner: _addBanner,
-                  onEditBanner: _editBanner,
-                  onRemoveBanner: _removeBanner,
-                  onToggleBanner: _toggleBanner,
-                ),
-                KasSubtab(
-                  transactions: _kasTransactions,
-                  amountController: _kasAmountController,
-                  descriptionController: _kasDescriptionController,
-                  kasType: _kasType,
-                  onTypeChanged: (type) {
-                    setState(() {
-                      _kasType = type;
-                    });
-                  },
-                  onAddTransaction: _addKasTransaction,
-                  onRemoveTransaction: _removeKasTransaction,
-                ),
-                SimulationTab(
-                  isConnected: _isConnected,
-                  tvPhase: _tvPhase,
-                  onSendForcePhase: _sendForcePhase,
-                ),
-              ],
-            ),
-          ),
-        ],
-      );
-    final connected = _isConnected;
+            child: body,
+          );
     return Scaffold(
       appBar: connected
           ? AppBar(
@@ -1737,104 +2122,200 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
               centerTitle: true,
               backgroundColor: colorScheme.surfaceContainer,
               elevation: 0,
-              actions: [
-                Padding(
-                  padding: const EdgeInsets.only(right: 12),
-                  child: _buildConnectionBadge(colorScheme),
+            )
+          : null,
+      body: animatedBody,
+      bottomNavigationBar: connected
+          ? NavigationBar(
+              selectedIndex: _tabIndex,
+              onDestinationSelected: _handleDestinationSelected,
+              destinations: const [
+                NavigationDestination(
+                  icon: Icon(Icons.home_outlined),
+                  selectedIcon: Icon(Icons.home),
+                  label: 'Beranda',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.collections_bookmark_outlined),
+                  selectedIcon: Icon(Icons.collections_bookmark),
+                  label: 'Konten',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.settings_outlined),
+                  selectedIcon: Icon(Icons.settings),
+                  label: 'Pengaturan',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.science_outlined),
+                  selectedIcon: Icon(Icons.science),
+                  label: 'Tes',
                 ),
               ],
             )
           : null,
-      body: body,
-      bottomNavigationBar: connected
-          ? NavigationBar(
-        selectedIndex: _tabIndex,
-        onDestinationSelected: (index) {
-          _mainTabController.animateTo(
-            _mainPageForBottomNav(index, _subTabController.index),
-          );
-        },
-        destinations: [
-          NavigationDestination(
-            icon: PlayfulNavIcon(
-              unselectedIcon: Icons.settings_outlined,
-              selectedIcon: Icons.settings,
-              isSelected: _tabIndex == 0,
-              shouldRotate: true,
-            ),
-            label: 'Pengaturan',
-          ),
-          NavigationDestination(
-            icon: PlayfulNavIcon(
-              unselectedIcon: Icons.collections_bookmark_outlined,
-              selectedIcon: Icons.collections_bookmark,
-              isSelected: _tabIndex == 1,
-              shouldRotate: true,
-            ),
-            label: 'Konten',
-          ),
-          NavigationDestination(
-            icon: PlayfulNavIcon(
-              unselectedIcon: Icons.science_outlined,
-              selectedIcon: Icons.science,
-              isSelected: _tabIndex == 2,
-              shouldRotate: true,
-            ),
-            label: 'Tes',
-          ),
-        ],
-      )
-          : null,
     );
   }
 
-  /// Badge status koneksi di AppBar. Diketuk untuk membuka menu
-  /// "Putuskan Koneksi" (kembali ke layar sambungan).
-  Widget _buildConnectionBadge(ColorScheme colorScheme) {
+  /// Pindah destinasi menu bawah. Bila keluar dari tab Pengaturan dalam
+  /// keadaan dirty, tanyakan dulu: "Buang" mengembalikan semua controller
+  /// dari [_config] lewat [_syncConfigControllers] lalu pindah; "Tetap di
+  /// sini" membatalkan perpindahan.
+  Future<void> _handleDestinationSelected(int index) async {
+    if (_tabIndex == 2 && _settingsDirty && index != 2) {
+      final discard = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) {
+          return AlertDialog(
+            title: const Text('Buang perubahan?'),
+            content: const Text(
+              'Ada perubahan pengaturan yang belum disimpan. '
+              'Perubahan akan hilang bila Anda pindah dari tab ini.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext, false),
+                child: const Text('Tetap di sini'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(dialogContext, true),
+                child: const Text('Buang'),
+              ),
+            ],
+          );
+        },
+      );
+      if (discard != true || !mounted) return;
+      setState(() {
+        _syncConfigControllers();
+        _settingsDirty = false;
+        _tabIndex = index;
+      });
+      return;
+    }
+    setState(() {
+      _tabIndex = index;
+    });
+  }
+
+  /// Label jalur koneksi aktif untuk strip status & Beranda.
+  String get _transportLabel =>
+      _lastConnectionKind == 'bluetooth' ? 'Bluetooth' : 'IP Address';
+
+  /// Strip status koneksi tonal di bawah AppBar (keputusan D3). Diketuk
+  /// untuk membuka bottom sheet detail koneksi & putus koneksi.
+  Widget _buildConnectionStatusStrip(ThemeData theme, ColorScheme colorScheme) {
     final viaBt = _lastConnectionKind == 'bluetooth';
-    final label = viaBt ? 'Terhubung via Bluetooth' : 'Terhubung via IP';
-    final icon = viaBt ? Icons.bluetooth_connected : Icons.wifi_rounded;
-    return PopupMenuButton<String>(
-      tooltip: 'Status koneksi',
-      onSelected: (value) {
-        if (value == 'disconnect') {
-          _disconnectFromTv();
-        }
-      },
-      itemBuilder: (context) => const [
-        PopupMenuItem<String>(
-          value: 'disconnect',
+    return Material(
+      color: colorScheme.secondaryContainer,
+      child: InkWell(
+        onTap: _showConnectionSheet,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           child: Row(
             children: [
-              Icon(Icons.link_off),
-              SizedBox(width: 8),
-              Text('Putuskan Koneksi'),
+              Icon(
+                viaBt ? Icons.bluetooth_connected : Icons.wifi_rounded,
+                size: 20,
+                color: colorScheme.onSecondaryContainer,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Terhubung ke TV via $_transportLabel',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSecondaryContainer,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              if (_tvStandby)
+                Icon(Icons.power_settings_new,
+                    size: 18, color: colorScheme.onSecondaryContainer),
+              if (_tvMuted)
+                Icon(Icons.volume_off,
+                    size: 18, color: colorScheme.onSecondaryContainer),
+              const SizedBox(width: 4),
+              Icon(Icons.expand_more,
+                  size: 20, color: colorScheme.onSecondaryContainer),
             ],
           ),
         ),
-      ],
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        decoration: BoxDecoration(
-          color: const Color(0xFF1B5E20),
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 16, color: Colors.white),
-            const SizedBox(width: 6),
-            Text(
-              label,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
       ),
+    );
+  }
+
+  /// Bottom sheet detail koneksi: jalur, fase TV, status senyap/standby,
+  /// dan aksi putus koneksi.
+  void _showConnectionSheet() {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Koneksi TV',
+                  style: theme.textTheme.titleLarge
+                      ?.copyWith(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 16),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: Icon(
+                    _lastConnectionKind == 'bluetooth'
+                        ? Icons.bluetooth_connected
+                        : Icons.wifi_rounded,
+                  ),
+                  title: const Text('Jalur koneksi'),
+                  subtitle: Text(_transportLabel),
+                ),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.schedule),
+                  title: const Text('Fase TV saat ini'),
+                  subtitle: Text(tvPhaseLabel(_tvPhase)),
+                ),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: Icon(_tvMuted ? Icons.volume_off : Icons.volume_up),
+                  title: const Text('Suara TV'),
+                  subtitle: Text(_tvMuted ? 'Senyap' : 'Normal'),
+                ),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.power_settings_new),
+                  title: const Text('Layar TV'),
+                  subtitle: Text(_tvStandby ? 'Standby (hitam)' : 'Menyala'),
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  height: 52,
+                  child: FilledButton.tonalIcon(
+                    style: FilledButton.styleFrom(
+                      backgroundColor: colorScheme.errorContainer,
+                      foregroundColor: colorScheme.onErrorContainer,
+                    ),
+                    onPressed: () {
+                      Navigator.of(sheetContext).pop();
+                      _disconnectFromTv();
+                    },
+                    icon: const Icon(Icons.link_off),
+                    label: const Text('Putuskan Koneksi'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -1856,12 +2337,10 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
               ),
             ),
           ),
-          M3Pressable(
-            child: TextButton.icon(
-              onPressed: _reconnectLast,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Sambungkan Ulang'),
-            ),
+          TextButton.icon(
+            onPressed: _reconnectLast,
+            icon: const Icon(Icons.refresh),
+            label: const Text('Sambungkan Ulang'),
           ),
         ],
       ),
@@ -1886,6 +2365,14 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
             icon: Icon(Icons.account_balance_wallet),
             text: 'Kas',
           ),
+          Tab(
+            icon: Icon(Icons.photo_library),
+            text: 'Gambar Khusus',
+          ),
+          Tab(
+            icon: Icon(Icons.wallpaper),
+            text: 'Gambar Latar',
+          ),
         ],
       ),
     );
@@ -1908,12 +2395,10 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
               ),
             ),
           ),
-          M3Pressable(
-            child: TextButton.icon(
-              onPressed: _pushAllToTv,
-              icon: const Icon(Icons.sync),
-              label: const Text('Kirim ke TV'),
-            ),
+          TextButton.icon(
+            onPressed: _pushAllToTv,
+            icon: const Icon(Icons.sync),
+            label: const Text('Kirim ke TV'),
           ),
         ],
       ),
@@ -1921,25 +2406,84 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
   }
 }
 
-class MasjidYouRemoteApp extends StatelessWidget {
+class MasjidYouRemoteApp extends StatefulWidget {
   const MasjidYouRemoteApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    const seedColor = Color(0xFF006A60); // Emerald/Teal Material You
+  State<MasjidYouRemoteApp> createState() => _MasjidYouRemoteAppState();
+}
 
-    return MaterialApp(
-      title: 'Masjid Remote DKM',
-      navigatorKey: appNavigatorKey,
-      scaffoldMessengerKey: appMessengerKey,
-      debugShowCheckedModeBanner: false,
-      theme: buildRemoteTheme(Brightness.light, seedColor),
-      darkTheme: buildRemoteTheme(Brightness.dark, seedColor),
-      home: const RemoteHomeScreen(),
+class _MasjidYouRemoteAppState extends State<MasjidYouRemoteApp> {
+  ThemeMode _themeMode = ThemeMode.system;
+  AppColorSource _colorSource = AppColorSource.dynamic;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadThemePreferences();
+  }
+
+  Future<void> _loadThemePreferences() async {
+    final mode = await ThemePreferences.loadMode();
+    final source = await ThemePreferences.loadColorSource();
+    if (!mounted) return;
+    setState(() {
+      _themeMode = mode;
+      _colorSource = source;
+    });
+  }
+
+  Future<void> _setThemeMode(ThemeMode mode) async {
+    setState(() => _themeMode = mode);
+    await ThemePreferences.saveMode(mode);
+  }
+
+  Future<void> _setColorSource(AppColorSource source) async {
+    setState(() => _colorSource = source);
+    await ThemePreferences.saveColorSource(source);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return DynamicColorBuilder(
+      builder: (lightDynamic, darkDynamic) {
+        final lightScheme = resolveRemoteColorScheme(
+          brightness: Brightness.light,
+          source: _colorSource,
+          dynamicLight: lightDynamic,
+          dynamicDark: darkDynamic,
+        );
+        final darkScheme = resolveRemoteColorScheme(
+          brightness: Brightness.dark,
+          source: _colorSource,
+          dynamicLight: lightDynamic,
+          dynamicDark: darkDynamic,
+        );
+
+        return MaterialApp(
+          title: 'Masjid Remote DKM',
+          navigatorKey: appNavigatorKey,
+          scaffoldMessengerKey: appMessengerKey,
+          debugShowCheckedModeBanner: false,
+          theme: buildRemoteTheme(lightScheme),
+          darkTheme: buildRemoteTheme(darkScheme),
+          themeMode: _themeMode,
+          home: RemoteHomeScreen(
+            themeMode: _themeMode,
+            colorSource: _colorSource,
+            onThemeModeChanged: _setThemeMode,
+            onColorSourceChanged: _setColorSource,
+          ),
+        );
+      },
     );
   }
 }
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  // Data tanggal locale id_ID untuk intl — tanpa inisialisasi ini,
+  // DateFormat berlokale melempar LocaleDataException (ADR-033).
+  await initializeDateFormatting('id_ID', null);
   runApp(const MasjidYouRemoteApp());
 }

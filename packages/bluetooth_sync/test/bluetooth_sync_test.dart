@@ -214,6 +214,36 @@ void main() {
       expect(lastCallArguments['address'], 'AA:BB:CC:DD:EE:FF');
     });
 
+    test('getBondedDevices mem-parsing daftar perangkat bonded (ADR-029)',
+        () async {
+      responder = (call) async {
+        if (call.method == 'getBondedDevices') {
+          return [
+            {
+              'name': 'Masjid You TV',
+              'address': 'AA:BB:CC:DD:EE:01',
+              'bonded': true,
+            },
+            {'name': null, 'address': 'AA:BB:CC:DD:EE:02', 'bonded': true},
+          ];
+        }
+        return null;
+      };
+      final devices = await BluetoothSync.getBondedDevices();
+      expect(lastCallMethod, 'getBondedDevices');
+      expect(devices, hasLength(2));
+      expect(devices.first.name, 'Masjid You TV');
+      expect(devices.first.address, 'AA:BB:CC:DD:EE:01');
+      expect(devices.first.bonded, isTrue);
+      // Nama null dari native ditampilkan sebagai "?".
+      expect(devices.last.name, '?');
+    });
+
+    test('getBondedDevices kosong bila native mengembalikan null', () async {
+      responder = (call) async => null;
+      expect(await BluetoothSync.getBondedDevices(), isEmpty);
+    });
+
     test('send mengirim bytes Uint8List', () async {
       final bytes = Uint8List.fromList([1, 2, 3]);
       await BluetoothSync.send(bytes);

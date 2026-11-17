@@ -75,6 +75,24 @@ void main() {
       expect(loaded.kasTransactions, isEmpty);
     });
 
+    test('status tampilan (senyap/standby): default mati, round-trip, '
+        'dan tidak menandai TV punya data resmi', () async {
+      final store = TvStore();
+
+      final awal = await store.loadDisplayState();
+      expect(awal.muted, isFalse);
+      expect(awal.standby, isFalse);
+
+      await store.saveMuted(true);
+      await store.saveStandby(true);
+      final tersimpan = await store.loadDisplayState();
+      expect(tersimpan.muted, isTrue);
+      expect(tersimpan.standby, isTrue);
+
+      // Preferensi perangkat bukan data resmi: load() tetap null.
+      expect(await store.load(), isNull);
+    });
+
     test('menyimpan satu blok saja sudah menandai TV punya data resmi', () async {
       final store = TvStore();
       await store.saveKas(const []);
@@ -85,6 +103,72 @@ void main() {
       expect(loaded.kasTransactions, isEmpty);
       // Blok yang belum pernah dikirim tetap memakai default aman.
       expect(loaded.config, equals(const MosqueConfig()));
+    });
+
+    test('flag intro Mode Pairing: default belum, persisten setelah disimpan, '
+        'dan tidak menandai data resmi (ADR-029)', () async {
+      final store = TvStore();
+      expect(await store.loadPairingIntroDone(), isFalse);
+
+      await store.savePairingIntroDone();
+
+      // Instance baru (simulasi reboot TV) membaca flag yang sama.
+      expect(await TvStore().loadPairingIntroDone(), isTrue);
+      // Flag perangkat, bukan data resmi DKM.
+      expect(await store.load(), isNull);
+    });
+
+    test('gambar latar: simpan lalu muat kembali lewat load() (ADR-031)',
+        () async {
+      final store = TvStore();
+      await store.saveBackgroundImages(const [
+        BackgroundImage(id: 'bg1', base64Image: 'QUJD'),
+        BackgroundImage(id: 'bg2', base64Image: 'REVG', isActive: false),
+      ]);
+
+      final loaded = await TvStore().load();
+      expect(loaded, isNotNull);
+      expect(loaded!.backgroundImages.length, 2);
+      expect(loaded.backgroundImages.first.base64Image, 'QUJD');
+      expect(loaded.backgroundImages.last.isActive, isFalse);
+      // Menyimpan gambar latar adalah data resmi -> hasData terpasang.
+      expect(loaded.hasData, isTrue);
+    });
+
+    test('logo masjid: simpan lalu muat kembali lewat load() (ADR-032)',
+        () async {
+      final store = TvStore();
+      await store.saveMosqueLogo('TE9HTw==');
+
+      final loaded = await TvStore().load();
+      expect(loaded, isNotNull);
+      expect(loaded!.mosqueLogo, 'TE9HTw==');
+      expect(loaded.hasData, isTrue);
+    });
+
+    test('logo masjid: simpan null/kosong menghapus logo tersimpan',
+        () async {
+      final store = TvStore();
+      await store.saveMosqueLogo('TE9HTw==');
+      await store.saveMosqueLogo(null);
+
+      final loaded = await TvStore().load();
+      expect(loaded, isNotNull);
+      expect(loaded!.mosqueLogo, isNull);
+
+      await store.saveMosqueLogo('TE9HTw==');
+      await store.saveMosqueLogo('');
+      final loadedAgain = await TvStore().load();
+      expect(loadedAgain!.mosqueLogo, isNull);
+    });
+
+    test('logo masjid: data lama tanpa kunci logo -> null', () async {
+      final store = TvStore();
+      await store.saveConfig(const MosqueConfig(name: 'Masjid Lama'));
+
+      final loaded = await TvStore().load();
+      expect(loaded, isNotNull);
+      expect(loaded!.mosqueLogo, isNull);
     });
   });
 }

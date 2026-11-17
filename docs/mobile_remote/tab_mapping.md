@@ -1,7 +1,7 @@
 # mobile_remote — Tab & File Mapping
 
 > Bedah lengkap **`apps/mobile_remote/lib/`** — aplikasi kontroler Remote Masjid DKM di HP Android.
-> Navigasi 4 menu bawah (salah satunya **Konten** dengan 3 sub-tab atas) dalam **satu rangkaian 6 halaman yang bisa di-swipe**, mekanisme GPS/geolocator, offset jadwal sholat, indikator "Unsaved Changes", dan tema Material 3 standar.
+> Navigasi 4 menu bawah (**Beranda, Konten, Pengaturan, Tes**) via `IndexedStack` tanpa swipe antar destinasi (ADR-023); **Konten** berisi 4 sub-tab atas yang bisa di-swipe di dalamnya. Plus mekanisme GPS/geolocator, offset jadwal sholat, indikator "Unsaved Changes", dan tema Material 3 standar.
 
 **Navigasi:** [MAP.md](../MAP.md) · [DECISIONS.md](../DECISIONS.md) · [theme_shapes.md](theme_shapes.md) · [tv_display/widget_mapping.md](../tv_display/widget_mapping.md)
 
@@ -11,7 +11,7 @@
 
 ```
 apps/mobile_remote/lib/
-├── main.dart                  # Entry, navigasi 6 halaman swipe (4 menu bawah + 3 sub-tab Konten) + mikro-animasi PlayfulNavIcon, state global, semua handler, koneksi, durasi + aksi cepat shalat, theme M3
+├── main.dart                  # Entry, navigasi 4 destinasi IndexedStack (Beranda/Konten/Pengaturan/Tes) + sub-tab Konten, strip status koneksi + bottom sheet, state global, semua handler, koneksi, durasi + aksi cepat shalat, theme M3
 ├── services/
 │   ├── ws_client.dart         # Client WebSocket + helper kirim per tipe data + listen paket masuk
 │   ├── p2p_client_service.dart# Scan & konek WiFi Direct / BLE
@@ -21,7 +21,9 @@ apps/mobile_remote/lib/
     └── bluetooth_client_service_test.dart # Unit test transisi state client BT
 ```
 
-**Tema Material 3 standar** (`MasjidYouRemoteApp._buildTheme`): `cardTheme` = `RoundedRectangleBorder(16)`; `dialogTheme`/`bottomSheetTheme` = `RoundedRectangleBorder(28)`; tombol (`FilledButton`/`OutlinedButton`/`TextButton`), `ChipThemeData.shape`, dan `navigationBarTheme.indicatorShape` = `StadiumBorder()`. `M3Pressable` (kelas lokal di main.dart) memberi feedback spring saat tekan — tetap dipakai, bukan shape. **Riwayat revert dari M3 Expressive (`puffy`/clover) → square:** lihat [theme_shapes.md](theme_shapes.md) & [ADR-012](../DECISIONS.md#adr-012).
+**Tema Material 3 standar** (`lib/theme/remote_theme.dart` → `buildRemoteTheme`): `cardTheme` = `RoundedRectangleBorder(16)`; `dialogTheme`/`bottomSheetTheme` = `RoundedRectangleBorder(28)`; tombol (`FilledButton`/`OutlinedButton`/`TextButton`), `ChipThemeData.shape`, dan `navigationBarTheme.indicatorShape` = `StadiumBorder()`. Skema warna sejak Fase 0 (ADR-022) berasal dari dynamic color wallpaper (Android 12+) atau seed "Hijau Masjid", dipilih `resolveRemoteColorScheme`; preferensi mode/sumber warna di `lib/theme/theme_preferences.dart`. `M3Pressable` memberi feedback spring saat tekan — tetap dipakai, bukan shape (dibuang di fase refaktor berikutnya per keputusan D4). **Riwayat revert dari M3 Expressive (`puffy`/clover) → square:** lihat [theme_shapes.md](theme_shapes.md) & [ADR-012](../DECISIONS.md#adr-012).
+
+**Motion & aksesibilitas (Fase 4, ADR-026):** package resmi `animations` (2.2.0) — pergantian gate koneksi -> menu utama memakai `PageTransitionSwitcher` + `FadeThroughTransition` (300ms, dihormati `MediaQuery.disableAnimations`); `pageTransitionsTheme` = `SharedAxisPageTransitionsBuilder` (horizontal) untuk Android. Tombol utama (`FilledButton`/`OutlinedButton`) `minimumSize` 48dp; Aksi Cepat Beranda & tombol simpan sticky Pengaturan 56dp. Audit skala teks 200% di viewport HP (360x800) tanpa overflow (baris "Sholat Berikutnya" di Beranda memakai `Flexible`).
 
 ---
 
@@ -37,10 +39,9 @@ void main() => runApp(const MasjidYouRemoteApp());
 
 | State | Tipe | Peran |
 |---|---|---|
-| `_tabIndex` | `int` | Menu bawah aktif (0–3: Pengaturan, Konten, Konektivitas, Tes) — di-sinkronkan otomatis dari `_mainTabController` |
-| `_mainTabController` | `TabController` (6) | Menggerakkan seluruh halaman (`TabBarView` 6 halaman) |
-| `_subTabController` | `TabController` (3) | Menggerakkan indikator Top Tab Bar (Running Text/Info Masjid/Kas) |
-| `_syncingControllers` | `bool` | Guard loop saat dua controller saling menyinkronkan |
+| `_tabIndex` | `int` | Destinasi menu bawah aktif (0 Beranda, 1 Konten, 2 Pengaturan, 3 Tes) — indeks `IndexedStack` |
+| `_subTabController` | `TabController` (4) | Menggerakkan sub-tab di dalam Konten saja (Running Text/Info Masjid/Kas/Gambar Khusus) |
+| `_tvMuted` / `_tvStandby` | `bool` | Status kontrol tampilan TV dari `stateUpdate` (Beranda, ADR-023) |
 | `_ipController` | `TextEditingController` | IP TV (default `192.168.1.`) |
 | `_client` | `RemoteWsClient` | Koneksi WS |
 | `_p2pClient` | `P2pClientService` | Koneksi WiFi Direct/BLE |
@@ -86,75 +87,72 @@ setState { data berubah; _hasUnsyncedChanges = true }
 Scaffold
 ├── AppBar "Remote Masjid DKM"
 ├── body: Column
+│   ├── [jika terputus] _buildDisconnectedBanner (errorContainer + Sambungkan Ulang)
 │   ├── [jika unsynced] _buildUnsyncedBanner
-│   ├── AnimatedBuilder(_mainTabController.animation) > Top TabBar (_subTabController)
-│   │       Running Text | Info Masjid | Kas
-│   │       → tinggi + opacity disinkronkan dengan swipe (fade+slide, tanpa layout jump)
-│   └── Expanded > TabBarView(controller: _mainTabController) — 6 halaman:
-│       ├── 0 _buildConfigTab       (Pengaturan)
-│       ├── 1 _buildRunningTextTab  (sub-tab Konten 1)
-│       ├── 2 _buildInfoMasjidTab   (sub-tab Konten 2)
-│       ├── 3 _buildKasTab          (sub-tab Konten 3)
-│       ├── 4 _buildConnectivityTab (Konektivitas)
-│       └── 5 _buildTestTab         (Tes — simulasi waktu shalat)
-└── bottomNavigationBar: NavigationBar (4 destinations)
+│   ├── _buildConnectionStatusStrip — strip tonal status koneksi (tap → bottom sheet, ADR-023)
+│   └── Expanded > IndexedStack(index: _tabIndex) — 4 destinasi:
+│       ├── 0 HomeTab          (Beranda: status TV, jam, hitung mundur, Aksi Cepat, kas)
+│       ├── 1 Konten           (Column: Top TabBar + TabBarView `_subTabController`, 4 sub-tab)
+│       ├── 2 SettingsTab      (Pengaturan)
+│       └── 3 SimulationTab    (Tes — simulasi waktu shalat)
+└── bottomNavigationBar: NavigationBar (4 destinations: Beranda, Konten, Pengaturan, Tes)
 ```
 
-Seluruh navigasi adalah **satu rangkaian 6 halaman** yang digerakkan `_mainTabController` (`TabBarView`): pengguna bisa menggeser (swipe) kiri/kanan dari Pengaturan → Running Text → Info Masjid → Kas → Konektivitas → Tes secara mulus, dan sebaliknya. `_subTabController` (3) hanya menggerakkan indikator **Top Tab Bar**.
+Navigasi destinasi memakai **`IndexedStack`** (ADR-023): berpindah menu bawah hanya lewat tap `NavigationBar` — **tidak ada swipe antar destinasi** (mengikuti panduan M3) dan state setiap destinasi tetap hidup selama terhubung. Satu-satunya `TabController` yang tersisa adalah `_subTabController` (4) untuk sub-tab **di dalam Konten**; swipe kiri/kanan hanya berlaku di dalam Konten.
 
-**Top Tab Bar tampil natural, bukan melompat.** Dulu dipakai `if (_tabIndex == 1)` yang membuat TabBar muncul/menghilang mendadak dan konten di bawahnya lompat (layout jump). Sekarang TabBar dibungkus `AnimatedBuilder` yang mendengarkan `_mainTabController.animation!` (0.0–5.0) dan memetakannya ke faktor tinggi+opacity: mendekati halaman 1 → TabBar **meluncur turun + fade-in** mengikuti gerak jari; di dalam Konten (1–3) tetap penuh; mendekati halaman 4 → **meluncur naik + fade-out**. Hasilnya mulus tanpa lompatan.
+**Riwayat (sebelum ADR-023):** navigasi pernah berupa satu `TabBarView` 6 halaman yang bisa di-swipe menembus semua destinasi, disinkronkan dua `TabController` + guard `_syncingControllers`, dengan Top Tab Bar yang fade/slide mengikuti geseran dan mikro-animasi ikon `PlayfulNavIcon` (lompat + `bounceOut` + putar). Seluruh mekanisme itu dihapus: kompleks, rapuh, dan bertentangan dengan panduan navigasi M3.
 
-**Mikro-animasi ikon `PlayfulNavIcon`** (widget lokal di `main.dart`): setiap ikon menu bawah & sub-tab atas yang terpilih menjalankan lompatan vertikal (`SlideTransition`), membal elastis (`ScaleTransition` 1.0→1.2→1.0 dengan `Curves.bounceOut`), dan untuk ikon **Pengaturan** putaran gigi 45° (`RotationTransition`, `Curves.easeOutBack`) — 300ms, murni Flutter tanpa package. Terpicu saat di-tap maupun di-swipe (`didUpdateWidget` pada perubahan `isSelected`).
-
-**Sinkronisasi ganda** (`_handleMainTabChange` / `_handleSubTabChange`, guard `_syncingControllers` untuk mencegah loop):
-- Geser `TabBarView` ke halaman 1–3 → `_subTabController.index` disamakan (`halaman - 1`) + `setState` (selalu) agar ikon sub-tab ikut beranimasi real-time + `_tabIndex` jadi 1 (Konten).
-- Geser ke halaman 0/4/5 → `_tabIndex` otomatis jadi 0/2/3; Top Tab Bar menyusut/fade-out.
-- Tap Top Tab Bar → `_mainTabController.animateTo(sub + 1)` (melompat ke halaman sub-tab terkait).
-- Tap menu bawah → `_mainTabController.animateTo(_mainPageForBottomNav(...))` — Konten membawa ke sub-tab terakhir dilihat.
-
-`PageStorageKey` di setiap `ListView` menjaga posisi scroll; state & teks form hidup karena controller-nya milik `_RemoteHomeScreenState` (tidak pernah di-reset saat halaman di-rebuild).
+State & teks form hidup karena controller-nya milik `_RemoteHomeScreenState` (tidak pernah di-reset saat destinasi berganti).
 
 ---
 
 ## 3. Tab Demi Tab
 
-### 3.1 Tab 0 — Pengaturan
+### 3.0 Destinasi Beranda (indeks 0)
 
-**Fungsi**: identitas masjid + koordinat + durasi siklus shalat + offset jadwal + aksi cepat + simulasi.
+`HomeTab` (`lib/screens/home/home_tab.dart`, ADR-023): kartu status TV (jalur koneksi + fase + penanda Senyap), jam aktif per detik + tanggal Indonesia, hitung mundur sholat berikutnya (`nextPrayerInfo` dari `PrayerSchedule.calculate`), **Aksi Cepat 56dp** — Senyap (`_toggleTvMuted` → `SyncAction.setMuted`), Standby (`_toggleTvStandby` → `SyncAction.setStandby`), Sinkron (`_pushAllToTv`) — dan ringkasan kas (`_totalKas` per tipe → `KasStatCard`).
+
+### 3.1 Destinasi Pengaturan (indeks 2)
+
+**Fungsi**: identitas masjid + koordinat + durasi siklus shalat + offset jadwal + aksi cepat + simulasi. Sejak Fase 2 (ADR-024) form dikelompokkan dalam grup bertajuk ala pola settings M3 dengan sticky bottom bar simpan.
 
 | Bagian | Elemen | Keterangan |
 |---|---|---|
-| Identitas | `Nama Masjid`, `Alamat Masjid` | `_nameController`, `_addressController` |
-| Koordinat & Jadwal Sholat | `Latitude`, `Longitude` | input desimal; `_latitudeController`, `_longitudeController` |
-| GPS | tombol "Ambil Koordinat dari GPS" | `_getLocationFromGps()` — spinner saat `_isFetchingLocation` |
-| Offset | 6 kolom "Subuh … Isya" (suffix `mnt`) | `_prayerOffsetControllers` per `PrayerType` |
-| Durasi Siklus Shalat | 4 kolom `Jelang Azan` (15), `Azan` (2), `Jeda Ikamah` (1), `Shalat` (10) | `_preAdhanController` dkk; angka `digitsOnly`, min 0 |
-| Aksi Cepat | kartu "Aksi Cepat Waktu Shalat": `Skip Azan`, `Skip Ikamah / Mulai Shalat`, `Selesaikan Shalat` + status "Mode TV saat ini" | `_buildQuickActionsCard`, `_sendQuickAction(action)`; tombol aktif hanya saat fase TV sesuai (`_tvPhase`) |
-| Aksi | "Simpan & Update Ke TV" | `_sendConfigUpdate()` — juga persist durasi ke SharedPreferences |
-| Simulasi | "Simulasi Jadwal" | `_showScheduleSimulation()` |
+| Masjid | `Nama Masjid`, `Alamat Masjid` | `_nameController`, `_addressController` |
+| Lokasi & Jadwal | `Latitude`, `Longitude` + tombol "Ambil Koordinat dari GPS" + "Simulasi Jadwal" | input desimal; `_getLocationFromGps()` — spinner saat `_isFetchingLocation`; simulasi `_showScheduleSimulation()` |
+| Penyesuaian Waktu | 6 baris stepper `Subuh … Isya` (−60..+60 mnt) | `StepperRow` (`lib/widgets/stepper_row.dart`) menulis ke `_prayerOffsetControllers` yang sama |
+| Durasi Tampilan TV | 4 baris stepper `Jelang Azan` (15), `Azan` (2), `Jeda Ikamah` (1), `Shalat` (10) | `_preAdhanController` dkk; batas 0..180 mnt |
+| Tampilan TV | Switch `Tampilkan Kas Masjid` & `Ada Shalat Jumat (Jumatan)` (instant-apply, langsung `_sendConfigUpdate()`); stepper `Durasi Khutbah` + `Nama Khatib` + `Nama Muadzin` (non-aktif saat Jumatan mati) | `_showKas`/`_hasFridayPrayer`; `_khutbahController` dkk |
+| Aksi Cepat Waktu Shalat | kartu "Aksi Cepat Waktu Shalat": `Skip Azan`, `Mulai Shalat`, `Selesai Shalat` | `_buildQuickActionsCard`, `_sendQuickAction(action)`; tombol aktif hanya saat fase TV sesuai (`_tvPhase`) |
+| Tampilan Aplikasi | `SegmentedButton` Tema (Sistem/Terang/Gelap) + Warna (Ikuti Wallpaper/Hijau Masjid) | preferensi `ThemePreferences` (ADR-022); langsung berlaku & tersimpan di HP, tidak dikirim ke TV |
+| Data | "Export Backup" / "Import Backup" | `_exportBackup()` / `_importBackup()` |
+| Sticky bottom bar | tombol "Simpan & Update Ke TV" 56dp, hanya aktif bila `isDirty` | dirty dilacak `_RemoteHomeScreenState` via listener semua controller config (`_buildConfigFromForm() != _config`); keluar dari tab saat dirty → dialog "Buang perubahan?" (Buang = `_syncConfigControllers()`) |
 
 **Persist lokal:** `_loadSavedDurations()` (init) & `_persistDurations(config)` (saat kirim) memakai `shared_preferences` — kunci `preAdhanMinutes`, `adhanMinutes`, `preIqomahMinutes`, `shalatMinutes`.
 
-### 3.2 Menu Konten & Sub-tab-nya (halaman 1–3)
+### 3.2 Destinasi Konten & Sub-tab-nya (indeks 1)
 
-Menu bawah **Konten** menyatukan **Running Text**, **Info Masjid**, dan **Kas** (sebelumnya 3 tab terpisah) agar bottom navigation lebih ringkas — dari 6 jadi 4 tombol. Ketiga halaman ini hanyalah **bagian tengah dari rangkaian 6 halaman** yang bisa di-swipe; halaman 1, 2, dan 3 masing-masing menampilkan sub-tab Konten. Saat berada di halaman 1–3, **Top Tab Bar** muncul di bawah AppBar (controller `_subTabController`) dan indikatornya mengikuti halaman aktif:
+Menu bawah **Konten** menyatukan 4 editor dalam satu destinasi: **Running Text**, **Info Masjid**, **Kas**, dan **Gambar Khusus**. Di dalamnya ada **Top Tab Bar** (controller `_subTabController`) + `TabBarView` sendiri:
 
 ```dart
-Top Tab Bar (muncul mulus saat masuk Konten, controller _subTabController)
-├── Running Text   (campaign)          → halaman 1
-├── Info Masjid    (newspaper)         → halaman 2
-└── Kas            (account_balance_wallet) → halaman 3
+Top Tab Bar (selalu tampil di dalam Konten, controller _subTabController)
+├── Running Text   (campaign)
+├── Info Masjid    (newspaper)
+├── Kas            (account_balance_wallet)
+└── Gambar Khusus  (photo_library)
 ```
 
-Pindah antar sub-tab: **tap Top Tab Bar**, **tap menu bawah Konten**, atau cukup **swipe** kiri/kanan — menyatu dengan swipe ke Konektivitas/Tes/Pengaturan di ujung-ujungnya. Setiap `ListView` sub-tab diberi `PageStorageKey` agar posisi scroll tetap saat gonta-ganti halaman.
+Pindah antar sub-tab: **tap Top Tab Bar** atau **swipe** kiri/kanan di dalam Konten (tidak tembus ke destinasi lain).
 
 #### 3.2.1 Sub-tab Running Text
 
+Sejak Fase 3 (ADR-025): pola editor seragam — **Extended FAB "Tambah Teks"** membuka form dalam `Dialog.fullscreen` (isi + kategori + tombol Simpan eksplisit, dipakai juga untuk edit via `RunningTextFormDialog` bersama); daftar berupa `ReorderableListView` (handle `drag_handle` + nomor urut); hapus = hilang + SnackBar "Urungkan" 5 detik; daftar kosong = empty state seragam (`EditorEmptyState`).
+
 | Elemen | Fungsi |
 |---|---|
-| TextField "Tambah Teks Berjalan" + tombol `+` | `_addRunningText()` |
+| FAB "Tambah Teks" | dialog full-screen: `TextFormField` isi + dropdown "Kategori" → `_addRunningText()` |
 | Dropdown "Kategori" | `Pengumuman`, `Kajian`, `Kas`, `Himbauan`, `Infaq`, `Umum` (`_runningCategories`) |
-| Daftar kartu | tiap item: `edit` (`_editRunningText` dialog: isi + kategori) & `delete` (`_removeRunningText`) |
+| Daftar kartu | nomor urut + handle drag (`_reorderRunningTexts`); tiap item: `edit` (`_editRunningText`) & `delete` (`_removeRunningText` + urungkan) |
 
 Semua men-set `_hasUnsyncedChanges` dan mengirim `sendRunningTextsUpdate` bila terhubung.
 
@@ -162,8 +160,10 @@ Semua men-set `_hasUnsyncedChanges` dan mengirim `sendRunningTextsUpdate` bila t
 
 Form 4 bidang: **Header/Kategori** (default `INFO MASJID`), **Judul**, **Isi** (3 baris), **Kaki/Catatan**.
 
-- Tambah: `_addBanner()` — validasi minimal judul ATAU isi.
-- Daftar: tiap banner punya **Switch** (`_toggleBanner` — on/off tampil di TV), **Edit** (`_editBanner` dialog 4 bidang), **Hapus** (`_removeBanner`).
+Sejak Fase 3 (ADR-025): pola editor seragam — **Extended FAB "Tambah Banner"** membuka form + pilih gambar dalam `Dialog.fullscreen`; daftar berupa `ReorderableListView` (handle `drag_handle` + nomor urut `Banner N · header`); edit dalam dialog full-screen (gambar dipertahankan); hapus = hilang + SnackBar "Urungkan" 5 detik; daftar kosong = empty state seragam.
+
+- Tambah: `_addBanner()` — validasi minimal judul ATAU isi ATAU gambar.
+- Daftar: tiap banner punya **Switch** (`_toggleBanner` — on/off tampil di TV), **Edit** (`_editBanner` dialog full-screen 4 bidang), **Hapus** (`_removeBanner` + urungkan).
 - Banner `isActive=false` akan disembunyikan TV (lihat `BannerCarousel._activeBanners`).
 
 #### 3.2.3 Sub-tab Kas
@@ -171,8 +171,14 @@ Form 4 bidang: **Header/Kategori** (default `INFO MASJID`), **Judul**, **Isi** (
 | Bagian | Elemen |
 |---|---|
 | Statistik | 3 kartu `_KasStatCard`: Saldo, Pemasukan, Pengeluaran (dari `KasSummary.fromTransactions`) |
-| Tambah Transaksi | `SegmentedButton` Masuk/Keluar + `Nominal (Rp)` (input digitsOnly) + `Keterangan` → `_addKasTransaction()` |
-| Riwayat | daftar transaksi: avatar arah panah, tanggal `d MMM yyyy, HH:mm`, `+/-Rp` berwarna; **long-press** untuk hapus (`_removeKasTransaction`) |
+| Tambah Transaksi | **Extended FAB "Tambah Transaksi"** → dialog full-screen: `SegmentedButton` Masuk/Keluar + `Nominal (Rp)` (input digitsOnly) + `Keterangan` → `_addKasTransaction()` |
+| Riwayat | daftar transaksi: avatar arah panah, `Masuk/Keluar • d MMM yyyy, HH:mm`, `+/-Rp` berwarna; tombol hapus di baris (`_removeKasTransaction` + SnackBar "Urungkan") |
+
+Sejak Fase 3 (ADR-025): baris menampilkan kata Masuk/Keluar selain warna; dialog konfirmasi hapus long-press dihapus; daftar kosong = empty state seragam.
+
+#### 3.2.4 Sub-tab Gambar Khusus
+
+Sejak Fase 3 (ADR-025): pola editor seragam — **Extended FAB "Tambah Gambar"** membuka form (pilih gambar + keterangan opsional) dalam `Dialog.fullscreen`; daftar berupa `ReorderableListView` (handle `drag_handle` + chip `Gambar N`, menggantikan tombol naik/turun); tiap gambar punya **Switch** (`_toggleSideImage`); hapus = hilang + SnackBar "Urungkan" 5 detik; daftar kosong = empty state seragam. Urutan daftar = urutan rotasi kartu samping TV.
 
 ### 3.3 Tab 2 — Konektivitas
 

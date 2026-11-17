@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:shared_models/shared_models.dart';
 
@@ -10,19 +12,25 @@ import 'theme/app_theme.dart';
 import 'widgets/header_clock.dart';
 import 'widgets/prayer_cards.dart';
 import 'widgets/banner_carousel.dart';
-import 'widgets/kas_summary_card.dart';
-import 'widgets/friday_staff_card.dart';
+import 'widgets/side_card_rotator.dart';
 import 'widgets/running_text_bar.dart';
 import 'widgets/prayer_state_overlay.dart';
 import 'widgets/material_blob_background.dart';
 import 'widgets/admin_menu_overlay.dart';
+import 'widgets/background_slideshow.dart';
 import 'state/prayer_state_machine.dart';
 import 'state/tv_store.dart';
+import 'state/local_ip.dart';
 import 'server/local_ws_server.dart';
 import 'server/bluetooth_host_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Data tanggal locale id_ID untuk intl — tanpa inisialisasi ini,
+  // DateFormat('...', 'id_ID') di HeaderClock selalu jatuh ke
+  // fallback bahasa Inggris (ADR-033).
+  await initializeDateFormatting('id_ID', null);
 
   // Hide status bar and enable full screen TV experience
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
@@ -72,6 +80,7 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
   DateTime _now = DateTime.now();
   Timer? _clockTimer;
   LocalServer? _localServer;
+
   /// Host Bluetooth Classic (RFCOMM) — jalur sync langsung tanpa router.
   BluetoothHostService? _btHost;
   BluetoothHostState? _btState;
@@ -83,6 +92,10 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
   /// Overlay menu admin tampil saat tombol Back remote ditekan.
   bool _showAdminMenu = false;
 
+  /// Alamat IPv4 lokal TV untuk menu admin (ADR-029); di-refresh tiap
+  /// menu admin dibuka. `null` = belum dimuat / tidak ada jaringan.
+  String? _localIp;
+
   MosqueConfig _config = const MosqueConfig(
     name: 'Masjid Agung Al-Hikmah',
     address: 'Jl. Pemuda No. 45, Jakarta Pusat',
@@ -92,8 +105,40 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
 
   final PrayerStateMachine _prayerStateMachine = PrayerStateMachine();
 
-  /// Bergantian antara Kartu Kas & Kartu Petugas Jumat (hari Jumat).
-  bool _showKasCard = true;
+  /// Kartu gambar khusus slot samping (dikelola dari Remote).
+  List<SpecialImage> _sideImages = const [];
+
+  /// Gambar latar slideshow (dikelola dari Remote, ADR-031).
+  List<BackgroundImage> _backgroundImages = const [];
+
+  /// Logo masjid untuk header (dikelola dari Remote, ADR-032).
+  /// [_mosqueLogoBytes] adalah hasil decode [_mosqueLogoBase64] yang
+  /// di-cache: HeaderClock me-rebuild tiap detik untuk jam, jadi
+  /// decode base64 tidak boleh terjadi di jalur build. Base64 rusak
+  /// -> bytes `null` -> header tampil tanpa logo (fail-soft).
+  String? _mosqueLogoBase64;
+  Uint8List? _mosqueLogoBytes;
+
+  /// Pasang logo baru (atau hapus dengan `null`/kosong) + decode
+  /// sekali di sini. Dipanggil dalam konteks setState oleh pemanggil.
+  void _applyMosqueLogo(String? logoBase64) {
+    _mosqueLogoBase64 =
+        (logoBase64 == null || logoBase64.isEmpty) ? null : logoBase64;
+    if (_mosqueLogoBase64 == null) {
+      _mosqueLogoBytes = null;
+      return;
+    }
+    try {
+      _mosqueLogoBytes = base64Decode(_mosqueLogoBase64!);
+    } catch (_) {
+      _mosqueLogoBytes = null;
+    }
+  }
+
+  /// Perangkai transfer ter-chunk Bluetooth (ADR-031): paket gambar
+  /// besar tiba sebagai rangkaian `chunkedData` dan baru diterapkan
+  /// setelah lengkap.
+  final ChunkReassembler _chunkReassembler = ChunkReassembler();
 
   List<RunningTextMessage> _runningTexts = const [
     RunningTextMessage(
@@ -160,6 +205,11 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
   /// DKM). Selama `false`, Remote boleh mengirim datanya sekali (bootstrap).
   bool _hasStoredData = false;
 
+  /// Kontrol tampilan dari Remote (Beranda): mode senyap & standby.
+  /// Dilaporkan balik ke Remote lewat `stateUpdate`.
+  bool _muted = false;
+  bool _standby = false;
+
   @override
   void initState() {
     super.initState();
@@ -173,14 +223,16 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
     );
     _prayerStateMachine.addListener(_onStateMachineChanged);
 
+    // Tombol OK remote TV = skip fase (ADR-030). Handler tingkat
+    // HardwareKeyboard agar tetap bekerja walau fokus sedang di konten
+    // utama; handler mengembalikan false saat menu admin terbuka supaya
+    // OK tetap memilih item menu (lihat _handleTvRemoteKey).
+    HardwareKeyboard.instance.addHandler(_handleTvRemoteKey);
+
     _clockTimer = Timer.periodic(const Duration(seconds: 1), (_) {
       setState(() {
         _now = DateTime.now();
         _prayerSchedule = PrayerSchedule.calculate(_config, _now);
-        // Hari Jumat: kartu kanan bergantian tiap 10 detik secara absolut.
-        if (_now.weekday == DateTime.friday && _now.second % 10 == 0) {
-          _showKasCard = !_showKasCard;
-        }
       });
       _prayerStateMachine.tick(_now, _prayerSchedule);
     });
@@ -205,10 +257,21 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
         _runningTexts = snapshot.runningTexts;
         _banners = snapshot.banners;
         _kasTransactions = snapshot.kasTransactions;
+        _sideImages = snapshot.sideImages;
+        _backgroundImages = snapshot.backgroundImages;
+        _applyMosqueLogo(snapshot.mosqueLogo);
         _hasStoredData = true;
       });
       _recalculateSchedule();
       _prayerStateMachine.updateConfig(_config, _now);
+    }
+
+    final display = await _store.loadDisplayState();
+    if (mounted) {
+      setState(() {
+        _muted = display.muted;
+        _standby = display.standby;
+      });
     }
 
     await _initLocalServer();
@@ -237,6 +300,19 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
   /// Aplikasi paket sync yang masuk (via WebSocket LAN atau Bluetooth).
   void _handleSyncPacket(SyncPacket packet) {
     if (!mounted) return;
+    // Transfer ter-chunk (ADR-031): rangkai dulu; paket aslinya baru
+    // diproses setelah lengkap. Chunk yang gagal dirangkai dibuang —
+    // gambar korup tidak pernah diterapkan.
+    if (packet.action == SyncAction.chunkedData) {
+      final assembled = _chunkReassembler.addChunk(packet);
+      if (assembled != null) {
+        _handleSyncPacket(assembled);
+      } else if (_chunkReassembler.lastError != null) {
+        debugPrint(
+            'Chunk transfer dibuang: ${_chunkReassembler.lastError}');
+      }
+      return;
+    }
     switch (packet.action) {
       case SyncAction.updateConfig:
         _config = MosqueConfig.fromMap(packet.payload);
@@ -265,8 +341,7 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
         final list = (packet.payload['banners'] as List?)
                 ?.map((e) {
                   if (e is Map) {
-                    return MediaBanner.fromMap(
-                        Map<String, dynamic>.from(e));
+                    return MediaBanner.fromMap(Map<String, dynamic>.from(e));
                   }
                   return null;
                 })
@@ -281,8 +356,7 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
         final list = (packet.payload['transactions'] as List?)
                 ?.map((e) {
                   if (e is Map) {
-                    return KasTransaction.fromMap(
-                        Map<String, dynamic>.from(e));
+                    return KasTransaction.fromMap(Map<String, dynamic>.from(e));
                   }
                   return null;
                 })
@@ -292,6 +366,45 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
         _kasTransactions = list;
         _hasStoredData = true;
         _store.saveKas(list);
+        break;
+      case SyncAction.updateSideImages:
+        final list = (packet.payload['images'] as List?)
+                ?.map((e) {
+                  if (e is Map) {
+                    return SpecialImage.fromMap(Map<String, dynamic>.from(e));
+                  }
+                  return null;
+                })
+                .whereType<SpecialImage>()
+                .toList() ??
+            [];
+        _sideImages = list;
+        _hasStoredData = true;
+        _store.saveSideImages(list);
+        break;
+      case SyncAction.updateBackgroundImages:
+        final list = (packet.payload['images'] as List?)
+                ?.map((e) {
+                  if (e is Map) {
+                    return BackgroundImage.fromMap(
+                        Map<String, dynamic>.from(e));
+                  }
+                  return null;
+                })
+                .whereType<BackgroundImage>()
+                .toList() ??
+            [];
+        _backgroundImages = list;
+        _hasStoredData = true;
+        _store.saveBackgroundImages(list);
+        break;
+      case SyncAction.updateLogo:
+        // Payload `logoBase64`: string base64 gambar asli; null /
+        // kosong / bukan string = logo dihapus (ADR-032).
+        final rawLogo = packet.payload['logoBase64'];
+        _applyMosqueLogo(rawLogo is String ? rawLogo : null);
+        _hasStoredData = true;
+        _store.saveMosqueLogo(_mosqueLogoBase64);
         break;
       case SyncAction.skipAdhan:
         _prayerStateMachine.skipAdhan(now: _now);
@@ -311,6 +424,16 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
           now: _now,
           schedule: _prayerSchedule,
         );
+        break;
+      case SyncAction.setMuted:
+        _muted = packet.payload['muted'] == true;
+        _store.saveMuted(_muted);
+        _broadcastState();
+        break;
+      case SyncAction.setStandby:
+        _standby = packet.payload['standby'] == true;
+        _store.saveStandby(_standby);
+        _broadcastState();
         break;
       case SyncAction.getInitialState:
         // Remote minta keadaan awal: kirim snapshot lengkap (data resmi TV)
@@ -348,14 +471,62 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
           _btState = _btHost!.currentState;
         });
       }
+      await _maybeRunIntroPairing();
+    }
+  }
+
+  /// Jendela Mode Pairing otomatis SATU kali untuk instalasi baru
+  /// (ADR-029): setelah host start, bila flag permanen belum terpasang,
+  /// pasang flag lebih dulu (reboot di tengah jendela tidak mengulang),
+  /// lalu buka Mode Pairing 300 detik agar pairing pertama gampang.
+  /// Setelah itu TV tidak pernah membuka discoverable sendiri lagi.
+  Future<void> _maybeRunIntroPairing() async {
+    final host = _btHost;
+    if (host == null || !host.isRunning) return;
+    bool done;
+    try {
+      done = await _store.loadPairingIntroDone();
+    } catch (_) {
+      done = false;
+    }
+    if (done) return;
+    await _store.savePairingIntroDone();
+    await host.startPairingMode();
+    if (mounted) {
+      setState(() {
+        _btState = host.currentState;
+      });
+    }
+  }
+
+  /// Pemicu manual Mode Pairing dari menu admin TV (ADR-029).
+  Future<void> _startPairingMode() async {
+    final host = _btHost;
+    if (host == null || !mounted) return;
+    await host.startPairingMode();
+    if (mounted) {
+      setState(() {
+        _btState = host.currentState;
+      });
+    }
+  }
+
+  /// Muat ulang alamat IP lokal TV (untuk teks IP di menu admin).
+  Future<void> _refreshLocalIp() async {
+    final ip = await loadLocalIpv4();
+    if (mounted) {
+      setState(() {
+        _localIp = ip;
+      });
     }
   }
 
   /// Nyalakan/matikan koneksi Bluetooth dari menu admin.
   ///
-  /// Saat ON: regenerate PIN (dilakukan di dalam service), mulai host, dan
-  /// minta TV terlihat (popup discoverable hanya muncul di sini). Saat OFF:
-  /// stop host dan putuskan koneksi.
+  /// Saat ON: regenerate PIN (dilakukan di dalam service) dan mulai host.
+  /// Host tidak lagi meminta discoverable berkala (ADR-029); satu-satunya
+  /// discoverable otomatis adalah jendela intro instalasi baru lewat
+  /// [_maybeRunIntroPairing]. Saat OFF: stop host dan putuskan koneksi.
   Future<void> _toggleBluetooth(bool enable) async {
     final host = _btHost;
     if (host == null || !mounted) return;
@@ -372,6 +543,7 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
           _btState = host.currentState;
         });
       }
+      await _maybeRunIntroPairing();
     } else {
       await host.stop();
       if (mounted) {
@@ -393,6 +565,9 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
         runningTexts: _runningTexts,
         banners: _banners,
         kasTransactions: _kasTransactions,
+        sideImages: _sideImages,
+        backgroundImages: _backgroundImages,
+        mosqueLogo: _mosqueLogoBase64,
         hasData: _hasStoredData,
       ).toMap(),
     );
@@ -409,10 +584,31 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
         'prayer': _prayerStateMachine.prayer?.name,
         'remainingSeconds': _prayerStateMachine.remaining.inSeconds,
         'totalSeconds': _prayerStateMachine.total.inSeconds,
+        'muted': _muted,
+        'standby': _standby,
       },
     );
     _localServer?.broadcast(packet);
     _btHost?.broadcast(packet);
+  }
+
+  /// Handler tombol remote TV fisik (ADR-030).
+  ///
+  /// OK (`select`/`enter`, DPAD_CENTER) saat menu admin TERTUTUP dan ada
+  /// fase shalat aktif -> lewati ke fase berikutnya. Di luar kondisi itu
+  /// handler mengembalikan `false` agar event diteruskan ke rantai fokus:
+  /// menu admin yang terbuka tetap memakai OK untuk memilih item, dan
+  /// fase `normal` tidak terpengaruh.
+  bool _handleTvRemoteKey(KeyEvent event) {
+    if (event is! KeyDownEvent) return false;
+    if (_showAdminMenu) return false;
+    if (event.logicalKey != LogicalKeyboardKey.select &&
+        event.logicalKey != LogicalKeyboardKey.enter) {
+      return false;
+    }
+    if (_prayerStateMachine.phase == PrayerPhase.normal) return false;
+    _prayerStateMachine.skipToNextPhase(now: _now);
+    return true;
   }
 
   void _onStateMachineChanged() {
@@ -422,6 +618,7 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
 
   @override
   void dispose() {
+    HardwareKeyboard.instance.removeHandler(_handleTvRemoteKey);
     _prayerStateMachine.removeListener(_onStateMachineChanged);
     _prayerStateMachine.dispose();
     _clockTimer?.cancel();
@@ -479,144 +676,165 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
           setState(() {
             _showAdminMenu = true;
           });
+          // Segarkan alamat IP yang ditampilkan di menu admin (ADR-029).
+          unawaited(_refreshLocalIp());
         }
       },
       child: Scaffold(
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          // Background Mosque Wallpaper with dark overlay for readability
-          Image.asset(
-            'assets/images/bg_mosque.jpg',
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) => Container(
-              color: colorScheme.surfaceContainerLowest,
+        body: Stack(
+          fit: StackFit.expand,
+          children: [
+            // Latar TV: slideshow gambar dari Remote (ADR-031); kosong ->
+            // fallback wallpaper masjid bawaan. Overlay gelap 0.60 di
+            // atasnya menjaga keterbacaan teks (diterangkan dari 0.85
+            // agar latar lebih hidup, ADR-031).
+            BackgroundSlideshow(
+              images: _backgroundImages,
+              intervalSeconds: _config.backgroundSlideSeconds,
+              fallback: Image.asset(
+                'assets/images/bg_mosque.jpg',
+                fit: BoxFit.cover,
+                width: double.infinity,
+                height: double.infinity,
+                errorBuilder: (context, error, stackTrace) => Container(
+                  color: colorScheme.surfaceContainerLowest,
+                ),
+              ),
             ),
-          ),
-          Container(
-            color: Colors.black.withValues(alpha: 0.85), // Soft dark filter for contrast
-          ),
+            Container(
+              color: Colors.black
+                  .withValues(alpha: 0.60), // Filter gelap keterbacaan
+            ),
 
-          // Material You Dynamic Blob Background — di atas overlay, di bawah konten
-          const MaterialBlobBackground(),
+            // Material You Dynamic Blob Background — di atas overlay, di bawah konten
+            const MaterialBlobBackground(),
 
-          // Main Content Layer
-          SafeArea(
-            child: Column(
-              children: [
-                // Konten atas (header, banner/kas, jadwal) diberi padding;
-                // running text di bawah TANPA padding agar full-width.
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(10, 10, 10, 6),
-                    child: Column(
-                      children: [
-                        // Top Bar: Clock, Mosque Info (chip status sync dihapus —
-                        // ruang vertikal dipakai konten utama)
-                        HeaderClock(
-                          config: _config,
-                          currentTime: _now,
-                        ),
-
-                        const SizedBox(height: 6),
-
-                        // Middle: Banner Carousel & Kas Summary
-                        Expanded(
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Expanded(
-                                flex: 3,
-                                child: BannerCarousel(banners: _banners),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                flex: 2,
-                                child: _now.weekday == DateTime.friday
-                                    ? AnimatedSwitcher(
-                                        duration: const Duration(milliseconds: 500),
-                                        switchInCurve: Curves.easeOutCubic,
-                                        switchOutCurve: Curves.easeInCubic,
-                                        transitionBuilder: (child, animation) {
-                                          return FadeTransition(
-                                            opacity: animation,
-                                            child: SlideTransition(
-                                              position: Tween<Offset>(
-                                                begin: const Offset(0, 0.06),
-                                                end: Offset.zero,
-                                              ).animate(animation),
-                                              child: child,
-                                            ),
-                                          );
-                                        },
-                                        child: _showKasCard
-                                            ? KasSummaryCard(
-                                                key: const ValueKey('kas-summary'),
-                                                transactions: _kasTransactions,
-                                              )
-                                            : FridayStaffCard(
-                                                key: const ValueKey('friday-staff'),
-                                                khatib: _config.fridayKhatib,
-                                                muadzin: _config.fridayMuadzin,
-                                              ),
-                                      )
-                                    : KasSummaryCard(
-                                        transactions: _kasTransactions,
-                                      ),
-                              ),
-                            ],
+            // Main Content Layer
+            SafeArea(
+              child: Column(
+                children: [
+                  // Konten atas (header, banner/kas, jadwal) diberi padding;
+                  // running text di bawah TANPA padding agar full-width.
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(10, 10, 10, 6),
+                      child: Column(
+                        children: [
+                          // Top Bar: Clock, Mosque Info (chip status sync dihapus —
+                          // ruang vertikal dipakai konten utama)
+                          HeaderClock(
+                            config: _config,
+                            currentTime: _now,
+                            logoBytes: _mosqueLogoBytes,
                           ),
-                        ),
 
-                        const SizedBox(height: 6),
+                          const SizedBox(height: 6),
 
-                        // Prayer Cards Row
-                        PrayerCardsRow(schedule: _prayerSchedule),
-                      ],
+                          // Middle: Banner Carousel & rotasi kartu samping
+                          // [Kas -> Petugas Jumat -> Gambar khusus 1..n -> ulang]
+                          Expanded(
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                Expanded(
+                                  flex: 3,
+                                  child: BannerCarousel(banners: _banners),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  flex: 2,
+                                  child: SideCardRotator(
+                                    config: _config,
+                                    transactions: _kasTransactions,
+                                    images: _sideImages,
+                                    date: _now,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          const SizedBox(height: 6),
+
+                          // Prayer Cards Row
+                          PrayerCardsRow(
+                            schedule: _prayerSchedule,
+                            hasFridayPrayer: _config.hasFridayPrayer,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
 
-                // Bottom Running Text Bar — full-width, menempel dasar layar.
-                RunningTextBar(messages: _runningTexts),
-              ],
+                  // Bottom Running Text Bar — full-width, menempel dasar layar.
+                  RunningTextBar(messages: _runningTexts),
+                ],
+              ),
             ),
-          ),
 
-          // Prayer State Machine Overlay (PRE_ADHAN / ADHAN / PRE_IQOMAH / SHALAT)
-          AnimatedBuilder(
-            animation: _prayerStateMachine,
-            builder: (context, _) {
-              return PrayerStateOverlay(
-                phase: _prayerStateMachine.phase,
-                prayerName:
-                    _prayerStateMachine.prayer?.displayNameForDate(_now),
-                remaining: _prayerStateMachine.remaining,
-                total: _prayerStateMachine.total,
-                deadline: _prayerStateMachine.deadline,
-                fridayKhatib: _config.fridayKhatib,
-                fridayMuadzin: _config.fridayMuadzin,
-              );
-            },
-          ),
-
-          // Menu Admin (dibuka dengan tombol Back remote). Paling atas agar
-          // menutupi seluruh konten & overlay shalat.
-          if (_showAdminMenu)
-            AdminMenuOverlay(
-              btEnabled: _btEnabled,
-              pin: _btHost?.pin,
-              statusText: btStatus,
-              isError: btError,
-              onToggleBluetooth: _toggleBluetooth,
-              onClose: () {
-                setState(() {
-                  _showAdminMenu = false;
-                });
+            // Prayer State Machine Overlay (PRE_ADHAN / ADHAN / PRE_IQOMAH / SHALAT)
+            AnimatedBuilder(
+              animation: _prayerStateMachine,
+              builder: (context, _) {
+                return PrayerStateOverlay(
+                  phase: _prayerStateMachine.phase,
+                  prayerName: _prayerStateMachine.prayer?.displayNameForDate(
+                    _now,
+                    hasFridayPrayer: _config.hasFridayPrayer,
+                  ),
+                  remaining: _prayerStateMachine.remaining,
+                  total: _prayerStateMachine.total,
+                  deadline: _prayerStateMachine.deadline,
+                  fridayKhatib: _config.fridayKhatib,
+                  fridayMuadzin: _config.fridayMuadzin,
+                );
               },
             ),
-        ],
-      ),
+
+            // Indikator mode senyap (dari Remote): ikon kecil pojok kanan
+            // bawah, di atas running text, tidak mengganggu konten.
+            if (_muted && !_standby)
+              const Positioned(
+                right: 16,
+                bottom: 44,
+                child: Icon(Icons.volume_off, color: Colors.white54, size: 28),
+              ),
+
+            // Standby (dari Remote): layar hitam penuh. Di bawah menu admin
+            // agar admin lokal tetap bisa membuka panel.
+            if (_standby)
+              Container(
+                color: Colors.black,
+                alignment: Alignment.center,
+                child: const Icon(
+                  Icons.power_settings_new,
+                  color: Colors.white10,
+                  size: 64,
+                ),
+              ),
+
+            // Menu Admin (dibuka dengan tombol Back remote). Paling atas agar
+            // menutupi seluruh konten & overlay shalat.
+            if (_showAdminMenu)
+              AdminMenuOverlay(
+                btEnabled: _btEnabled,
+                pin: _btHost?.pin,
+                statusText: btStatus,
+                isError: btError,
+                ipText: formatTvIpText(_localIp),
+                pairingActive: _btHost?.pairingActive ?? false,
+                pairingRemainingSeconds:
+                    _btHost?.pairingRemaining.inSeconds ?? 0,
+                onStartPairingMode: _startPairingMode,
+                onToggleBluetooth: _toggleBluetooth,
+                onClose: () {
+                  setState(() {
+                    _showAdminMenu = false;
+                  });
+                },
+              ),
+          ],
+        ),
       ),
     );
   }

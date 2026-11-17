@@ -13,6 +13,9 @@ class _FakeBluetoothPlatform {
   /// null = belum diset, pakai default setuju.
   bool? permissionGranted;
 
+  /// Hasil `getBondedDevices` dari "plugin" (ADR-029).
+  List<Map<String, Object?>> bondedDevices = const [];
+
   MockStreamHandlerEventSink? sink;
 
   late final MethodChannel channel = const MethodChannel('com.masjidyou/bluetooth_sync');
@@ -34,6 +37,8 @@ class _FakeBluetoothPlatform {
         case 'enable':
         case 'makeDiscoverable':
           return true;
+        case 'getBondedDevices':
+          return bondedDevices;
         default:
           return null;
       }
@@ -257,6 +262,39 @@ void main() {
       await platform.settle(30);
       expect(platform.calls, isNot(contains('connect')));
       expect(service.currentState.status, BluetoothClientStatus.idle);
+      await service.dispose();
+    });
+  });
+
+  group('BluetoothClientService perangkat dikenal (ADR-029)', () {
+    test('refreshKnownDevices mengisi state.knownDevices dari bonded',
+        () async {
+      platform.bondedDevices = const [
+        {'name': 'Masjid You TV', 'address': 'AA:BB:CC:DD:EE:01', 'bonded': true},
+        {'name': 'HP DKM', 'address': 'AA:BB:CC:DD:EE:02', 'bonded': true},
+      ];
+      final service = BluetoothClientService();
+      expect(service.currentState.knownDevices, isEmpty);
+
+      await service.refreshKnownDevices();
+
+      expect(platform.calls, contains('getBondedDevices'));
+      final known = service.currentState.knownDevices;
+      expect(known, hasLength(2));
+      expect(known.first.name, 'Masjid You TV');
+      expect(known.first.bonded, isTrue);
+      await service.dispose();
+    });
+
+    test('refreshKnownDevices tanpa izin: daftar tidak berubah & '
+        'getBondedDevices tidak dipanggil', () async {
+      platform.permissionGranted = false;
+      final service = BluetoothClientService();
+
+      await service.refreshKnownDevices();
+
+      expect(platform.calls, isNot(contains('getBondedDevices')));
+      expect(service.currentState.knownDevices, isEmpty);
       await service.dispose();
     });
   });

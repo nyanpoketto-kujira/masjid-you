@@ -5,9 +5,31 @@ enum SyncAction {
   updateRunningText,
   updateBanners,
   updateKas,
+
+  /// Remote -> TV: daftar kartu gambar khusus slot samping TV
+  /// (payload: `images`, lihat `SpecialImage`).
+  updateSideImages,
+
+  /// Remote -> TV: daftar gambar latar TV untuk slideshow
+  /// (payload: `images`, lihat `BackgroundImage`). Interval slideshow
+  /// adalah field config `backgroundSlideSeconds` (ADR-031).
+  updateBackgroundImages,
+
+  /// Remote -> TV: logo masjid untuk header TV (payload: `logoBase64`,
+  /// string base64 gambar asli; `null`/hilang = logo dihapus dan header
+  /// kembali seperti tanpa logo). Lihat ADR-032.
+  updateLogo,
+
+  /// Transfer ter-chunk untuk payload besar via Bluetooth: satu potongan
+  /// string JSON paket lain (payload: `transferId`, `action`, `seq`,
+  /// `total`, `data` — lihat `chunked_transfer.dart`, ADR-031). Paket ini
+  /// tidak pernah diteruskan ke handler aplikasi; penerima merangkainya
+  /// kembali menjadi paket asli lebih dulu.
+  chunkedData,
   triggerBeep,
   getInitialState,
   stateUpdate,
+
   /// Snapshot lengkap dari TV (TV -> Remote): config + teks berjalan +
   /// banner + kas sekaligus. Lihat `StateSnapshot`.
   stateSnapshot,
@@ -16,13 +38,25 @@ enum SyncAction {
   startShalat,
   finishShalat,
   forcePhase,
+
+  /// Remote -> TV: nyalakan/matikan mode senyap TV (payload: `muted`).
+  /// TV menyimpan statusnya dan melaporkannya kembali lewat `stateUpdate`.
+  setMuted,
+
+  /// Remote -> TV: nyalakan/matikan standby TV (payload: `standby`).
+  /// Standby menampilkan layar hitam penuh sampai dimatikan lagi.
+  setStandby,
+
   /// TV -> Remote: minta autentikasi PIN (payload: `nonce`). Dikirim begitu
   /// koneksi RFCOMM terbentuk, sebelum paket data apa pun dikirim.
   authChallenge,
+
   /// Remote -> TV: jawab challenge dengan PIN (payload: `pin`, `nonce`).
   authResponse,
+
   /// TV -> Remote: PIN benar, jalur siap dipakai (payload: kosong).
   authSuccess,
+
   /// TV -> Remote: PIN salah / nonce tidak valid (payload: `error`).
   authFailure,
 }
@@ -42,9 +76,7 @@ class SyncPacket {
       };
 
   factory SyncPacket.fromMap(Map<String, dynamic> map) {
-    final actionName = map['action'] is String
-        ? map['action'] as String
-        : '';
+    final actionName = map['action'] is String ? map['action'] as String : '';
     final action = SyncAction.values.firstWhere(
       (e) => e.name == actionName,
       orElse: () => SyncAction.stateUpdate,
@@ -77,7 +109,9 @@ class SyncPacket {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is SyncPacket && other.action == action && _mapsEqual(other.payload, payload);
+      other is SyncPacket &&
+          other.action == action &&
+          _mapsEqual(other.payload, payload);
 
   static bool _mapsEqual(Map<String, dynamic> a, Map<String, dynamic> b) {
     if (a.length != b.length) return false;
@@ -88,7 +122,8 @@ class SyncPacket {
   }
 
   @override
-  int get hashCode => Object.hash(action, Object.hashAll(payload.keys.toList()..sort()));
+  int get hashCode =>
+      Object.hash(action, Object.hashAll(payload.keys.toList()..sort()));
 
   @override
   String toString() => 'SyncPacket(action: ${action.name}, payload: $payload)';

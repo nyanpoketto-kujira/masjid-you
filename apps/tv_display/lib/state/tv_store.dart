@@ -15,7 +15,17 @@ class TvStore {
   static const String runningTextsKey = 'tv_runningTexts';
   static const String bannersKey = 'tv_banners';
   static const String kasKey = 'tv_kas';
+  static const String sideImagesKey = 'tv_sideImages';
+  static const String backgroundImagesKey = 'tv_backgroundImages';
+  static const String mosqueLogoKey = 'tv_mosqueLogo';
   static const String hasDataKey = 'tv_hasData';
+  static const String mutedKey = 'tv_muted';
+  static const String standbyKey = 'tv_standby';
+
+  /// Flag permanen: jendela Mode Pairing otomatis (instalasi baru) sudah
+  /// pernah dijalankan. Sekali terpasang, TV tidak pernah membuka Mode
+  /// Pairing sendiri lagi — hanya manual dari menu admin (ADR-029).
+  static const String pairingIntroDoneKey = 'tv_btPairingIntroDone';
 
   /// Muat data tersimpan. `null` = TV belum pernah diisi.
   Future<StateSnapshot?> load() async {
@@ -37,6 +47,18 @@ class TvStore {
           prefs.getString(kasKey),
           KasTransaction.fromMap,
         ),
+        // Data lama belum punya blok ini -> daftar kosong.
+        sideImages: _decodeList(
+          prefs.getString(sideImagesKey),
+          SpecialImage.fromMap,
+        ),
+        // Data lama belum punya blok ini -> daftar kosong.
+        backgroundImages: _decodeList(
+          prefs.getString(backgroundImagesKey),
+          BackgroundImage.fromMap,
+        ),
+        // Data lama belum punya kunci ini -> tanpa logo.
+        mosqueLogo: _decodeLogo(prefs.getString(mosqueLogoKey)),
         hasData: true,
       );
     } catch (_) {
@@ -56,6 +78,85 @@ class TvStore {
 
   Future<void> saveKas(List<KasTransaction> transactions) =>
       _save(kasKey, [for (final t in transactions) t.toMap()]);
+
+  Future<void> saveSideImages(List<SpecialImage> images) =>
+      _save(sideImagesKey, [for (final i in images) i.toMap()]);
+
+  Future<void> saveBackgroundImages(List<BackgroundImage> images) =>
+      _save(backgroundImagesKey, [for (final i in images) i.toMap()]);
+
+  /// Simpan logo masjid (base64 gambar asli, ADR-032). `null`/kosong =
+  /// logo dihapus: kunci dibuang dari penyimpanan. Tetap menandai
+  /// `tv_hasData` lewat [_save] untuk nilai non-kosong; penghapusan
+  /// memakai jalur hapus langsung (data resmi lain tidak disentuh).
+  Future<void> saveMosqueLogo(String? logoBase64) async {
+    if (logoBase64 == null || logoBase64.isEmpty) {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.remove(mosqueLogoKey);
+      } catch (_) {
+        // Plugin tidak tersedia (mis. test) -> perubahan hanya di memori.
+      }
+      return;
+    }
+    await _save(mosqueLogoKey, logoBase64);
+  }
+
+  /// Logo tersimpan sebagai JSON string base64; toleran terhadap nilai
+  /// lama/rusak: string kosong atau JSON tak valid -> `null`.
+  static String? _decodeLogo(String? raw) {
+    if (raw == null || raw.isEmpty) return null;
+    try {
+      final decoded = json.decode(raw);
+      if (decoded is String && decoded.isNotEmpty) return decoded;
+    } catch (_) {
+      // Bukan JSON: mungkin base64 mentah dari versi lama.
+      if (raw.isNotEmpty) return raw;
+    }
+    return null;
+  }
+
+  /// Status kontrol tampilan dari Remote (senyap & standby). Disimpan
+  /// sebagai bool terpisah dan TIDAK menandai `tv_hasData` — ini preferensi
+  /// perangkat, bukan data resmi DKM.
+  Future<({bool muted, bool standby})> loadDisplayState() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return (
+        muted: prefs.getBool(mutedKey) ?? false,
+        standby: prefs.getBool(standbyKey) ?? false,
+      );
+    } catch (_) {
+      return (muted: false, standby: false);
+    }
+  }
+
+  Future<void> saveMuted(bool muted) => _saveBool(mutedKey, muted);
+
+  Future<void> saveStandby(bool standby) => _saveBool(standbyKey, standby);
+
+  /// `true` bila jendela Mode Pairing otomatis instalasi baru sudah pernah
+  /// dijalankan (ADR-029). Bukan data resmi: tidak menandai `tv_hasData`.
+  Future<bool> loadPairingIntroDone() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getBool(pairingIntroDoneKey) ?? false;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<void> savePairingIntroDone() =>
+      _saveBool(pairingIntroDoneKey, true);
+
+  Future<void> _saveBool(String key, bool value) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(key, value);
+    } catch (_) {
+      // Plugin tidak tersedia (mis. test) -> perubahan hanya di memori.
+    }
+  }
 
   Future<void> _save(String key, Object value) async {
     try {

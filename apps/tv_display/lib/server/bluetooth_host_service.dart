@@ -23,11 +23,19 @@ class BluetoothHostState {
   /// sebelum autentikasi dianggap belum aman (data belum boleh dikirim).
   final bool authenticated;
 
+  /// `true` selama jendela Mode Pairing aktif (TV discoverable, ADR-029).
+  final bool pairingActive;
+
+  /// Sisa detik jendela Mode Pairing saat state ini dipancarkan.
+  final int pairingRemainingSeconds;
+
   const BluetoothHostState({
     required this.status,
     this.peerName,
     this.error,
     this.authenticated = false,
+    this.pairingActive = false,
+    this.pairingRemainingSeconds = 0,
   });
 
   bool get isActive => status == BluetoothHostStatus.connected;
@@ -43,20 +51,29 @@ class BluetoothHostState {
 class BluetoothHostService {
   final void Function(SyncPacket packet) onPacketReceived;
 
-  /// Interval re-arm discoverable (Android membatasi maksimal 300 detik).
-  final Duration discoverableRefresh;
+  /// Durasi jendela Mode Pairing dalam detik (maksimum Android: 300).
+  ///
+  /// Mode Pairing adalah SATU-SATUNYA jalur yang meminta discoverable
+  /// (ADR-029): tidak ada lagi permintaan discoverable otomatis/berkala,
+  /// sehingga dialog sistem "Make visible to other Bluetooth devices?"
+  /// tidak pernah muncul sendiri di layar TV.
+  final int pairingSeconds;
 
-  /// Durasi yang diminta tiap kali dialog discoverable dibuka.
-  final int discoverableSeconds;
+  /// Durasi Mode Pairing baku: 300 detik (5 menit).
+  static const int defaultPairingSeconds = 300;
 
   final _stateController = StreamController<BluetoothHostState>.broadcast();
   StreamSubscription<BluetoothSyncEvent>? _subscription;
-  Timer? _discoverableTimer;
   bool _started = false;
   bool _connected = false;
   String? _peerName;
-  int _discoverableFailures = 0;
-  bool _discoverableRequestInFlight = false;
+
+  /// Deadline berakhirnya jendela Mode Pairing aktif; `null` = tidak aktif.
+  DateTime? _pairingDeadline;
+
+  /// Timer satu-kali untuk menutup status pairing saat jendela berakhir.
+  Timer? _pairingTimer;
+  bool _pairingRequestInFlight = false;
 
   /// PIN 4 digit yang ditampilkan di menu admin. Di-regenerate tiap kali
   /// koneksi dimulai (toggle ON), supaya PIN lama kedaluwarsa.
@@ -79,8 +96,7 @@ class BluetoothHostService {
 
   BluetoothHostService({
     required this.onPacketReceived,
-    this.discoverableRefresh = const Duration(seconds: 110),
-    this.discoverableSeconds = 120,
+    this.pairingSeconds = defaultPairingSeconds,
   });
 
   BluetoothHostState _currentState =
@@ -92,14 +108,42 @@ class BluetoothHostService {
   bool get isRunning => _started;
   bool get isConnected => _connected;
 
+  /// `true` selama jendela Mode Pairing masih berjalan.
+  bool get pairingActive {
+    final deadline = _pairingDeadline;
+    return deadline != null && DateTime.now().isBefore(deadline);
+  }
+
+  /// Sisa waktu jendela Mode Pairing (nol bila tidak aktif).
+  Duration get pairingRemaining {
+    final deadline = _pairingDeadline;
+    if (deadline == null) return Duration.zero;
+    final remaining = deadline.difference(DateTime.now());
+    return remaining.isNegative ? Duration.zero : remaining;
+  }
+
   void _emit(BluetoothHostState state) {
-    _currentState = state;
+    // Status pairing selalu diisi dari keadaan internal terkini, agar
+    // semua pemancar state konsisten tanpa perlu tahu soal pairing.
+    final enriched = BluetoothHostState(
+      status: state.status,
+      peerName: state.peerName,
+      error: state.error,
+      authenticated: state.authenticated,
+      pairingActive: pairingActive,
+      pairingRemainingSeconds: pairingRemaining.inSeconds,
+    );
+    _currentState = enriched;
     if (!_stateController.isClosed) {
-      _stateController.add(state);
+      _stateController.add(enriched);
     }
   }
 
-  /// Jalankan host: minta izin, mulai RFCOMM, dan buat perangkat terlihat.
+  /// Jalankan host: minta izin dan mulai RFCOMM.
+  ///
+  /// Host TIDAK meminta discoverable di sini (ADR-029): TV standby
+  /// menerima koneksi dari Remote yang sudah dikenal tanpa dialog sistem.
+  /// Discoverable hanya dibuka lewat [startPairingMode].
   Future<void> start() async {
     if (_started) return;
     if (kIsWeb) return;
@@ -147,14 +191,6 @@ class BluetoothHostService {
       if (!_started) return;
 
       _emit(const BluetoothHostState(status: BluetoothHostStatus.listening));
-
-      // TV harus terlihat di discovery Remote; ulangi sebelum durasi habis.
-      await _makeDiscoverable();
-      if (!_started) return;
-      if (_discoverableFailures < 2) {
-        _discoverableTimer =
-            Timer.periodic(discoverableRefresh, (_) => _makeDiscoverable());
-      }
     } catch (e) {
       _fail('Gagal mulai Bluetooth: $e');
       debugPrint('Bluetooth host start failed: $e');
@@ -173,45 +209,55 @@ class BluetoothHostService {
     }
   }
 
-  /// Minta TV terlihat. Tidak pernah melempar: kegagalan (user menolak atau
-  /// Activity belum siap) hanya dicatat, host tetap menerima koneksi.
+  /// Buka jendela Mode Pairing: minta TV discoverable SATU kali selama
+  /// [pairingSeconds] detik (dialog sistem muncul sekali, saat memang ada
+  /// orang memegang remote TV), lalu catat deadline-nya (ADR-029).
   ///
-  /// Bila ditolak 2x berturut-turut, timer discoverable dihentikan — host
-  /// tetap listening dan dapat menerima koneksi yang sudah paired.
-  Future<bool> _makeDiscoverable() async {
+  /// Mengembalikan `true` bila user menyetujui dialog discoverable.
+  /// Tidak pernah melempar: kegagalan hanya dicatat, host tetap listening.
+  /// Memanggil lagi saat jendela masih aktif memperpanjang jendela dari
+  /// permintaan terakhir yang disetujui.
+  Future<bool> startPairingMode() async {
     if (!_started) return false;
-    if (_discoverableRequestInFlight) return false;
-    _discoverableRequestInFlight = true;
+    if (_pairingRequestInFlight) return false;
+    _pairingRequestInFlight = true;
     try {
-      final ok = await BluetoothSync.makeDiscoverable(discoverableSeconds);
-      if (ok) {
-        _discoverableFailures = 0;
-      } else {
-        _discoverableFailures++;
-        debugPrint('Bluetooth makeDiscoverable ditolak '
-            '($_discoverableFailures kali).');
-        if (_discoverableFailures >= 2) {
-          _discoverableTimer?.cancel();
-          _discoverableTimer = null;
-          debugPrint('Bluetooth discoverable ditolak 2x — timer dihentikan; '
-              'host tetap listening.');
-        }
+      final ok = await BluetoothSync.makeDiscoverable(pairingSeconds);
+      if (!ok) {
+        debugPrint('Bluetooth Mode Pairing ditolak/dibatalkan.');
+        return false;
       }
-      return ok;
+      if (!_started) return false;
+      _pairingDeadline =
+          DateTime.now().add(Duration(seconds: pairingSeconds));
+      _pairingTimer?.cancel();
+      _pairingTimer = Timer(
+        Duration(seconds: pairingSeconds),
+        _onPairingWindowEnded,
+      );
+      // Pancarkan ulang state aktif agar UI menampilkan countdown pairing.
+      _emit(_currentState);
+      return true;
     } catch (e) {
-      _discoverableFailures++;
-      debugPrint('Bluetooth makeDiscoverable failed: $e '
-          '($_discoverableFailures kali).');
-      if (_discoverableFailures >= 2) {
-        _discoverableTimer?.cancel();
-        _discoverableTimer = null;
-        debugPrint('Bluetooth discoverable gagal 2x — timer dihentikan; '
-            'host tetap listening.');
-      }
+      debugPrint('Bluetooth Mode Pairing gagal: $e');
       return false;
     } finally {
-      _discoverableRequestInFlight = false;
+      _pairingRequestInFlight = false;
     }
+  }
+
+  /// Jendela pairing berakhir: bersihkan deadline & segarkan state UI.
+  void _onPairingWindowEnded() {
+    _pairingTimer = null;
+    _pairingDeadline = null;
+    if (_started) _emit(_currentState);
+  }
+
+  void _clearPairing() {
+    _pairingTimer?.cancel();
+    _pairingTimer = null;
+    _pairingDeadline = null;
+    _pairingRequestInFlight = false;
   }
 
   void _fail(String message) {
@@ -220,10 +266,7 @@ class BluetoothHostService {
     _peerName = null;
     _authenticated = false;
     _nonce = null;
-    _discoverableTimer?.cancel();
-    _discoverableTimer = null;
-    _discoverableFailures = 0;
-    _discoverableRequestInFlight = false;
+    _clearPairing();
     _emit(BluetoothHostState(status: BluetoothHostStatus.error, error: message));
   }
 
@@ -414,10 +457,7 @@ class BluetoothHostService {
     _peerName = null;
     _authenticated = false;
     _nonce = null;
-    _discoverableTimer?.cancel();
-    _discoverableTimer = null;
-    _discoverableFailures = 0;
-    _discoverableRequestInFlight = false;
+    _clearPairing();
     await _subscription?.cancel();
     _subscription = null;
     try {

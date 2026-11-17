@@ -115,6 +115,40 @@ class RemoteWsClient {
     ));
   }
 
+  void sendSideImagesUpdate(List<SpecialImage> images) {
+    sendPacket(SyncPacket(
+      action: SyncAction.updateSideImages,
+      payload: {
+        'images': images.map((i) => i.toMap()).toList(),
+      },
+    ));
+  }
+
+  /// Kirim daftar gambar latar TV (ADR-031). Paket yang keluar lewat
+  /// WebSocket selalu gambar asli; mirror Bluetooth-nya di-intercept
+  /// pemanggil untuk kompresi + chunking (lihat `background_send_service`).
+  void sendBackgroundImagesUpdate(List<BackgroundImage> images) {
+    sendPacket(SyncPacket(
+      action: SyncAction.updateBackgroundImages,
+      payload: {
+        'images': images.map((i) => i.toMap()).toList(),
+      },
+    ));
+  }
+
+  /// Kirim logo masjid TV (ADR-032). Paket yang keluar lewat WebSocket
+  /// selalu gambar asli; mirror Bluetooth-nya di-intercept pemanggil
+  /// untuk diperkecil + chunking (lihat `logo_send_service`).
+  /// `logoBase64` null = logo dihapus dari TV.
+  void sendLogoUpdate(String? logoBase64) {
+    sendPacket(SyncPacket(
+      action: SyncAction.updateLogo,
+      payload: {
+        'logoBase64': logoBase64,
+      },
+    ));
+  }
+
   void sendKasUpdate(List<KasTransaction> transactions) {
     sendPacket(SyncPacket(
       action: SyncAction.updateKas,
@@ -142,6 +176,22 @@ class RemoteWsClient {
   /// Selesaikan mode shalat (SHALAT -> NORMAL).
   void sendFinishShalat() {
     sendPacket(const SyncPacket(action: SyncAction.finishShalat, payload: {}));
+  }
+
+  /// Nyalakan/matikan mode senyap TV (dari Beranda).
+  void sendSetMuted(bool muted) {
+    sendPacket(SyncPacket(
+      action: SyncAction.setMuted,
+      payload: {'muted': muted},
+    ));
+  }
+
+  /// Nyalakan/matikan standby TV (layar hitam, dari Beranda).
+  void sendSetStandby(bool standby) {
+    sendPacket(SyncPacket(
+      action: SyncAction.setStandby,
+      payload: {'standby': standby},
+    ));
   }
 
   /// Paksa TV masuk fase tertentu (dari Menu Tes).

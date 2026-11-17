@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:shared_models/shared_models.dart';
-import '../../widgets/m3_pressable.dart';
 
 class SimulationTab extends StatelessWidget {
   final bool isConnected;
@@ -21,7 +20,11 @@ class SimulationTab extends StatelessWidget {
 
     const regularPhases = [
       (PrayerPhase.normal, Icons.rocket_launch_outlined, 'Normal (Standby)'),
-      (PrayerPhase.preAdhan, Icons.access_time_filled, 'PRE_ADHAN · Menjelang Azan'),
+      (
+        PrayerPhase.preAdhan,
+        Icons.access_time_filled,
+        'PRE_ADHAN · Menjelang Azan'
+      ),
       (PrayerPhase.adhan, Icons.campaign, 'ADHAN · Azan Berkumandang'),
       (PrayerPhase.preIqomah, Icons.groups, 'PRE_IQOMAH · Jeda Ikamah'),
       (PrayerPhase.shalat, Icons.dark_mode, 'SHALAT · Shalat Berlangsung'),
@@ -34,23 +37,22 @@ class SimulationTab extends StatelessWidget {
     Widget phaseButtons(List<(PrayerPhase, IconData, String)> phases) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: phases.map(
-          (entry) => Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: SizedBox(
-              width: double.infinity,
-              child: M3Pressable(
-                child: FilledButton.tonalIcon(
-                  onPressed: isConnected
-                      ? () => onSendForcePhase(entry.$1)
-                      : null,
-                  icon: Icon(entry.$2),
-                  label: Text(entry.$3),
+        children: phases
+            .map(
+              (entry) => Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.tonalIcon(
+                    onPressed:
+                        isConnected ? () => onSendForcePhase(entry.$1) : null,
+                    icon: Icon(entry.$2),
+                    label: Text(entry.$3),
+                  ),
                 ),
               ),
-            ),
-          ),
-        ).toList(),
+            )
+            .toList(),
       );
     }
 
@@ -85,7 +87,9 @@ class SimulationTab extends StatelessWidget {
                       Icon(
                         isConnected ? Icons.tv : Icons.tv_off,
                         size: 18,
-                        color: isConnected ? Colors.green : colorScheme.error,
+                        color: isConnected
+                            ? colorScheme.primary
+                            : colorScheme.error,
                       ),
                       const SizedBox(width: 8),
                       Expanded(

@@ -29,8 +29,13 @@ extension PrayerTypeX on PrayerType {
   ///
   /// Dipakai untuk kartu jadwal & overlay supaya shalat Jumat tampil sebagai
   /// "Jumat" (bukan "Dzuhur") hanya saat hari Jumat.
-  String displayNameForDate(DateTime date) {
-    if (this == PrayerType.dhuhr && date.weekday == DateTime.friday) {
+  ///
+  /// [hasFridayPrayer] = `false` (musholla tanpa Jumatan) menonaktifkan
+  /// penggantian label ini: Dzuhur tetap "Dzuhur" juga di hari Jumat.
+  String displayNameForDate(DateTime date, {bool hasFridayPrayer = true}) {
+    if (hasFridayPrayer &&
+        this == PrayerType.dhuhr &&
+        date.weekday == DateTime.friday) {
       return 'Jumat';
     }
     return displayName;

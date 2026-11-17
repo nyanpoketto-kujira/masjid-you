@@ -9,6 +9,11 @@ int _intOf(Object? raw, int fallback) => raw is num ? raw.toInt() : fallback;
 double _doubleOf(Object? raw, double fallback) =>
     raw is num ? raw.toDouble() : fallback;
 
+/// Helper aman parsing bool: [fallback] bila [raw] bukan bool (mis. payload
+/// lama yang belum mengenal kunci ini), sehingga toggle baru selalu punya
+/// nilai default yang aman.
+bool _boolOf(Object? raw, bool fallback) => raw is bool ? raw : fallback;
+
 class IqamahDuration {
   final int fajr;
   final int dhuhr;
@@ -98,6 +103,41 @@ class MosqueConfig {
   /// Nama Muadzin shalat Jumat (ditampilkan di TV).
   final String fridayMuadzin;
 
+  /// Tampilkan kartu Kas Masjid di slot samping TV (rotasi kartu kanan).
+  ///
+  /// `false` = kartu kas dilewati dari rotasi slot samping; data transaksi
+  /// kas sendiri tetap disimpan & disinkronkan seperti biasa.
+  final bool showKas;
+
+  /// Masjid/musholla ini menyelenggarakan shalat Jumat (Jumatan).
+  ///
+  /// `false` (umumnya musholla) = tidak ada perlakuan khusus hari Jumat:
+  /// kartu Petugas Jumat tidak masuk rotasi slot samping, Dzuhur tetap
+  /// berlabel "Dzuhur" (bukan "Jumat"), dan fase khutbah tidak dijalankan.
+  final bool hasFridayPrayer;
+
+  /// Interval slideshow gambar latar TV, detik per gambar (ADR-031).
+  ///
+  /// Selalu dalam rentang [minBackgroundSlideSeconds]..
+  /// [maxBackgroundSlideSeconds] — `fromMap` dan `copyWith` men-clamp
+  /// nilai di luar rentang.
+  final int backgroundSlideSeconds;
+
+  /// Batas bawah interval slideshow gambar latar (detik).
+  static const int minBackgroundSlideSeconds = 5;
+
+  /// Batas atas interval slideshow gambar latar (detik).
+  static const int maxBackgroundSlideSeconds = 300;
+
+  /// Nilai default interval slideshow gambar latar (detik).
+  static const int defaultBackgroundSlideSeconds = 30;
+
+  /// Clamp [seconds] ke rentang interval slideshow yang sah.
+  static int clampBackgroundSlideSeconds(int seconds) => seconds.clamp(
+        minBackgroundSlideSeconds,
+        maxBackgroundSlideSeconds,
+      );
+
   const MosqueConfig({
     this.name = 'Masjid Al-Ikhlas',
     this.address = 'Jl. Raya Masjid No. 123',
@@ -113,6 +153,9 @@ class MosqueConfig {
     this.khutbahMinutes = 20,
     this.fridayKhatib = 'Ustadz Khatib',
     this.fridayMuadzin = 'Ustadz Bilal',
+    this.showKas = true,
+    this.hasFridayPrayer = true,
+    this.backgroundSlideSeconds = defaultBackgroundSlideSeconds,
   });
 
   /// Konstruktor internal: selalu membungkus [prayerOffsets] menjadi
@@ -132,6 +175,9 @@ class MosqueConfig {
     required this.khutbahMinutes,
     required this.fridayKhatib,
     required this.fridayMuadzin,
+    required this.showKas,
+    required this.hasFridayPrayer,
+    required this.backgroundSlideSeconds,
   }) : prayerOffsets = Map.unmodifiable(prayerOffsets);
 
   int offsetFor(PrayerType type) => prayerOffsets[type] ?? 0;
@@ -144,7 +190,8 @@ class MosqueConfig {
         'utcOffsetHours': utcOffsetHours,
         'iqamahDuration': iqamahDuration.toMap(),
         'prayerOffsets': {
-          for (final type in kAllPrayerTypes) type.name: prayerOffsets[type] ?? 0,
+          for (final type in kAllPrayerTypes)
+            type.name: prayerOffsets[type] ?? 0,
         },
         'preAdhanMinutes': preAdhanMinutes,
         'adhanMinutes': adhanMinutes,
@@ -153,6 +200,9 @@ class MosqueConfig {
         'khutbahMinutes': khutbahMinutes,
         'fridayKhatib': fridayKhatib,
         'fridayMuadzin': fridayMuadzin,
+        'showKas': showKas,
+        'hasFridayPrayer': hasFridayPrayer,
+        'backgroundSlideSeconds': backgroundSlideSeconds,
       };
 
   factory MosqueConfig.fromMap(Map<String, dynamic> map) {
@@ -161,9 +211,8 @@ class MosqueConfig {
       final raw = map['prayerOffsets'];
       if (raw is Map) {
         for (final entry in raw.entries) {
-          final type = PrayerType.values
-              .where((t) => t.name == entry.key)
-              .firstOrNull;
+          final type =
+              PrayerType.values.where((t) => t.name == entry.key).firstOrNull;
           if (type != null) {
             result[type] = _intOf(entry.value, 0);
           }
@@ -203,6 +252,16 @@ class MosqueConfig {
       khutbahMinutes: _intOf(map['khutbahMinutes'], 20),
       fridayKhatib: rawKhatib is String ? rawKhatib : 'Ustadz Khatib',
       fridayMuadzin: rawMuadzin is String ? rawMuadzin : 'Ustadz Bilal',
+      // Payload lama belum punya kedua kunci ini -> default `true`
+      // (perilaku lama: kas tampil & Jumatan ada).
+      showKas: _boolOf(map['showKas'], true),
+      hasFridayPrayer: _boolOf(map['hasFridayPrayer'], true),
+      // Payload lama belum punya kunci ini -> default 30 detik; nilai di
+      // luar rentang di-clamp agar TV tidak pernah slideshow terlalu
+      // cepat/lambat (ADR-031).
+      backgroundSlideSeconds: clampBackgroundSlideSeconds(
+        _intOf(map['backgroundSlideSeconds'], defaultBackgroundSlideSeconds),
+      ),
     );
   }
 
@@ -226,6 +285,9 @@ class MosqueConfig {
     int? khutbahMinutes,
     String? fridayKhatib,
     String? fridayMuadzin,
+    bool? showKas,
+    bool? hasFridayPrayer,
+    int? backgroundSlideSeconds,
   }) {
     return MosqueConfig._internal(
       name: name ?? this.name,
@@ -245,6 +307,11 @@ class MosqueConfig {
       khutbahMinutes: khutbahMinutes ?? this.khutbahMinutes,
       fridayKhatib: fridayKhatib ?? this.fridayKhatib,
       fridayMuadzin: fridayMuadzin ?? this.fridayMuadzin,
+      showKas: showKas ?? this.showKas,
+      hasFridayPrayer: hasFridayPrayer ?? this.hasFridayPrayer,
+      backgroundSlideSeconds: backgroundSlideSeconds == null
+          ? this.backgroundSlideSeconds
+          : clampBackgroundSlideSeconds(backgroundSlideSeconds),
     );
   }
 
@@ -274,7 +341,10 @@ class MosqueConfig {
           other.shalatMinutes == shalatMinutes &&
           other.khutbahMinutes == khutbahMinutes &&
           other.fridayKhatib == fridayKhatib &&
-          other.fridayMuadzin == fridayMuadzin;
+          other.fridayMuadzin == fridayMuadzin &&
+          other.showKas == showKas &&
+          other.hasFridayPrayer == hasFridayPrayer &&
+          other.backgroundSlideSeconds == backgroundSlideSeconds;
 
   @override
   int get hashCode => Object.hash(
@@ -292,6 +362,9 @@ class MosqueConfig {
         khutbahMinutes,
         fridayKhatib,
         fridayMuadzin,
+        showKas,
+        hasFridayPrayer,
+        backgroundSlideSeconds,
       );
 
   @override
@@ -302,5 +375,7 @@ class MosqueConfig {
       'preAdhanMinutes: $preAdhanMinutes, adhanMinutes: $adhanMinutes, '
       'preIqomahMinutes: $preIqomahMinutes, shalatMinutes: $shalatMinutes, '
       'khutbahMinutes: $khutbahMinutes, fridayKhatib: $fridayKhatib, '
-      'fridayMuadzin: $fridayMuadzin)';
+      'fridayMuadzin: $fridayMuadzin, showKas: $showKas, '
+      'hasFridayPrayer: $hasFridayPrayer, '
+      'backgroundSlideSeconds: $backgroundSlideSeconds)';
 }

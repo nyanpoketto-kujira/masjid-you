@@ -592,4 +592,286 @@ Setelah refactor gatekeeper (ADR-019), dua keluhan pengguna saat memakai Remote:
 
 ---
 
+## ADR-021 — Rotasi Kartu Slot Samping TV + Toggle Kas & Jumatan
+
+### Konteks
+Slot kanan TV sebelumnya hard-coded: hari biasa kartu Kas tampil statis, hari Jumat Kas bergantian dengan kartu Petugas Jumat tiap 10 detik (logika menempel di timer jam `main.dart`). Tiga kebutuhan DKM tidak terpenuhi:
+
+1. Ada masjid/musholla yang tidak ingin menampilkan kas di TV — belum ada sakelarnya.
+2. Musholla tidak menyelenggarakan Jumatan, tetapi TV-nya tetap menampilkan kartu Petugas Jumat, label "Jumat" pada jadwal Dzuhur, dan masuk fase khutbah tiap Jumat.
+3. DKM ingin menampilkan gambar khusus (pengumuman/poster) di slot yang sama dengan kas, bergantian dalam satu urutan.
+
+### Keputusan
+1. **Satu rotator untuk slot samping** (`SideCardRotator` + `buildSideCardPlaylist`): playlist disusun murni dari konfigurasi + tanggal + daftar gambar — `[Kas] -> [Petugas Jumat] -> [Gambar 1..n] -> ulang`, tiap kartu 10 detik. Playlist kosong menampilkan kartu placeholder; playlist isi 1 tampil statis.
+2. **Dua toggle di `MosqueConfig`** (default `true`, payload lama tanpa kunci ini terbaca `true`): `showKas` (kas masuk rotasi atau tidak) dan `hasFridayPrayer` (ada Jumatan atau tidak), diatur dari tab Pengaturan Remote.
+3. **`hasFridayPrayer = false` berlaku menyeluruh**, bukan hanya kartu: label Dzuhur tidak menjadi "Jumat" (`displayNameForDate(..., hasFridayPrayer:)`), dan `PrayerStateMachine` tidak masuk fase khutbah (auto-cycle maupun `skipAdhan`). Fase khutbah yang dipaksa manual dari Menu Tes tetap dimungkinkan.
+4. **Gambar khusus adalah model tersendiri** (`SpecialImage` di `shared_models`), bukan memakai ulang `MediaBanner`: banner tetap carousel teks+poster di sisi kiri, gambar khusus tampil penuh satu kartu di sisi kanan. Gambar khusus ikut `StateSnapshot`/`BackupBundle`, tersimpan di TV (`tv_sideImages`), dan disinkronkan dengan aksi baru `updateSideImages`; urutan tampil = urutan daftar di Remote, gambar non-aktif dilewati.
+
+### Konsekuensi
+- Perilaku lama terpertahankan persis untuk konfigurasi default (kas tampil, Jumatan ada, tanpa gambar khusus: hari biasa kas statis, Jumat kas ↔ petugas).
+- Satu-satunya sumber kebenaran susunan rotasi adalah fungsi murni `buildSideCardPlaylist`, sehingga kombinasi toggle × hari × gambar terkunci unit test tanpa widget.
+- Remote bertambah satu sub-tab Konten ("Gambar Khusus") — total halaman utama menjadi 6 dan sub-tab Konten menjadi 4; pemetaan bottom-nav/sub-tab disesuaikan.
+- Data lama (persist TV, cache Remote, file backup) tetap terbaca: snapshot tanpa `sideImages` berarti daftar kosong, config tanpa toggle berarti keduanya aktif.
+
+---
+
 > Kembali ke [MAP.md](MAP.md) | Lanjut ke [tv_display/widget_mapping.md](tv_display/widget_mapping.md) | [mobile_remote/tab_mapping.md](mobile_remote/tab_mapping.md) | [mobile_remote/theme_shapes.md](mobile_remote/theme_shapes.md)
+---
+
+## ADR-022 — Refaktor UI Remote Material You (Bertahap) + Fondasi Tema
+
+### Konteks
+UI `mobile_remote` dinilai buruk: warna statis terasa generik, navigasi berupa satu rangkaian 6 halaman yang bisa di-swipe menembus destinasi menu bawah, dan tab Pengaturan adalah satu form panjang. Plan refaktor disusun dari audit kode + riset panduan resmi Material 3/Material You (16 Nov 2026) dan disetujui user beserta lima keputusan turunannya:
+
+- **D1** Dynamic color jadi default di Android 12+, wajib fallback seed "Teal/Hijau Masjid" + pilihan manual di Pengaturan (Ikuti Wallpaper / Hijau Masjid).
+- **D2** Urutan destinasi menjadi Beranda -> Konten -> Pengaturan -> Tes.
+- **D3** Konektivitas turun dari destinasi menu bawah menjadi strip status tonal di bawah AppBar + bottom sheet detail/putus koneksi.
+- **D4** `M3Pressable` dibuang, diganti InkWell standar M3.
+- **D5** Beranda berisi kartu status TV & jam aktif, tombol Aksi Cepat 56dp (Mute, Standby, Sinkron), ringkasan saldo kas, dan hitung mundur waktu sholat.
+
+Dua batasan mengikat seluruh refaktor: (1) shape tetap standar M3 — shape Expressive "clover/puffy" sudah ditolak user (ADR-012); (2) Material 3 Expressive belum tersedia di Flutter stable, jadi tidak ada dependensi ke package Expressive tidak resmi untuk alur inti.
+
+### Keputusan
+1. **Refaktor bertahap, satu fase satu PR**: Fase 0 fondasi tema, Fase 1 navigasi & status koneksi, Fase 2 Pengaturan, Fase 3 editor konten, Fase 4 motion & aksesibilitas, Fase 5 polish. Tidak ada penulisan ulang besar sekaligus.
+2. **Fase 0 — fondasi tema** (PR ini):
+   - Package `dynamic_color`: `MasjidYouRemoteApp` menjadi stateful dan membungkus `MaterialApp` dengan `DynamicColorBuilder`. Skema efektif dipilih `resolveRemoteColorScheme`: sumber dinamis memakai skema wallpaper sesuai brightness bila perangkat menyediakan; selain itu jatuh ke `ColorScheme.fromSeed` dari `kMasjidSeedColor` (`0xFF006A60`, "Hijau Masjid").
+   - `buildRemoteTheme` kini menerima `ColorScheme` utuh (bukan brightness + seed) dan melengkapi tema komponen: `AppBarTheme` (scrolledUnderElevation 3), `ListTileThemeData` (ikon onSurfaceVariant, r12), `SegmentedButtonThemeData` (pill), `FloatingActionButtonThemeData` (r16), `SnackBarThemeData` (floating, r12). Tema Switch/Slider/ProgressIndicator dibiarkan default karena sudah sesuai spesifikasi M3.
+   - Preferensi tampilan (`ThemePreferences`, SharedPreferences): mode tema (sistem/terang/gelap) + sumber warna (`AppColorSource.dynamic`/`seed`), default sistem + dinamis; nilai simpanan tidak valid jatuh ke default.
+   - Seksi **Tampilan Aplikasi** di tab Pengaturan: `SegmentedButton` Tema (Sistem/Terang/Gelap) dan Warna (Ikuti Wallpaper/Hijau Masjid) + catatan ketersediaan Android 12+. Parameter bersifat opsional di `SettingsTab`/`RemoteHomeScreen` agar pemanggil lama tidak berubah.
+3. Fase-fase berikutnya mengikuti plan yang disetujui (D2–D5 dieksekusi di Fase 1–3); ADR ini diperbarui/diikuti ADR baru bila ada penyimpangan.
+
+### Konsekuensi
+- Di Android 12+ warna aplikasi mengikuti wallpaper pengguna (ciri Material You paling terlihat); perangkat lama dan emulator tanpa dynamic color tampil persis seperti sebelumnya (seed Hijau Masjid).
+- Pilihan tema/warna langsung berlaku dan tersimpan; tidak ikut tombol "Simpan & Update Ke TV" karena murni preferensi HP.
+- Struktur layar belum berubah di Fase 0 — perubahan visual murni dari tema (SnackBar floating, FAB r16, tile r12).
+- Regresi dikunci 14 test baru: resolusi skema (dinamis/seed/fallback), kelengkapan tema komponen, round-trip preferensi, seksi Tampilan Aplikasi, dan penerapan preferensi tersimpan di level aplikasi. Total test mobile_remote 47 -> 61.
+
+---
+
+---
+
+## ADR-023 — Fase 1 Refaktor UI: Navigasi Destinasi, Beranda & Kontrol Tampilan TV
+
+### Konteks
+Melanjutkan ADR-022 (keputusan D2–D5). Kondisi sebelum fase ini: seluruh menu Remote adalah satu `TabBarView` 6 halaman yang bisa di-swipe menembus destinasi menu bawah (disinkronkan dua `TabController` + guard), hanya ada 3 destinasi (Pengaturan, Konten, Tes), status koneksi berupa badge popup hijau hard-code di AppBar, ikon navigasi beranimasi custom (`PlayfulNavIcon`), dan feedback tekan spring custom (`M3Pressable`) tersebar di 33 titik.
+
+### Keputusan
+1. **Navigasi destinasi tanpa swipe** (D2): menu bawah menjadi 4 destinasi — Beranda, Konten, Pengaturan, Tes — ditampilkan dengan `IndexedStack` (state tiap destinasi awet, tidak ada gestur tembus antar destinasi, sesuai panduan M3). `TabController` tunggal yang tersisa hanya menggerakkan 4 sub-tab **di dalam** Konten (swipe di dalam Konten tetap boleh). Seluruh mekanisme sinkronisasi dua controller dihapus.
+2. **Strip status koneksi + bottom sheet** (D3): badge AppBar diganti strip tonal `secondaryContainer` di bawah AppBar ("Terhubung ke TV via …" + ikon status senyap/standby) yang membuka bottom sheet berisi jalur koneksi, fase TV, status suara/layar, dan tombol "Putuskan Koneksi". Warna hijau hard-code `0xFF1B5E20` hilang.
+3. **Beranda baru** (D5) di `lib/screens/home/home_tab.dart`: kartu status TV (jalur + fase), jam aktif per detik + tanggal Indonesia, hitung mundur sholat berikutnya (dari `PrayerSchedule.calculate`, termasuk Subuh besok), Aksi Cepat setinggi 56dp (Senyap, Standby, Sinkron), dan ringkasan kas (saldo/pemasukan/pengeluaran memakai `KasStatCard`).
+4. **Kontrol tampilan TV end-to-end**: aksi protokol baru `SyncAction.setMuted` (`{'muted': bool}`) dan `SyncAction.setStandby` (`{'standby': bool}`). TV menyimpan statusnya di `TvStore` (`tv_muted`/`tv_standby`, terpisah dari data resmi — tidak menandai `tv_hasData`), menampilkannya (standby = overlay hitam penuh di bawah menu admin; senyap = ikon `volume_off` kecil di pojok layar), dan melaporkannya kembali lewat `stateUpdate` (`muted`, `standby`) agar Remote selalu sinkron. Remote menerapkan status dari `stateUpdate` hanya bila kunci tersedia (TV lama tetap kompatibel). Catatan: TV saat ini tidak memiliki output audio — mode senyap mengatur status & indikator kanal beep protokol (`triggerBeep`), bukan pemutar suara.
+5. **Buang widget custom** (D4): `M3Pressable` (33 pemakaian) dan `PlayfulNavIcon` dihapus dari `mobile_remote`; tombol memakai feedback InkWell standar M3 dan `NavigationDestination` memakai pasangan `icon`/`selectedIcon` bawaan.
+
+### Konsekuensi
+- Beranda menjadi layar pertama setelah terhubung; Pengaturan tidak lagi menjadi halaman pembuka.
+- Protokol sync bertambah dua aksi aditif — Remote lama mengabaikan `stateUpdate.muted/standby`, TV lama tidak mengirimnya; tidak ada perubahan breaking.
+- State destinasi tidak lagi hilang saat berpindah menu (IndexedStack), dengan biaya semua destinasi ter-mount selama terhubung.
+- Regresi dikunci test baru: Beranda (render status/jam/kas, tombol 56dp, callback, helper jadwal & format), `TvStore` status tampilan (default, round-trip, tidak menandai data resmi), dan round-trip aksi protokol baru lewat loop `SyncAction.values` yang sudah ada. Total: mobile_remote 68, tv_display 67, shared_models 70.
+
+---
+
+## ADR-024 — Fase 2 Refaktor UI: Pengaturan Bergrup, Stepper & Sticky Save
+
+### Konteks
+Melanjutkan ADR-022/ADR-023. Kondisi sebelum fase ini: tab Pengaturan adalah satu form scroll sangat panjang (identitas → koordinat → offset grid 3 kolom → durasi 4 field sebaris → toggle → aksi cepat → simulasi → simpan → backup), offset & durasi berupa TextField angka kecil (suffix "mnt"/"m"), dan tombol "Simpan & Update" tenggelam di bawah daftar sehingga mudah terlewat; toggle Kas/Jumatan ikut tombol simpan padahal seharusnya langsung berlaku.
+
+### Keputusan
+1. **Grup bertajuk ala pola settings M3** (`lib/screens/settings/settings_tab.dart`): Masjid; Lokasi & Jadwal (lat/lng + GPS + Simulasi Jadwal); Penyesuaian Waktu; Durasi Tampilan TV; Tampilan TV; Aksi Cepat Waktu Shalat (kartu lama dipertahankan); Tampilan Aplikasi (posisi dipertahankan dari Fase 0); Data (Export/Import Backup). Tiap grup punya judul `titleMedium` tebal + catatan kaki satu kalimat. Grup Reset (destruktif) dari plan §3.4 belum dibuat — belum ada handler reset di `main.dart`; ditunda ke fase berikutnya bila dibutuhkan.
+2. **Baris stepper** (`lib/widgets/stepper_row.dart`): 6 offset sholat (−60..+60 menit, boleh negatif) dan 4 durasi + khutbah (0..180/120 menit) diganti dari TextField angka menjadi baris `− nilai +` dengan `IconButton` 48dp + tooltip "Kurangi/Tambah <label>". Stepper menulis ke `TextEditingController` yang sama dan menampilkan nilainya lewat `ValueListenableBuilder`, jadi alur simpan (`_buildConfigFromForm`) tidak berubah. Label lama ("Durasi Khutbah", "Nama Khatib", "Nama Muadzin") tetap bisa ditemukan; stepper khutbah non-aktif saat Jumatan mati.
+3. **Sticky bottom bar**: tombol "Simpan & Update Ke TV" (56dp, penuh lebar) selalu menempel di bawah tab Pengaturan dan hanya aktif bila ada perubahan (`isDirty`, parameter opsional baru — default `false` agar test lama tidak rusak). Tombol simpan lama di dalam daftar dihapus; "Simulasi Jadwal" pindah ke grup Lokasi & Jadwal.
+4. **Pelacakan dirty di `_RemoteHomeScreenState`**: listener ke semua controller config (nama, alamat, lat, lng, 6 offset, 4 durasi, khutbah, khatib, muadzin) menghitung ulang dirty sebagai `_buildConfigFromForm() != _config` (memanfaatkan value equality `MosqueConfig`); `_sendConfigUpdate` membersihkan dirty karena config tersimpan kini sama dengan isi form. Sinkronisasi ulang controller dari `_config` (snapshot TV, buang perubahan) otomatis membersihkan dirty lewat listener yang sama.
+5. **Dialog "Buang perubahan?"**: keluar dari tab Pengaturan (pindah destinasi menu bawah) dalam keadaan dirty memunculkan dialog konfirmasi; "Buang" mengembalikan controller dari `_config` via `_syncConfigControllers()` lalu pindah, "Tetap di sini" membatalkan perpindahan.
+6. **Toggle instant-apply**: handler `onShowKasChanged`/`onHasFridayPrayerChanged` di `main.dart` kini langsung memanggil `_sendConfigUpdate()` setelah `setState`, jadi perubahan Kas/Jumatan langsung dikirim ke TV tanpa menunggu tombol simpan.
+
+### Konsekuensi
+- Pengaturan lebih mudah dipindai (grup + footer penjelas) dan angka tidak lagi diketik manual — risiko salah ketik berkurang, terutama untuk pengguna lanjut usia.
+- Toggle yang sudah tersimpan tidak lagi ikut tertunda tombol simpan; sebaliknya, teks/angka yang belum disimpan tetap terlindungi dialog buang perubahan.
+- Banner "Ada perubahan belum dikirim" global masih dipertahankan untuk perubahan konten (Fase 3); untuk Pengaturan, sinyal utamanya kini sticky bar + teks "Ada perubahan belum disimpan".
+- Regresi dikunci 6 test baru (`settings_phase2_test.dart`: grup tampil, stepper menulis ke controller yang sama, batas min/max, sticky bar aktif/non-aktif + callback) dan 1 test lama disesuaikan minimal (stepper khutbah non-aktif saat Jumatan mati). Total: mobile_remote 68 -> 74.
+
+---
+
+## ADR-025 — Fase 3 Refaktor UI: Editor Konten Seragam
+
+### Konteks
+Melanjutkan ADR-024. Kondisi sebelum fase ini: tambah data lewat form inline di atas daftar (running text: field + tombol `+`; banner: 4 field + picker + tombol "Simpan Banner"; kas: kartu form + "Simpan Transaksi"; gambar: picker + caption + "Simpan Gambar"); urutan hanya di Gambar Khusus lewat tombol naik/turun; hapus langsung hilang (kas: dialog konfirmasi long-press); daftar kosong hanya teks polos. Pola tidak seragam dan form inline memakan ruang daftar.
+
+### Keputusan
+1. **Extended FAB + dialog full-screen per sub-tab**: "Tambah Teks", "Tambah Banner", "Tambah Transaksi", "Tambah Gambar" membuka form dalam `Dialog.fullscreen` (Scaffold + AppBar + tombol Simpan eksplisit, non-aktif bila form belum valid). Form inline lama dipindah ke dialog itu; controller & callback yang ada dipakai ulang. Edit memakai dialog yang sama: running text memakai widget bersama `RunningTextFormDialog` (tambah & edit), banner edit pindah ke fullscreen (4 field).
+2. **ReorderableListView + handle drag + nomor urut** untuk Running Text, Banner, dan Gambar Khusus (`buildDefaultDragHandles: false` + `ReorderableDragStartListener` pada ikon `drag_handle` + nomor urut 1-based). Callback `onReorder` baru di `main.dart` (`_reorderRunningTexts`/`_reorderBanners`/`_reorderSideImages`): setState + tandai unsynced + kirim update bila terhubung. Karena Flutter 3.47 men-deprecate `ReorderableListView.onReorder`, dipakai `onReorderItem` (newIndex sudah disesuaikan terhadap item yang dilepas — tanpa penyesuaian manual). Tombol naik/turun Gambar Khusus & `_moveSideImage` dihapus.
+3. **Hapus rutin = hilang + SnackBar "Urungkan" ±5 detik** (running text, banner, kas, gambar khusus): `_remove*` menangkap item + indeks, menghapus, lalu `_showUndoSnack` (via `appMessengerKey`) menawarkan "Urungkan" yang mengembalikan item di indeks semula + kirim ulang update. Dialog konfirmasi hapus kas (long-press) dihapus; kas kini punya tombol hapus di baris.
+4. **Empty state seragam** (`lib/widgets/editor_empty_state.dart`): ikon dalam lingkaran `primaryContainer` + judul + satu kalimat + tombol aksi tambah, dipakai keempat editor.
+5. **Kas**: kartu ringkasan tetap di atas; baris transaksi menampilkan kata "Masuk"/"Keluar" di depan tanggal selain warna & tanda +/−.
+6. **Perbaikan kecil**: edit banner kini mempertahankan `base64Image` (perilaku lama: edit membuang gambar banner).
+
+### Konsekuensi
+- Pola editor kini seragam dan sesuai panduan M3 (satu aksi utama per layar, hapus bisa diurungkan, urutan putar terlihat).
+- Catatan test: drag reorder di widget test harus digerakkan bertahap dengan pump di antara langkah (`startGesture` + `moveBy` + `pump`); satu lompatan besar (`tester.drag`/`timedDrag`) tidak memicu reorder pada `ReorderableListView` — didokumentasikan di test banner.
+- Alur urungkan SnackBar di `main.dart` belum punya widget test langsung (membutuhkan `RemoteHomeScreen` dalam keadaan terhubung, yang tidak bisa dipompa tanpa koneksi); dikunci lewat test callback sub-tab + pola yang sama di keempat handler.
+- Regresi dikunci 16 test baru (running text/banner/kas/special-images: FAB + dialog, empty state, handle drag + `onReorder`, hapus, sakelar, kata Masuk/Keluar) dan 1 test lama disesuaikan (empty state + drag ganti tombol naik/turun). Total: mobile_remote 74 -> 90.
+
+---
+
+## ADR-026 — Fase 4 Refaktor UI: Motion & Aksesibilitas
+
+### Konteks
+Melanjutkan ADR-025. Kondisi sebelum fase ini: pergantian gate koneksi -> menu utama terjadi instan tanpa transisi; tidak ada `pageTransitionsTheme` khusus (transisi route memakai default); skala teks besar & target sentuh belum pernah diaudit. Plan §2 prinsip 4 menuntut transisi fade-through antar destinasi dan shared-axis antar sub-tab (<=500ms, hormati `disableAnimations`).
+
+### Keputusan
+1. **Package `animations` (resmi, 2.2.0)** ditambahkan ke `mobile_remote` untuk transisi Material resmi (bukan package Expressive tidak resmi — tetap sesuai batasan ADR-022).
+2. **Transisi gate -> menu utama**: pergantian body di `RemoteHomeScreen` dibungkus `PageTransitionSwitcher` + `FadeThroughTransition` (300ms). Kedua body diberi key berbeda (`ValueKey('gate')`/`ValueKey('main')`) agar switcher mendeteksi pergantian. Bila `MediaQuery.disableAnimations` aktif, pergantian dilakukan tanpa animasi sama sekali.
+3. **`pageTransitionsTheme` di `buildRemoteTheme`**: `SharedAxisPageTransitionsBuilder` (horizontal) untuk platform Android — transisi shared-axis antar halaman sesuai panduan motion M3.
+4. **Target sentuh utama >=48dp**: `filledButtonTheme`/`outlinedButtonTheme` kini `minimumSize: Size(64, 48)`; tombol simpan sticky Pengaturan 56dp; Aksi Cepat Beranda tetap 56dp (Fase 1); `IconButton` stepper sudah 48dp bawaan.
+5. **Perbaikan overflow skala teks 200%**: baris "Sholat Berikutnya" di `HomeTab` (nama sholat + "pukul HH:mm") kini memakai `Flexible` pada kedua teks agar membungkus, bukan overflow, pada layar sempit dengan skala teks besar.
+
+### Konsekuensi
+- Transisi gate -> menu utama kini fade-through halus; route yang di-push di Android memakai shared-axis horizontal.
+- Audit font scale 200% pada viewport HP (360x800) lolos tanpa overflow/exception untuk SettingsTab & HomeTab; target sentuh utama terukur >=48dp.
+- Catatan test: `ListView` membangun anak secara malas — test target sentuh harus menggulung dulu sampai tombol terbangun sebelum `ensureVisible`/pengukuran; drag reorder `ReorderableListView` tetap memakai pola gesture bertahap (lihat ADR-025).
+- Regresi dikunci 3 test baru (`accessibility_phase4_test.dart`: SettingsTab & HomeTab pada textScaler 2.0 tanpa overflow/exception, target sentuh utama >=48dp). Total: mobile_remote 90 -> 93.
+
+---
+
+## ADR-027 — Fase 5 Refaktor UI: Polish & Penutup
+
+### Konteks
+Melanjutkan ADR-026; fase terakhir refaktor bertahap ADR-022. Audit akhir sebelum menutup maraton: warna hard-code, wording umpan balik kirim data, dan status dokumen.
+
+### Keputusan
+1. **Audit warna hard-code** (`apps/mobile_remote/lib`, grep `Color(0x`/`Colors.`): warna UI diganti ke peran `colorScheme` — ikon hapus (running text, banner, kas, gambar khusus) memakai `colorScheme.error`; ikon status TV di tab Tes memakai `colorScheme.primary` saat terhubung (sebelumnya `Colors.green`) dan `colorScheme.error` saat putus. Yang **dipertahankan** dengan sengaja: hijau/merah kas (`Colors.green`/`Colors.red` di `KasStatCard` & baris transaksi) karena warna semantik data (Masuk/Keluar) — selalu berpasangan dengan kata/tanda +/−, bukan warna saja; scrim hitam `Colors.black` 60% + ikon `Colors.white` pada tombol tutup pratinjau gambar karena overlay legibilitas di atas foto (bukan warna UI); seed `kMasjidSeedColor` `0xFF006A60` di `remote_theme.dart` karena itulah definisi tema.
+2. **Wording SnackBar kirim data menyebut cakupan** (tanpa mengubah perilaku): jalur `_pushAllToTv` & `_sendConfigUpdate` saat terhubung kini "Tersimpan & ditampilkan di TV" (sebelumnya "Semua data berhasil dikirim ke TV!" / "Pengaturan berhasil diperbarui di TV!"); `_sendConfigUpdate` saat tidak terhubung kini "Tersimpan di HP — TV belum terhubung" (sebelumnya "Pengaturan disimpan lokal (belum dikirim)."). Jalur `_pushAllToTv` saat belum terhubung tetap mencoba sambung ulang seperti sebelumnya.
+3. **Penutup**: plan refaktor (`plan-refaktor-ui-remote.md`) ditandai semua fase selesai; tabel status README diperbarui dengan jumlah test terbaru semua paket.
+
+### Konsekuensi
+- Tidak ada lagi warna UI hard-code di luar tema, kecuali warna semantik kas & overlay foto yang didokumentasikan di atas.
+- Pengguna selalu tahu cakupan simpanannya: tampil di TV vs hanya tersimpan di HP.
+- Status akhir maraton (branch `feat/remote-ui-refactor-pool`, tanpa menyentuh `main` sesuai /NNM): shared_models 70, bluetooth_sync 30, tv_display 67, mobile_remote 93 test — semua hijau; root `flutter analyze` tanpa issue.
+
+---
+
+## ADR-028 — Banner Belum Terkirim Disembunyikan di Tab Pengaturan
+
+### Konteks
+Temuan tes emulator 17 Nov 2026 (plan Perbaikan Pool Babak 2, item A): di tab Pengaturan, dua mekanisme "perubahan belum tersimpan" tampil bersamaan — banner atas lama "Ada perubahan belum dikirim ke TV" + tombol "Kirim ke TV" (`_buildUnsyncedBanner`, memanggil `_pushAllToTv`) dan sticky bar Fase 2 "Ada perubahan belum disimpan" + "Simpan & Update Ke TV" (simpan config). Mengedit satu field Pengaturan menyalakan keduanya; pesan dan tombolnya tumpang tindih dan membingungkan.
+
+### Keputusan
+1. Banner atas **tidak dirender saat tab aktif adalah Pengaturan** (indeks 2). Di tab Pengaturan, sticky bar adalah satu-satunya jalur simpan config.
+2. Banner tetap tampil di tab lain (Beranda, Konten, Tes) seperti biasa, karena di sana tidak ada sticky bar dan perubahan konten memang perlu jalur "Kirim ke TV".
+3. Aturan render diekstrak sebagai predikat murni `shouldShowUnsyncedBanner({hasUnsyncedChanges, tabIndex})` + konstanta `settingsTabIndex` di `apps/mobile_remote/lib/main.dart`, agar bisa diuji tanpa merakit harness koneksi penuh. Flag `_hasUnsyncedChanges` dan kedua jalur kirim tidak diubah (penyatuan flag dicatat sebagai utang teknis terpisah).
+
+### Konsekuensi
+- Tab Pengaturan kini punya satu pesan + satu tombol simpan yang tidak ambigu.
+- Perilaku di tab lain tidak berubah sama sekali.
+- Regresi dikunci 6 test baru (`unsynced_banner_test.dart`: tabel kebenaran predikat + render kondisional dalam pohon widget minimal). Total: mobile_remote 93 -> 99 (di luar 2 kegagalan lama `home_tab_test.dart` yang bergantung tanggal sistem, lihat catatan status).
+
+---
+
+## ADR-029 — Mode Pairing Bluetooth 300 Detik, Perangkat Dikenal, dan IP TV di Menu Admin
+
+### Konteks
+Temuan tes emulator 17 Nov 2026 (plan Perbaikan Pool Babak 2, item C+D): dialog sistem Android "Make visible to other Bluetooth devices?" menutupi layar TV dan muncul **berulang tanpa henti**. Akar masalah: `BluetoothHostService` menjalankan timer re-arm discoverable tiap 110 detik (tiap permintaan 120 detik) selama host aktif — setiap permintaan memunculkan satu dialog yang harus dijawab manual dengan remote TV. DKM yang lupa mematikan Bluetooth akan menghadapi dialog ini selamanya. Selain itu, koneksi harian Remote selalu lewat discovery (yang mensyaratkan TV discoverable), dan alamat IP TV tidak terlihat di mana pun di TV sehingga jalur IP sulit dipakai.
+
+### Keputusan
+1. **Timer re-arm discoverable dihapus total.** `BluetoothHostService.start()` tidak lagi meminta discoverable sama sekali; host RFCOMM standby menerima koneksi dari perangkat yang sudah dikenal tanpa dialog apa pun. Tidak ada alur nyala/matikan Bluetooth manual yang ditambahkan — host boleh dibiarkan menyala terus.
+2. **Mode Pairing adalah satu-satunya jalur discoverable**: metode `startPairingMode()` memanggil `BluetoothSync.makeDiscoverable(300)` tepat satu kali, mencatat deadline 300 detik, dan memakai timer **satu-kali** (bukan berkala) untuk menutup status pairing. `BluetoothHostState` membawa `pairingActive`/`pairingRemainingSeconds`; menu admin TV menampilkan aksi "Mode Pairing" + countdown "Mode Pairing aktif — mm:ss".
+3. **Otomatis satu kali saat instalasi baru**: setelah host start, bila flag permanen `tv_btPairingIntroDone` (SharedPreferences via `TvStore`) belum terpasang, flag dipasang **lebih dulu** lalu `startPairingMode()` dipanggil — reboot di tengah jendela tidak mengulang intro. Pemicu manual tetap tersedia di menu admin untuk pairing HP baru.
+4. **Perangkat dikenal di Remote**: API baru `BluetoothSync.getBondedDevices()` (method channel dari `adapter.bondedDevices` di Kotlin, gagal-soft tanpa izin/BT mati; Dart membuang entri tanpa alamat). `BluetoothClientService.refreshKnownDevices()` mengisi `BluetoothClientState.knownDevices` — dipanggil saat gerbang tampil dan otomatis setelah `discoveryFinished`; sengaja tidak meminta izin (izin diminta lewat alur Cari TV/connect yang sudah ada). Gerbang koneksi menampilkan bagian **"Perangkat Dikenal"** di kartu Bluetooth; ketuk barisnya menyambung langsung lewat `onBtConnect` yang sama. Hasil scan yang alamatnya sudah dikenal tidak ditampilkan dua kali.
+5. **IP TV di menu admin (item D)**: helper `pickLocalIpv4`/`loadLocalIpv4`/`formatTvIpText` di `lib/state/local_ip.dart` memilih IPv4 non-loopback/non-link-local pertama dengan prioritas antarmuka Wi-Fi lalu ethernet; menu admin menampilkan "IP TV: <alamat>" (di-refresh tiap menu dibuka) atau "IP TV: tidak ada jaringan".
+
+### Konsekuensi
+- Layar TV tidak pernah lagi diganggu dialog discoverable yang muncul sendiri; satu-satunya dialog adalah saat admin sengaja membuka Mode Pairing (atau jendela intro sekali seumur instalasi).
+- Koneksi harian: DKM mengetuk TV dari daftar Perangkat Dikenal — tanpa Mode Pairing dan tanpa dialog di TV. "Cari TV" tetap ada untuk pairing pertama.
+- Jalur IP kini praktis: IP dibaca langsung dari menu admin TV.
+- Regresi dikunci 25 test baru: bluetooth_sync +2 (parsing `getBondedDevices`), tv_display +17 (host service: start tanpa discoverable, pairing tepat sekali 300 detik, jendela berakhir sendiri tanpa panggilan susulan; TvStore flag intro; pemilih IP & format teks; overlay: IP tampil, aksi Mode Pairing, countdown), mobile_remote +6 (service perangkat dikenal, widget gerbang). Total: bluetooth_sync 30 -> 32, tv_display 67 -> 84, mobile_remote 99 -> 105 (2 kegagalan lama `home_tab_test.dart` yang bergantung tanggal sistem tidak berubah).
+
+---
+
+## ADR-030 — Tombol OK Remote TV Melewati Fase Shalat
+
+### Konteks
+Permintaan DKM dari tes emulator 17 Nov 2026 (plan Perbaikan Pool Babak 2, item B): saat rangkaian shalat berjalan di TV (azan, khutbah, menunggu iqomah, shalat), admin yang memegang remote TV fisik perlu cara cepat melompat ke fase berikutnya tanpa membuka HP — misalnya azan sudah selesai dibaca muadzin sebelum timer habis, atau shalat selesai lebih cepat. Satu-satunya jalur skip yang ada sebelumnya adalah Menu Tes di Remote HP.
+
+### Keputusan
+1. **`PrayerStateMachine.skipToNextPhase({DateTime? now})`**: metode publik baru yang memanggil logika transisi `_advance()` yang sama dengan jalur timer — satu sumber kebenaran untuk urutan fase, termasuk aturan Jumat (adhan Dzuhur -> khutbah bila `hasFridayPrayer`) dan shalat -> normal (membersihkan prayer/remaining/deadline). No-op saat fase `normal`. Khutbah bisa dilewati seperti fase lain.
+2. **Handler tombol di layar utama TV** (`_MasjidDisplayScreenState`): `HardwareKeyboard.instance.addHandler` didaftarkan di `initState` dan dilepas di `dispose`. Handler hanya menangani `KeyDownEvent` (bukan repeat) untuk `LogicalKeyboardKey.select`/`enter` (DPAD_CENTER remote TV), dan hanya bila **menu admin tertutup** dan fase != `normal` — saat itu memanggil `skipToNextPhase(now: _now)` dan mengembalikan `true` (event dikonsumsi).
+3. **Menu admin terbuka tidak berubah**: handler mengembalikan `false` sehingga event diteruskan ke rantai fokus — OK tetap memilih item menu lewat `Focus.onKeyEvent` di `admin_menu_overlay.dart` seperti sebelumnya, tanpa double-trigger (handler tingkat HardwareKeyboard berjalan lebih dulu, tetapi melepaskan event ke fokus adalah perilaku standarnya).
+
+### Konsekuensi
+- DKM bisa mempercepat seluruh rangkaian dari remote TV: preAdhan -> adhan -> (khutbah Jumat) -> preIqomah -> shalat -> normal, satu fase per tekanan OK.
+- Tidak ada jalur skip baru yang bisa menyimpang dari aturan fase timer, karena keduanya memakai `_advance()` yang sama.
+- Regresi dikunci 10 test baru: 8 unit test transisi `skipToNextPhase` (semua fase + rantai penuh + no-op normal, termasuk adhan Jumat -> khutbah) dan 2 widget test handler tombol (OK no-op aman saat menu tertutup & fase normal; OK mengaktifkan item menu saat menu terbuka). Catatan harness: widget test layar TV wajib memakai `SharedPreferences.setMockInitialValues` + `runAsync` agar rantai init (store -> server lokal -> host BT) selesai di lingkungan test. Total: tv_display 84 -> 94.
+
+---
+
+## ADR-031 — Gambar Latar TV dari Remote: Slideshow, Kompresi & Chunking Bluetooth, Latar Lebih Terang
+
+### Konteks
+Permintaan DKM dari tes emulator 17 Nov 2026 (plan Perbaikan Pool Babak 2, item E + dua penyempurnaan): latar TV selama ini hardcoded `Image.asset('assets/images/bg_mosque.jpg')` dengan overlay hitam 0.85 — tidak bisa diganti dan terasa gelap. DKM harus bisa mengirim gambar latar dari HP, TV menampilkannya sebagai slideshow, dan pengiriman via Bluetooth (RFCOMM lambat) harus praktis: gambar besar perlu dikompresi dan dipecah (chunking) dengan indikator progress, sementara jalur Wi-Fi tetap mengirim kualitas asli.
+
+### Keputusan
+1. **Model & protokol sejajar Gambar Khusus** (ADR-021), tanpa mengubah perilaku Gambar Khusus: model `BackgroundImage` (`id`, `base64Image`, `isActive`) di shared_models, aksi `SyncAction.updateBackgroundImages` (payload `images`), penyimpanan TV di blok TvStore `tv_backgroundImages`, dan `StateSnapshot.backgroundImages` agar Remote tetap menjadikan TV trust source. Editor Remote adalah sub-tab kelima "Gambar Latar" di Konten, meniru pola Fase 3 editor Gambar Khusus (Extended FAB + dialog fullscreen, ReorderableListView, hapus + Urungkan, empty state). Picker di editor ini sengaja TANPA batas ukuran/kualitas: **file asli selalu tersimpan utuh di HP**.
+2. **Slideshow di TV** (`BackgroundSlideshow`): gambar aktif bergiliran dengan crossfade (AnimatedSwitcher 800 ms); indeks maju murni dihitung `nextSlideshowIndex` (wrap-around, aman untuk 0-1 gambar); daftar kosong/semua non-aktif -> fallback `bg_mosque.jpg` bawaan seperti sebelumnya. Overlay gelap tetap lapisan terpisah di layar utama.
+3. **Interval slideshow = field config** `MosqueConfig.backgroundSlideSeconds` (default 30, rentang 5-300 di-clamp di `fromMap`/`copyWith`), dipilih sebagai field config — bukan payload gambar — karena ia perilaku tampilan TV seperti durasi fase lain, ikut tersimpan di TV lewat `updateConfig`, dan ikut snapshot. Di Remote ia diedit dari kartu opsi editor Gambar Latar memakai `StepperRow` Fase 2 yang sama, lewat controller config (`_backgroundSlideController`) sehingga alur dirty/simpan config yang ada berlaku utuh.
+4. **Latar lebih terang**: overlay hitam di atas gambar latar diturunkan dari alpha **0.85 ke 0.60** (berlaku juga untuk fallback), dan alpha ornamen `MaterialBlobBackground` dinaikkan (0.10-0.15 -> 0.16-0.22). Nilai 0.60 dipilih di tengah rentang yang diminta (0.55-0.65): teks putih tetap terbaca jelas di screenshot verifikasi emulator, sementara foto latar kini terlihat nyata.
+5. **Kompresi khusus Bluetooth, saat kirim saja**: keputusan murni `shouldCompressBackgroundForSend` — Bluetooth + opsi "tanpa kompresi" mati (default) = kompres; Bluetooth + opsi aktif = asli; WebSocket = selalu asli. Opsi adalah sakelar di editor Gambar Latar, tersimpan di HP via `BackgroundSendPreferences` (SharedPreferences, pola ThemePreferences). Kompresi = resize dimensi terbesar ke maks **1920 px** + encode **JPEG kualitas 80**, fail-soft (gambar tak ter-decode / hasil tak lebih kecil -> bytes asli dipakai). Implementasi memakai paket murni-Dart **`image`** (dependensi baru mobile_remote) agar logika kompresi ter-unit-test penuh tanpa platform channel; `flutter_image_compress` yang sudah terdeklarasi tetapi tidak pernah dipakai tidak dipilih karena berbasis method channel native (tidak teruji di test VM) — dicatat sebagai dependensi menggantung yang sebaiknya dibersihkan terpisah. Mirror `onSendPacket` di Remote di-intercept khusus untuk `updateBackgroundImages`: leg WebSocket mengirim paket asli, leg Bluetooth mengirim salinan terkompresi.
+6. **Chunking Bluetooth di lapisan SyncPacket** (shared_models `chunked_transfer.dart`), dibangun DI ATAS framing RFCOMM yang ada (satu JSON utuh per frame tetap dipertahankan): paket yang JSON-nya melebihi **ambang 64 KB** dipecah menjadi paket `SyncAction.chunkedData` berisi potongan string JSON asli sepanjang **32 KB per chunk**, dengan metadata `transferId`, `action` (aksi paket asal), `seq`, `total`. Paket di bawah ambang dikirim utuh lewat jalur lama — kompatibel dua arah, dan alur sync lain (config, konten, Gambar Khusus, auth) tidak disentuh sama sekali. Penerima (`ChunkReassembler` di TV, diumpankan dari `_handleSyncPacket`) merangkai ulang dan baru meneruskan paket asli setelah lengkap. Perilaku gagal — metadata tidak valid, `total` di luar 1..2048, `seq` di luar rentang, metadata berubah di tengah transfer, duplikat konflik: **transfer dibuang, `lastError` terisi, tidak ada gambar parsial/korup yang diterapkan**; duplikat identik diabaikan; transfer baru menggantikan transfer lama yang menggantung (pengirim tunggal). Chunking berlaku untuk hasil akhir setelah keputusan kompresi, dan wajib untuk mode tanpa kompresi.
+7. **Indikator progress determinate di Remote**: selama pengiriman Bluetooth ter-chunk, state `_bgSendProgress` (chunk terkirim / total chunk) diperbarui per chunk dan editor Gambar Latar menampilkan `LinearProgressIndicator` + teks "Mengirim NN%". Pengiriman kecil (satu paket) dan jalur WebSocket tidak menampilkan indikator.
+
+### Konsekuensi
+- DKM mengelola latar TV sepenuhnya dari HP; TV tidak perlu disentuh. Gambar asli aman di HP — yang tersimpan di TV hasil jalur Bluetooth adalah versi terkompresi (sesuai pilihan DKM), hasil jalur Wi-Fi adalah asli.
+- Protokol bertambah dua aksi (`updateBackgroundImages`, `chunkedData`) secara aditif; TV/Remote versi lama mengabaikan aksi tak dikenal seperti sebelumnya (fallback `stateUpdate`), dan paket kecil tidak berubah format.
+- Kompresi pure-Dart berjalan sinkron sesaat sebelum chunk dikirim; untuk foto belasan MP ini jeda singkat yang terlihat sebagai awal progress pengiriman — diterima untuk v1, dicatat di sini.
+- Regresi dikunci 49 test baru: shared_models +21 (model, interval config termasuk clamp & payload lama, snapshot, codec chunking: roundtrip byte-identik, urutan acak, chunk hilang, duplikat identik/konflik, metadata rusak, kompatibilitas paket kecil), tv_display +10 (logika rotasi slideshow + widget slideshow/fallback + persist gambar latar TvStore), mobile_remote +18 (keputusan kompresi, kompresi sungguhan, paket terkompresi, preferensi, editor: daftar/empty/sakelar/hapus/stepper/progress). Total: shared_models 70 -> 91, tv_display 94 -> 104, mobile_remote 105 -> 123 (2 kegagalan lama `home_tab_test.dart` yang bergantung tanggal sistem tidak berubah).
+
+---
+
+## ADR-032 — Logo Masjid di Header TV dari Remote
+
+### Konteks
+Permintaan DKM dari tes emulator 17 Nov 2026 (lanjutan Babak 2): header TV selama ini hanya berisi nama + alamat masjid dan jam. DKM ingin bisa memasang **logo masjid** dari HP: bila logo ada, logo tampil di kiri header dan teks nama/alamat bergeser ke kanan; bila tidak ada, tampilan **persis seperti sebelumnya**. Ukuran tampil logo harus **1:1 (persegi)**.
+
+### Keputusan
+1. **Protokol aditif, sejajar Gambar Latar** (ADR-031): aksi baru `SyncAction.updateLogo` (payload `logoBase64`: string base64 gambar asli; `null`/hilang = logo dihapus). Logo ikut `StateSnapshot.mosqueLogo` (snapshot lama tanpa kunci ini -> `null`) agar TV tetap trust source, dan tersimpan di TV pada blok TvStore `tv_mosqueLogo` (simpan `null`/kosong = kunci dibuang). Bukan field config: logo adalah data gambar dengan siklus kirim sendiri, seperti gambar latar — bukan teks pengaturan.
+2. **Tampilan TV** (`HeaderClock.logoBytes`): logo dirender sebagai kotak **76x76 (1:1)** bersudut membulat 14, `BoxFit.cover` (sumber non-persegi di-crop simetris; file asli tidak diubah), di kiri kolom nama/alamat dengan jarak 16. Tanpa logo, widget tidak menyumbang elemen apa pun — tata letak identik dengan sebelumnya (dikunci test: posisi nama bergeser tepat 76+16 saat logo ada, dan tidak ada `Image` sama sekali saat tidak ada). Bytes logo di-decode **sekali** di state layar TV saat logo berubah (bukan di `build`, karena header me-rebuild tiap detik untuk jam); base64 rusak -> bytes `null` -> header tanpa logo (fail-soft), dan bytes gambar tak valid dirender ikon masjid oleh `errorBuilder`.
+3. **Editor di Remote = grup Masjid tab Pengaturan** (bukan sub-tab Konten): logo adalah identitas masjid, segrup dengan nama/alamat. Isinya pratinjau 1:1 72x72 + tombol Pilih/Ganti + Hapus (dengan Urungkan). Berbeda dari field config di grup yang sama, logo **berlaku seketika** lewat aksi sync-nya sendiri (tidak menunggu "Simpan & Update Ke TV"), meniru pola editor konten. Picker tanpa batas ukuran/kualitas: **file asli tersimpan utuh di HP**.
+4. **Pengiriman**: jalur WebSocket selalu gambar asli. Mirror Bluetooth di-intercept khusus `updateLogo` (pola ADR-031): logo diperkecil ke maks **512 px** lalu di-chunk bila JSON > 64 KB, dengan progress determinate "Mengirim logo NN%" di Pengaturan (state `_logoSendProgress`). Perkecilan logo **menjaga transparansi** — gambar ber-alpha di-encode PNG, tanpa alpha JPEG kualitas 85 (`logo_send_service.dart`, paket `image` yang sama) — karena logo umumnya PNG transparan dan JPEG akan menempelkan latar buram. Tidak ada opsi "tanpa kompresi" untuk logo: pada 512 px ukurannya sudah kecil dan 512 px jauh di atas kebutuhan tampil 76 dp. Konsekuensinya, logo yang tersimpan di TV hasil jalur Bluetooth adalah versi 512 px; hasil Wi-Fi adalah asli.
+5. **Penghapusan** adalah paket `updateLogo` dengan `logoBase64: null`; TV membersihkan state + penyimpanan dan header kembali ke tampilan tanpa logo.
+
+### Konsekuensi
+- DKM memasang/mengganti/menghapus logo sepenuhnya dari HP; header TV berubah tanpa menyentuh TV.
+- Protokol bertambah satu aksi secara aditif; versi lama mengabaikan `updateLogo` seperti aksi tak dikenal lainnya.
+- Regresi dikunci 21 test baru: shared_models +3 (snapshot logo round-trip + toleransi snapshot lama + paket updateLogo termasuk penghapusan), tv_display +5 (persist logo TvStore: simpan/muat/hapus/data lama; HeaderClock: tanpa logo identik, dengan logo kotak 1:1 + nama bergeser), mobile_remote +13 (penyiapan Bluetooth: perkecilan, alpha->PNG, tanpa alpha->JPEG, kecil apa adanya, fail-soft, transformasi paket; editor Pengaturan: pratinjau 1:1, Pilih/Ganti/Hapus, progress). Total: shared_models 91 -> 94, tv_display 104 -> 109, mobile_remote 132 -> 145 (termasuk 9 test perbaikan GPS yang mendarat tepat sebelumnya; suite mobile_remote kini hijau penuh dengan TZ=Asia/Jakarta).
+
+---
+
+## ADR-033 — Dialog Simulasi Jadwal Blank: Data Locale intl Tidak Pernah Diinisialisasi
+
+### Konteks
+Laporan DKM 17 Nov 2026: dialog "Simulasi Perhitungan Jadwal" (tab Pengaturan → Simulasi Jadwal) hanya menghasilkan tampilan kosong/blank. Reproduksi di emulator menghasilkan stack trace `LocaleDataException: Locale data has not been initialized, call initializeDateFormatting(<locale>)` dari `DateFormat('EEEE, d MMMM yyyy', 'id_ID')` di dalam builder dialog (main.dart lama, baris 1882): builder melempar **sebelum** `AlertDialog` sempat dibangun, sehingga pada build rilis yang tampil hanya barrier redup tanpa dialog sama sekali. Akar masalahnya sistemik: **tidak ada satu pun app yang pernah memanggil `initializeDateFormatting`**. Kode lain selamat karena memakai format manual (Beranda memakai `formatTanggalId` dengan komentar eksplisit "tanpa inisialisasi locale intl") atau locale default; `HeaderClock` TV menelan error yang sama lewat try/catch sehingga tanggal header TV selama ini tampil bahasa Inggris ("Tuesday, 17 November 2026") alih-alih bahasa Indonesia yang diniatkan kode.
+
+### Keputusan
+1. **Inisialisasi locale di kedua `main()`**: `await initializeDateFormatting('id_ID', null)` tepat setelah `WidgetsFlutterBinding.ensureInitialized()` di mobile_remote dan tv_display. Ini memperbaiki akar masalah untuk semua pemakai `DateFormat`/`NumberFormat` berlokale, sekarang dan mendatang. Try/catch di `HeaderClock` dipertahankan sebagai jaring pengaman, tetapi jalur utamanya kini berhasil dan tanggal TV tampil bahasa Indonesia.
+2. **Dialog diekstrak menjadi widget sendiri**: `ScheduleSimulationDialog` (`lib/screens/simulation/schedule_simulation_dialog.dart`) dengan parameter `config`, `hasFridayPrayer`, dan `initialDateTime` opsional (agar test deterministik). `_showScheduleSimulation` di main.dart tinggal membuka dialog itu; isi dan perilaku dialog tidak berubah.
+3. **Label tanggal dialog memakai format manual** `formatTanggalId` (konvensi Beranda yang sudah ada), bukan `DateFormat` id_ID — dialog tidak boleh bisa blank lagi hanya karena inisialisasi locale terlewat, apa pun urutan startup-nya.
+
+### Konsekuensi
+- Dialog simulasi tampil penuh kembali; tanggal header TV berubah dari bahasa Inggris menjadi bahasa Indonesia — perubahan terlihat yang disengaja, sesuai format yang ditulis kode sejak awal.
+- Regresi dikunci oleh test yang **sengaja tidak** menginisialisasi locale: mobile_remote +5 (`schedule_simulation_dialog_test.dart`: dialog terbangun tanpa error + label tanggal Indonesia, enam baris jadwal dengan sorotan SELANJUTNYA, label Jumat/Dzuhur dua arah, Subuh besok saat larut malam), tv_display +1 (setelah `initializeDateFormatting`, `HeaderClock` menampilkan "Selasa, 17 November 2026").
+
+---
+
+## ADR-034 — Test Jadwal Harus Kebal Zona Waktu Mesin
+
+### Konteks
+CI pada PR #14 (pool → main, 17 Nov 2026) gagal pada 3 test mobile_remote yang semuanya lolos di mesin pengembangan: dua test `nextPrayerInfo` di `home_tab_test.dart` dan satu test dialog simulasi. Polanya identik: mengharapkan Subuh, mendapat Dzuhur, atau selisih satu hari. Reproduksi lokal dengan `TZ=UTC` menghasilkan 3 kegagalan yang sama persis; dengan `TZ=Asia/Jakarta` semuanya hijau.
+
+Akar masalahnya ada di **asumsi test, bukan di kode produksi**: `PrayerSchedule.calculate` (paket adhan) mengembalikan **instan absolut** yang benar — waktu shalat Jakarta sebagai momen absolut — sedangkan test meng-hardcode jam dinding lokal ("pukul 00.30/03.00 pasti sebelum Subuh", "pukul 23.59 pasti setelah Isya", "hari kalender berikutnya pasti tanggal +1"). Makna jam dinding itu hanya benar bila zona waktu mesin sama dengan zona waktu masjid. Di runner CI (UTC), pukul 00.30 UTC memang sudah melewati Subuh Jakarta (04.03 WIB = 21.03 UTC hari sebelumnya), sehingga shalat berikutnya secara sah adalah Dzuhur — helper produksi benar, premis test yang salah. Di HP DKM (zona Indonesia) perilaku app tidak berubah dan tidak pernah bermasalah.
+
+### Keputusan
+Test yang menyangkut "shalat berikutnya" **tidak boleh meng-hardcode jam dinding lokal**. Waktu acuan diturunkan dari jadwal terhitung itu sendiri: "pagi hari" = 30 menit sebelum Subuh hasil `PrayerSchedule.calculate` pada tanggal acuan; "larut malam" = 30 menit setelah Isya. Ekspektasi dibandingkan sebagai instan (kesetaraan `DateTime` hasil hitung), bukan komponen kalender lokal seperti `.day`. Berlaku untuk `home_tab_test.dart` dan `schedule_simulation_dialog_test.dart`; test lain yang premisnya murni kalender lokal eksplisit (label tanggal, label Jumat) tidak berubah.
+
+### Konsekuensi
+- Test "shalat berikutnya" terverifikasi hijau lokal di `TZ=UTC` (zona runner CI) dan `TZ=Asia/Jakarta` (zona pemakaian app); CI PR tidak lagi bergantung zona runner selama zona itu tidak lebih barat dari masjid secara ekstrem. Test label Jumat/tanggal tetap memakai premis kalender lokal secara sadar — meniru semantik app sendiri yang mengunci tanggal jadwal dari kalender lokal HP (di zona Indonesia, target pemakaian app, selalu konsisten).
+- Aturan ini menjadi konvensi penulisan test jadwal berikutnya: turunkan waktu acuan dari jadwal, jangan dari jam dinding.
+
+---

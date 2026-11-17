@@ -1,7 +1,9 @@
+import 'background_image.dart';
 import 'kas_transaction.dart';
 import 'media_banner.dart';
 import 'mosque_config.dart';
 import 'running_text.dart';
+import 'special_image.dart';
 
 /// Menyalin [raw] menjadi map berkunci String tanpa `as` cast mentah.
 ///
@@ -32,7 +34,8 @@ List<T> _parseList<T>(
 /// Snapshot keadaan lengkap TV (`SyncAction.stateSnapshot`, TV -> Remote).
 ///
 /// Membawa sekaligus seluruh data yang dimiliki TV — konfigurasi masjid,
-/// teks berjalan, banner informasi, dan transaksi kas — sehingga Remote bisa
+/// teks berjalan, banner informasi, transaksi kas, dan gambar khusus slot
+/// samping — sehingga Remote bisa
 /// memakai TV sebagai **trust source** (TV menimpa Remote, bukan sebaliknya).
 ///
 /// [hasData] menandai apakah TV sudah pernah diisi data resmi (hasil persist
@@ -43,6 +46,17 @@ class StateSnapshot {
   final List<RunningTextMessage> runningTexts;
   final List<MediaBanner> banners;
   final List<KasTransaction> kasTransactions;
+
+  /// Kartu gambar khusus slot samping TV (urutan = urutan tampil).
+  final List<SpecialImage> sideImages;
+
+  /// Gambar latar TV untuk slideshow (urutan = urutan tampil, ADR-031).
+  final List<BackgroundImage> backgroundImages;
+
+  /// Logo masjid (base64 gambar asli, tanpa prefix `data:`) yang tampil
+  /// di header TV; `null` = tidak ada logo, header seperti biasa
+  /// (ADR-032).
+  final String? mosqueLogo;
   final bool hasData;
 
   const StateSnapshot({
@@ -50,6 +64,9 @@ class StateSnapshot {
     this.runningTexts = const [],
     this.banners = const [],
     this.kasTransactions = const [],
+    this.sideImages = const [],
+    this.backgroundImages = const [],
+    this.mosqueLogo,
     this.hasData = false,
   });
 
@@ -60,6 +77,11 @@ class StateSnapshot {
         'kasTransactions': [
           for (final transaction in kasTransactions) transaction.toMap(),
         ],
+        'sideImages': [for (final image in sideImages) image.toMap()],
+        'backgroundImages': [
+          for (final image in backgroundImages) image.toMap()
+        ],
+        'mosqueLogo': mosqueLogo,
         'hasData': hasData,
       };
 
@@ -72,11 +94,21 @@ class StateSnapshot {
       config: rawConfig is Map
           ? MosqueConfig.fromMap(_stringKeyed(rawConfig))
           : const MosqueConfig(),
-      runningTexts:
-          _parseList(map['runningTexts'], RunningTextMessage.fromMap),
+      runningTexts: _parseList(map['runningTexts'], RunningTextMessage.fromMap),
       banners: _parseList(map['banners'], MediaBanner.fromMap),
       kasTransactions:
           _parseList(map['kasTransactions'], KasTransaction.fromMap),
+      // Snapshot lama belum punya kunci ini -> daftar kosong.
+      sideImages: _parseList(map['sideImages'], SpecialImage.fromMap),
+      // Snapshot lama belum punya kunci ini -> daftar kosong.
+      backgroundImages:
+          _parseList(map['backgroundImages'], BackgroundImage.fromMap),
+      // Snapshot lama belum punya kunci ini -> tanpa logo. String
+      // kosong juga diperlakukan sebagai tanpa logo.
+      mosqueLogo: map['mosqueLogo'] is String &&
+              (map['mosqueLogo'] as String).isNotEmpty
+          ? map['mosqueLogo'] as String
+          : null,
       hasData: rawHasData is bool ? rawHasData : false,
     );
   }
@@ -97,7 +129,10 @@ class StateSnapshot {
           other.hasData == hasData &&
           _listsEqual(other.runningTexts, runningTexts) &&
           _listsEqual(other.banners, banners) &&
-          _listsEqual(other.kasTransactions, kasTransactions);
+          _listsEqual(other.kasTransactions, kasTransactions) &&
+          _listsEqual(other.sideImages, sideImages) &&
+          _listsEqual(other.backgroundImages, backgroundImages) &&
+          other.mosqueLogo == mosqueLogo;
 
   @override
   int get hashCode => Object.hash(
@@ -106,11 +141,16 @@ class StateSnapshot {
         Object.hashAll(runningTexts),
         Object.hashAll(banners),
         Object.hashAll(kasTransactions),
+        Object.hashAll(sideImages),
+        Object.hashAll(backgroundImages),
+        mosqueLogo,
       );
 
   @override
-  String toString() =>
-      'StateSnapshot(hasData: $hasData, config: $config, '
+  String toString() => 'StateSnapshot(hasData: $hasData, config: $config, '
       'runningTexts: ${runningTexts.length}, banners: ${banners.length}, '
-      'kasTransactions: ${kasTransactions.length})';
+      'kasTransactions: ${kasTransactions.length}, '
+      'sideImages: ${sideImages.length}, '
+      'backgroundImages: ${backgroundImages.length}, '
+      'mosqueLogo: ${mosqueLogo == null ? 'null' : '[set]'})';
 }

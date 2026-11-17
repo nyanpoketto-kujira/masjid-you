@@ -204,6 +204,24 @@ class BluetoothSync {
 
   // ---- Sisi CLIENT (Remote) ------------------------------------------
 
+  /// Daftar perangkat yang sudah ter-bond (paired) dengan HP ini.
+  ///
+  /// Dipakai Remote untuk koneksi harian: perangkat yang sudah pernah
+  /// pairing bisa disambung langsung tanpa TV masuk mode discoverable
+  /// lagi (ADR-029). Mengembalikan daftar kosong bila Bluetooth mati,
+  /// tidak didukung, atau izin client belum diberikan — pemanggil yang
+  /// butuh izin sebaiknya memastikan izin lebih dulu.
+  static Future<List<BluetoothDeviceInfo>> getBondedDevices() async {
+    final raw =
+        await _channel.invokeMethod<List<dynamic>>('getBondedDevices');
+    if (raw == null) return const [];
+    return raw
+        .whereType<Map<dynamic, dynamic>>()
+        .map(BluetoothDeviceInfo.fromMap)
+        .where((d) => d.address.isNotEmpty)
+        .toList();
+  }
+
   /// Mulai discovery Bluetooth Classic. Hasil perangkat lewat event
   /// `discovered`, dan diakhiri event `discoveryFinished`.
   static Future<void> startDiscovery({int timeoutMs = 15000}) =>

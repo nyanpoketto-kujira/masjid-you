@@ -8,9 +8,14 @@ import '../theme/m3_shape_border.dart';
 class PrayerCardsRow extends StatelessWidget {
   final PrayerSchedule schedule;
 
+  /// Ada shalat Jumat (Jumatan). Bila `false` (musholla), kartu Dzuhur tidak
+  /// berganti label menjadi "Jumat" di hari Jumat.
+  final bool hasFridayPrayer;
+
   const PrayerCardsRow({
     super.key,
     required this.schedule,
+    this.hasFridayPrayer = true,
   });
 
   @override
@@ -26,7 +31,9 @@ class PrayerCardsRow extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 6.0),
             child: Card(
-              color: isNext ? colorScheme.primaryContainer : colorScheme.surfaceContainer,
+              color: isNext
+                  ? colorScheme.primaryContainer
+                  : colorScheme.surfaceContainer,
               elevation: 0,
               shape: isNext
                   ? RoundedRectangleBorder(
@@ -36,17 +43,22 @@ class PrayerCardsRow extends StatelessWidget {
                   : M3ShapeBorder(
                       MaterialShapes.slanted,
                       side: BorderSide(
-                        color: colorScheme.outlineVariant.withValues(alpha: 0.2),
+                        color:
+                            colorScheme.outlineVariant.withValues(alpha: 0.2),
                         width: 1,
                       ),
                     ),
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      item.type.displayNameForDate(item.time),
+                      item.type.displayNameForDate(
+                        item.time,
+                        hasFridayPrayer: hasFridayPrayer,
+                      ),
                       textAlign: TextAlign.center,
                       style: theme.textTheme.titleMedium?.copyWith(
                         color: isNext

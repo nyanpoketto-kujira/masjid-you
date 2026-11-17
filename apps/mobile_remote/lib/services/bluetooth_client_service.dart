@@ -22,6 +22,10 @@ class BluetoothClientState {
   final bool isScanning;
   final bool isConnected;
   final List<BluetoothDeviceInfo> devices;
+
+  /// Perangkat yang sudah ter-bond dengan HP ini (ADR-029): bisa
+  /// disambung langsung tanpa discovery / Mode Pairing di TV.
+  final List<BluetoothDeviceInfo> knownDevices;
   final String? peerName;
   final String? error;
 
@@ -30,6 +34,7 @@ class BluetoothClientState {
     this.isScanning = false,
     this.isConnected = false,
     this.devices = const [],
+    this.knownDevices = const [],
     this.peerName,
     this.error,
   });
@@ -58,6 +63,7 @@ class BluetoothClientService {
   bool _disposed = false;
   int _reconnectAttempts = 0;
   List<BluetoothDeviceInfo> _devices = const [];
+  List<BluetoothDeviceInfo> _knownDevices = const [];
   String? _peerName;
   String? _error;
 
@@ -94,6 +100,7 @@ class BluetoothClientService {
         isScanning: _discovering,
         isConnected: _connected,
         devices: _devices,
+        knownDevices: _knownDevices,
         peerName: _peerName,
         error: _error,
       );
@@ -177,6 +184,23 @@ class BluetoothClientService {
       await BluetoothSync.stopDiscovery();
     } catch (_) {}
     _emit();
+  }
+
+  /// Muat ulang daftar perangkat dikenal (sudah ter-bond) untuk koneksi
+  /// harian tanpa discovery (ADR-029).
+  ///
+  /// Sengaja TIDAK meminta izin: bila izin client belum diberikan, daftar
+  /// dibiarkan apa adanya (permintaan izin terjadi lewat "Cari TV" /
+  /// connect). Kegagalan platform juga gagal-soft.
+  Future<void> refreshKnownDevices() async {
+    if (_disposed) return;
+    try {
+      if (!await BluetoothSync.hasPermission()) return;
+      _knownDevices = await BluetoothSync.getBondedDevices();
+      _emit();
+    } catch (e) {
+      debugPrint('BT muat perangkat dikenal gagal: $e');
+    }
   }
 
   /// Tangani perubahan lifecycle app. Putus koneksi BT hanya saat [AppLifecycleState.detached].
@@ -332,6 +356,9 @@ class BluetoothClientService {
       case BluetoothSyncEventType.discoveryFinished:
         _discovering = false;
         _emit();
+        // Scan selesai: segarkan juga daftar perangkat dikenal — pairing
+        // yang baru selesai membuat TV muncul di daftar bonded (ADR-029).
+        unawaited(refreshKnownDevices());
         break;
       case BluetoothSyncEventType.connected:
         _connectWatchdog?.cancel();

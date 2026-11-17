@@ -1,5 +1,25 @@
 # mobile_remote — Tema & Shape (theme_shapes.md)
 
+> **Pembaruan Fase 1 refaktor Material You (ADR-023, 16 Nov 2026):**
+> `M3Pressable` **dihapus** dari mobile_remote (keputusan D4) — seluruh
+> tombol memakai feedback InkWell standar M3; file
+> `lib/widgets/m3_pressable.dart` dan `lib/widgets/playful_nav_icon.dart`
+> sudah tidak ada. Catatan historis tentang M3Pressable di bawah ini
+> dipertahankan sebagai riwayat keputusan ADR-012.
+
+> **Pembaruan Fase 0 refaktor Material You (ADR-022, 16 Nov 2026):** shape
+> TIDAK berubah (tetap standar di bawah ini). Yang berubah adalah sumber
+> skema warna & kelengkapan tema di `lib/theme/remote_theme.dart`:
+> `buildRemoteTheme` kini menerima `ColorScheme` utuh dari
+> `resolveRemoteColorScheme` — dynamic color wallpaper (package
+> `dynamic_color`, Android 12+) bila sumber warna "Ikuti Wallpaper",
+> selain itu seed "Hijau Masjid" (`kMasjidSeedColor` `0xFF006A60`).
+> Ditambah tema komponen: AppBar (scrolledUnderElevation 3), ListTile
+> (r12), SegmentedButton (pill), FAB (r16), SnackBar (floating, r12).
+> Preferensi mode tema + sumber warna disimpan `ThemePreferences`
+> (SharedPreferences) dan diatur dari seksi "Tampilan Aplikasi" di
+> Pengaturan.
+
 > Dokumen arsitektur untuk **perubahan tema terbaru** di `apps/mobile_remote`:
 > **revert** tema M3 Expressive (`MaterialShapes.puffy`/`pill` — tampak seperti
 > clover) kembali ke **shape Material 3 standar** (square/rounded).

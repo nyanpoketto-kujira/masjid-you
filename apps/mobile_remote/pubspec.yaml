@@ -32,11 +32,15 @@ dependencies:
   web_socket_channel: ^3.0.1
   intl: ^0.19.0
   cupertino_icons: ^1.0.8
+  dynamic_color: ^1.8.1
   geolocator: ^14.0.3
   shared_preferences: ^2.3.0
   image_picker: ^1.1.2
+  # Murni-Dart: kompresi gambar latar saat kirim via Bluetooth (ADR-031).
+  image: ^4.5.4
   flutter_image_compress: ^2.3.0
   file_picker: ^13.1.0
+  animations: ^2.2.0
 
 dev_dependencies:
   flutter_test:
