@@ -124,6 +124,18 @@ class RemoteWsClient {
     ));
   }
 
+  /// Kirim daftar gambar latar TV (ADR-031). Paket yang keluar lewat
+  /// WebSocket selalu gambar asli; mirror Bluetooth-nya di-intercept
+  /// pemanggil untuk kompresi + chunking (lihat `background_send_service`).
+  void sendBackgroundImagesUpdate(List<BackgroundImage> images) {
+    sendPacket(SyncPacket(
+      action: SyncAction.updateBackgroundImages,
+      payload: {
+        'images': images.map((i) => i.toMap()).toList(),
+      },
+    ));
+  }
+
   void sendKasUpdate(List<KasTransaction> transactions) {
     sendPacket(SyncPacket(
       action: SyncAction.updateKas,

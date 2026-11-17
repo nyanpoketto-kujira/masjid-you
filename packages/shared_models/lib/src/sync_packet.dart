@@ -9,6 +9,18 @@ enum SyncAction {
   /// Remote -> TV: daftar kartu gambar khusus slot samping TV
   /// (payload: `images`, lihat `SpecialImage`).
   updateSideImages,
+
+  /// Remote -> TV: daftar gambar latar TV untuk slideshow
+  /// (payload: `images`, lihat `BackgroundImage`). Interval slideshow
+  /// adalah field config `backgroundSlideSeconds` (ADR-031).
+  updateBackgroundImages,
+
+  /// Transfer ter-chunk untuk payload besar via Bluetooth: satu potongan
+  /// string JSON paket lain (payload: `transferId`, `action`, `seq`,
+  /// `total`, `data` — lihat `chunked_transfer.dart`, ADR-031). Paket ini
+  /// tidak pernah diteruskan ke handler aplikasi; penerima merangkainya
+  /// kembali menjadi paket asli lebih dulu.
+  chunkedData,
   triggerBeep,
   getInitialState,
   stateUpdate,

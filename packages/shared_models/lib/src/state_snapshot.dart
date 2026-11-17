@@ -1,3 +1,4 @@
+import 'background_image.dart';
 import 'kas_transaction.dart';
 import 'media_banner.dart';
 import 'mosque_config.dart';
@@ -48,6 +49,9 @@ class StateSnapshot {
 
   /// Kartu gambar khusus slot samping TV (urutan = urutan tampil).
   final List<SpecialImage> sideImages;
+
+  /// Gambar latar TV untuk slideshow (urutan = urutan tampil, ADR-031).
+  final List<BackgroundImage> backgroundImages;
   final bool hasData;
 
   const StateSnapshot({
@@ -56,6 +60,7 @@ class StateSnapshot {
     this.banners = const [],
     this.kasTransactions = const [],
     this.sideImages = const [],
+    this.backgroundImages = const [],
     this.hasData = false,
   });
 
@@ -67,6 +72,9 @@ class StateSnapshot {
           for (final transaction in kasTransactions) transaction.toMap(),
         ],
         'sideImages': [for (final image in sideImages) image.toMap()],
+        'backgroundImages': [
+          for (final image in backgroundImages) image.toMap()
+        ],
         'hasData': hasData,
       };
 
@@ -85,6 +93,9 @@ class StateSnapshot {
           _parseList(map['kasTransactions'], KasTransaction.fromMap),
       // Snapshot lama belum punya kunci ini -> daftar kosong.
       sideImages: _parseList(map['sideImages'], SpecialImage.fromMap),
+      // Snapshot lama belum punya kunci ini -> daftar kosong.
+      backgroundImages:
+          _parseList(map['backgroundImages'], BackgroundImage.fromMap),
       hasData: rawHasData is bool ? rawHasData : false,
     );
   }
@@ -106,7 +117,8 @@ class StateSnapshot {
           _listsEqual(other.runningTexts, runningTexts) &&
           _listsEqual(other.banners, banners) &&
           _listsEqual(other.kasTransactions, kasTransactions) &&
-          _listsEqual(other.sideImages, sideImages);
+          _listsEqual(other.sideImages, sideImages) &&
+          _listsEqual(other.backgroundImages, backgroundImages);
 
   @override
   int get hashCode => Object.hash(
@@ -116,11 +128,13 @@ class StateSnapshot {
         Object.hashAll(banners),
         Object.hashAll(kasTransactions),
         Object.hashAll(sideImages),
+        Object.hashAll(backgroundImages),
       );
 
   @override
   String toString() => 'StateSnapshot(hasData: $hasData, config: $config, '
       'runningTexts: ${runningTexts.length}, banners: ${banners.length}, '
       'kasTransactions: ${kasTransactions.length}, '
-      'sideImages: ${sideImages.length})';
+      'sideImages: ${sideImages.length}, '
+      'backgroundImages: ${backgroundImages.length})';
 }

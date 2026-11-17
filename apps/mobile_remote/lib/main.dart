@@ -11,6 +11,7 @@ import 'package:dynamic_color/dynamic_color.dart';
 
 import '../services/ws_client.dart';
 import '../services/bluetooth_client_service.dart';
+import '../services/background_send_service.dart';
 import '../services/remote_cache_store.dart';
 import '../services/backup_service.dart';
 import '../theme/remote_theme.dart';
@@ -22,6 +23,7 @@ import 'screens/content/running_text_subtab.dart';
 import 'screens/content/banners_subtab.dart';
 import 'screens/content/kas_subtab.dart';
 import 'screens/content/special_images_subtab.dart';
+import 'screens/content/background_images_subtab.dart';
 import 'screens/connection/connection_gateway_screen.dart';
 import 'screens/simulation/simulation_tab.dart';
 
@@ -244,6 +246,12 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
   final _fridayKhatibController = TextEditingController();
   final _fridayMuadzinController = TextEditingController();
 
+  /// Interval slideshow gambar latar TV (detik per gambar) — field
+  /// config `backgroundSlideSeconds`, diedit dari sub-tab Gambar Latar
+  /// lewat StepperRow (ADR-031); alur simpannya sama seperti controller
+  /// config lain (dirty -> simpan di Pengaturan / kirim semua).
+  final _backgroundSlideController = TextEditingController();
+
   /// Nilai form toggle tampilan kartu samping TV (sumber kebenaran akhirnya
   /// di [_config]; field ini mengikuti `_syncConfigControllers`).
   bool _showKas = true;
@@ -316,10 +324,21 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
   /// Kartu gambar khusus slot samping TV (urutan daftar = urutan rotasi).
   final List<SpecialImage> _sideImages = [];
 
+  /// Gambar latar slideshow TV (urutan daftar = urutan tampil, ADR-031).
+  final List<BackgroundImage> _backgroundImages = [];
+
+  /// Opsi kirim gambar latar via Bluetooth tanpa kompresi (ADR-031);
+  /// tersimpan lokal di HP lewat [BackgroundSendPreferences].
+  bool _bgSendUncompressed = false;
+
+  /// Progress pengiriman gambar latar ter-chunk via Bluetooth (0.0-1.0);
+  /// `null` = tidak ada pengiriman berjalan.
+  double? _bgSendProgress;
+
   @override
   void initState() {
     super.initState();
-    _subTabController = TabController(length: 4, vsync: this);
+    _subTabController = TabController(length: 5, vsync: this);
     _syncConfigControllers();
     _attachConfigListeners();
 
@@ -329,10 +348,22 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
     _client.onDisconnected = _handleTransportDisconnected;
     _btClient.onPacket = _handleTvPacket;
     // Pasrik bacak keluar WS -> mirror ke Bluetooth (agar jalur BT saja
-    // yang tersambung, paket tetap terkirim).
+    // yang tersambung, paket tetap terkirim). Paket gambar latar
+    // di-intercept: jalur BT-nya lewat kompresi + chunking + progress
+    // (ADR-031), bukan kirim mentah seperti paket lain.
     _client.onSendPacket = (packet) {
-      _btClient.sendPacket(packet);
+      if (packet.action == SyncAction.updateBackgroundImages) {
+        unawaited(_mirrorBackgroundImagesToBt(packet));
+      } else {
+        _btClient.sendPacket(packet);
+      }
     };
+    // Muat opsi kirim gambar latar (tanpa kompresi?) dari penyimpanan HP.
+    unawaited(() async {
+      final uncompressed =
+          await BackgroundSendPreferences.loadSendUncompressed();
+      if (mounted) setState(() => _bgSendUncompressed = uncompressed);
+    }());
     // TV meminta PIN: tampilkan dialog PIN.
     _btClient.onAuthChallenge = (challenge) {
       _showPinDialog();
@@ -442,6 +473,8 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
     _khutbahController.text = _config.khutbahMinutes.toString();
     _fridayKhatibController.text = _config.fridayKhatib;
     _fridayMuadzinController.text = _config.fridayMuadzin;
+    _backgroundSlideController.text =
+        _config.backgroundSlideSeconds.toString();
     _showKas = _config.showKas;
     _hasFridayPrayer = _config.hasFridayPrayer;
   }
@@ -464,6 +497,7 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
       _khutbahController,
       _fridayKhatibController,
       _fridayMuadzinController,
+      _backgroundSlideController,
     ];
     for (final controller in controllers) {
       controller.addListener(_onConfigControllerChanged);
@@ -509,6 +543,9 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
     _sideImages
       ..clear()
       ..addAll(snapshot.sideImages);
+    _backgroundImages
+      ..clear()
+      ..addAll(snapshot.backgroundImages);
     _syncConfigControllers();
   }
 
@@ -793,6 +830,7 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
     _client.sendBannersUpdate(_banners);
     _client.sendKasUpdate(_kasTransactions);
     _client.sendSideImagesUpdate(_sideImages);
+    _client.sendBackgroundImagesUpdate(_backgroundImages);
   }
 
   /// Export snapshot keadaan saat ini ke file backup JSON.
@@ -803,6 +841,7 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
       banners: List.of(_banners),
       kasTransactions: List.of(_kasTransactions),
       sideImages: List.of(_sideImages),
+      backgroundImages: List.of(_backgroundImages),
       hasData: true,
     );
     final savedPath = await _backupService.exportToFile(
@@ -845,6 +884,7 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
               Text('Banner: ${snapshot.banners.length}'),
               Text('Transaksi Kas: ${snapshot.kasTransactions.length}'),
               Text('Gambar Khusus: ${snapshot.sideImages.length}'),
+              Text('Gambar Latar: ${snapshot.backgroundImages.length}'),
               const SizedBox(height: 12),
               const Text('Sure ingin terapkan backup ini?'),
             ],
@@ -877,6 +917,7 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
       banners: List.of(_banners),
       kasTransactions: List.of(_kasTransactions),
       sideImages: List.of(_sideImages),
+      backgroundImages: List.of(_backgroundImages),
       hasData: true,
     );
     await _cacheStore.save(oldSnapshot);
@@ -1050,6 +1091,10 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
           : _fridayMuadzinController.text.trim(),
       showKas: _showKas,
       hasFridayPrayer: _hasFridayPrayer,
+      backgroundSlideSeconds: MosqueConfig.clampBackgroundSlideSeconds(
+        _minutesFrom(
+            _backgroundSlideController, _config.backgroundSlideSeconds),
+      ),
     );
   }
 
@@ -1069,6 +1114,7 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
     _client.sendBannersUpdate(_banners);
     _client.sendKasUpdate(_kasTransactions);
     _client.sendSideImagesUpdate(_sideImages);
+    _client.sendBackgroundImagesUpdate(_backgroundImages);
   }
 
   void _pushAllToTv() {
@@ -1457,6 +1503,114 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
     _sendSideImagesIfConnected();
   }
 
+  /// Pola kirim gambar latar sama seperti gambar khusus (ADR-031): ubah
+  /// state lokal, lalu kirim daftar terbaru bila terhubung. Jalur
+  /// WebSocket membawa gambar asli; mirror Bluetooth-nya di-intercept
+  /// untuk kompresi + chunking (lihat [_mirrorBackgroundImagesToBt]).
+  void _sendBackgroundImagesIfConnected() {
+    if (_isConnected) {
+      _client.sendBackgroundImagesUpdate(_backgroundImages);
+      setState(() {
+        _hasUnsyncedChanges = false;
+      });
+    }
+  }
+
+  /// Mirror khusus paket gambar latar ke Bluetooth (ADR-031).
+  ///
+  /// Dipanggil dari `RemoteWsClient.onSendPacket` menggantikan mirror
+  /// mentah: paket dikompresi dulu (kecuali opsi tanpa kompresi aktif),
+  /// lalu dipecah menjadi chunk `chunkedData` bila besar — dengan
+  /// progress determinate per chunk untuk indikator di editor. Paket
+  /// kecil tetap dikirim utuh seperti biasa. Bluetooth yang tidak
+  /// tersambung/terautentikasi membuat seluruh proses ini no-op, sama
+  /// seperti `BluetoothClientService.sendPacket` biasa.
+  Future<void> _mirrorBackgroundImagesToBt(SyncPacket packet) async {
+    if (!_btClient.isConnected || !_btClient.isAuthenticated) return;
+    var effective = packet;
+    if (shouldCompressBackgroundForSend(
+      transport: BackgroundSendTransport.bluetooth,
+      sendUncompressed: _bgSendUncompressed,
+    )) {
+      effective = compressedBackgroundPacket(packet);
+    }
+    final encoding = encodeChunkedTransfer(effective);
+    if (!encoding.chunked) {
+      await _btClient.sendPacket(effective);
+      return;
+    }
+    if (mounted) setState(() => _bgSendProgress = 0);
+    try {
+      for (var i = 0; i < encoding.packets.length; i++) {
+        await _btClient.sendPacket(encoding.packets[i]);
+        if (mounted) {
+          setState(
+              () => _bgSendProgress = (i + 1) / encoding.packets.length);
+        }
+      }
+    } finally {
+      if (mounted) setState(() => _bgSendProgress = null);
+    }
+  }
+
+  void _addBackgroundImage(String base64Image) {
+    if (base64Image.isEmpty) return;
+    setState(() {
+      _backgroundImages.add(BackgroundImage(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        base64Image: base64Image,
+      ));
+      _hasUnsyncedChanges = true;
+    });
+    _sendBackgroundImagesIfConnected();
+  }
+
+  void _removeBackgroundImage(String id) {
+    final index = _backgroundImages.indexWhere((i) => i.id == id);
+    if (index < 0) return;
+    final removed = _backgroundImages[index];
+    setState(() {
+      _backgroundImages.removeAt(index);
+      _hasUnsyncedChanges = true;
+    });
+    _sendBackgroundImagesIfConnected();
+    _showUndoSnack('Gambar latar dihapus', () {
+      setState(() {
+        _backgroundImages.insert(index, removed);
+        _hasUnsyncedChanges = true;
+      });
+      _sendBackgroundImagesIfConnected();
+    });
+  }
+
+  void _toggleBackgroundImage(String id, bool val) {
+    setState(() {
+      final index = _backgroundImages.indexWhere((i) => i.id == id);
+      if (index >= 0) {
+        _backgroundImages[index] =
+            _backgroundImages[index].copyWith(isActive: val);
+      }
+      _hasUnsyncedChanges = true;
+    });
+    _sendBackgroundImagesIfConnected();
+  }
+
+  void _reorderBackgroundImages(int oldIndex, int newIndex) {
+    setState(() {
+      final item = _backgroundImages.removeAt(oldIndex);
+      _backgroundImages.insert(newIndex, item);
+      _hasUnsyncedChanges = true;
+    });
+    _sendBackgroundImagesIfConnected();
+  }
+
+  /// Sakelar "kirim tanpa kompresi" di editor Gambar Latar: state lokal
+  /// HP, langsung disimpan persisten (ADR-031).
+  void _onBgSendUncompressedChanged(bool value) {
+    setState(() => _bgSendUncompressed = value);
+    unawaited(BackgroundSendPreferences.saveSendUncompressed(value));
+  }
+
   /// Edit banner dalam dialog full-screen (Fase 3). Gambar banner
   /// dipertahankan (perilaku lama: edit membuang `base64Image`).
   void _editBanner(MediaBanner banner) {
@@ -1786,6 +1940,7 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
     _preIqomahController.dispose();
     _shalatController.dispose();
     _khutbahController.dispose();
+    _backgroundSlideController.dispose();
     _fridayKhatibController.dispose();
     _fridayMuadzinController.dispose();
     _runningTextController.dispose();
@@ -1909,6 +2064,18 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
                                 onRemoveImage: _removeSideImage,
                                 onToggleImage: _toggleSideImage,
                                 onReorder: _reorderSideImages,
+                              ),
+                              BackgroundImagesSubtab(
+                                images: _backgroundImages,
+                                onAddImage: _addBackgroundImage,
+                                onRemoveImage: _removeBackgroundImage,
+                                onToggleImage: _toggleBackgroundImage,
+                                onReorder: _reorderBackgroundImages,
+                                intervalController: _backgroundSlideController,
+                                sendUncompressed: _bgSendUncompressed,
+                                onSendUncompressedChanged:
+                                    _onBgSendUncompressedChanged,
+                                sendProgress: _bgSendProgress,
                               ),
                             ],
                           ),
@@ -2240,6 +2407,10 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
           Tab(
             icon: Icon(Icons.photo_library),
             text: 'Gambar Khusus',
+          ),
+          Tab(
+            icon: Icon(Icons.wallpaper),
+            text: 'Gambar Latar',
           ),
         ],
       ),

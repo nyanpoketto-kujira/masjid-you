@@ -116,6 +116,28 @@ class MosqueConfig {
   /// berlabel "Dzuhur" (bukan "Jumat"), dan fase khutbah tidak dijalankan.
   final bool hasFridayPrayer;
 
+  /// Interval slideshow gambar latar TV, detik per gambar (ADR-031).
+  ///
+  /// Selalu dalam rentang [minBackgroundSlideSeconds]..
+  /// [maxBackgroundSlideSeconds] — `fromMap` dan `copyWith` men-clamp
+  /// nilai di luar rentang.
+  final int backgroundSlideSeconds;
+
+  /// Batas bawah interval slideshow gambar latar (detik).
+  static const int minBackgroundSlideSeconds = 5;
+
+  /// Batas atas interval slideshow gambar latar (detik).
+  static const int maxBackgroundSlideSeconds = 300;
+
+  /// Nilai default interval slideshow gambar latar (detik).
+  static const int defaultBackgroundSlideSeconds = 30;
+
+  /// Clamp [seconds] ke rentang interval slideshow yang sah.
+  static int clampBackgroundSlideSeconds(int seconds) => seconds.clamp(
+        minBackgroundSlideSeconds,
+        maxBackgroundSlideSeconds,
+      );
+
   const MosqueConfig({
     this.name = 'Masjid Al-Ikhlas',
     this.address = 'Jl. Raya Masjid No. 123',
@@ -133,6 +155,7 @@ class MosqueConfig {
     this.fridayMuadzin = 'Ustadz Bilal',
     this.showKas = true,
     this.hasFridayPrayer = true,
+    this.backgroundSlideSeconds = defaultBackgroundSlideSeconds,
   });
 
   /// Konstruktor internal: selalu membungkus [prayerOffsets] menjadi
@@ -154,6 +177,7 @@ class MosqueConfig {
     required this.fridayMuadzin,
     required this.showKas,
     required this.hasFridayPrayer,
+    required this.backgroundSlideSeconds,
   }) : prayerOffsets = Map.unmodifiable(prayerOffsets);
 
   int offsetFor(PrayerType type) => prayerOffsets[type] ?? 0;
@@ -178,6 +202,7 @@ class MosqueConfig {
         'fridayMuadzin': fridayMuadzin,
         'showKas': showKas,
         'hasFridayPrayer': hasFridayPrayer,
+        'backgroundSlideSeconds': backgroundSlideSeconds,
       };
 
   factory MosqueConfig.fromMap(Map<String, dynamic> map) {
@@ -231,6 +256,12 @@ class MosqueConfig {
       // (perilaku lama: kas tampil & Jumatan ada).
       showKas: _boolOf(map['showKas'], true),
       hasFridayPrayer: _boolOf(map['hasFridayPrayer'], true),
+      // Payload lama belum punya kunci ini -> default 30 detik; nilai di
+      // luar rentang di-clamp agar TV tidak pernah slideshow terlalu
+      // cepat/lambat (ADR-031).
+      backgroundSlideSeconds: clampBackgroundSlideSeconds(
+        _intOf(map['backgroundSlideSeconds'], defaultBackgroundSlideSeconds),
+      ),
     );
   }
 
@@ -256,6 +287,7 @@ class MosqueConfig {
     String? fridayMuadzin,
     bool? showKas,
     bool? hasFridayPrayer,
+    int? backgroundSlideSeconds,
   }) {
     return MosqueConfig._internal(
       name: name ?? this.name,
@@ -277,6 +309,9 @@ class MosqueConfig {
       fridayMuadzin: fridayMuadzin ?? this.fridayMuadzin,
       showKas: showKas ?? this.showKas,
       hasFridayPrayer: hasFridayPrayer ?? this.hasFridayPrayer,
+      backgroundSlideSeconds: backgroundSlideSeconds == null
+          ? this.backgroundSlideSeconds
+          : clampBackgroundSlideSeconds(backgroundSlideSeconds),
     );
   }
 
@@ -308,7 +343,8 @@ class MosqueConfig {
           other.fridayKhatib == fridayKhatib &&
           other.fridayMuadzin == fridayMuadzin &&
           other.showKas == showKas &&
-          other.hasFridayPrayer == hasFridayPrayer;
+          other.hasFridayPrayer == hasFridayPrayer &&
+          other.backgroundSlideSeconds == backgroundSlideSeconds;
 
   @override
   int get hashCode => Object.hash(
@@ -328,6 +364,7 @@ class MosqueConfig {
         fridayMuadzin,
         showKas,
         hasFridayPrayer,
+        backgroundSlideSeconds,
       );
 
   @override
@@ -339,5 +376,6 @@ class MosqueConfig {
       'preIqomahMinutes: $preIqomahMinutes, shalatMinutes: $shalatMinutes, '
       'khutbahMinutes: $khutbahMinutes, fridayKhatib: $fridayKhatib, '
       'fridayMuadzin: $fridayMuadzin, showKas: $showKas, '
-      'hasFridayPrayer: $hasFridayPrayer)';
+      'hasFridayPrayer: $hasFridayPrayer, '
+      'backgroundSlideSeconds: $backgroundSlideSeconds)';
 }

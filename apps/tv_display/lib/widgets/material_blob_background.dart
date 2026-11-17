@@ -6,6 +6,8 @@ import 'package:material_new_shapes/material_new_shapes.dart';
 /// Latar belakang M3 Expressive: bentuk-bentuk Material Shapes
 /// (cookie, clover, flower, sunny) berputar dan melayang pelan
 /// dengan warna teal/emerald transparan ala media player.
+/// Alpha blob dinaikkan (0.10-0.15 -> 0.16-0.22) bersama overlay latar
+/// yang diterangkan menjadi 0.60 agar ornamen lebih terasa (ADR-031).
 ///
 /// Tidak memakai `BackdropFilter` (mahal); hanya `MaskFilter.blur` kecil
 /// agar tepi tetap tajam. Performa 60 FPS: animasi digerakkan lewat
@@ -47,7 +49,7 @@ class _MaterialBlobBackgroundState extends State<MaterialBlobBackground>
               blobs: [
                 _ShapeSpec(
                   polygon: MaterialShapes.cookie4Sided,
-                  color: teal.withValues(alpha: 0.15),
+                  color: teal.withValues(alpha: 0.22),
                   centerX: 0.22,
                   centerY: 0.30,
                   radiusX: 0.30,
@@ -59,7 +61,7 @@ class _MaterialBlobBackgroundState extends State<MaterialBlobBackground>
                 ),
                 _ShapeSpec(
                   polygon: MaterialShapes.clover4Leaf,
-                  color: emerald.withValues(alpha: 0.12),
+                  color: emerald.withValues(alpha: 0.18),
                   centerX: 0.78,
                   centerY: 0.68,
                   radiusX: 0.32,
@@ -71,7 +73,7 @@ class _MaterialBlobBackgroundState extends State<MaterialBlobBackground>
                 ),
                 _ShapeSpec(
                   polygon: MaterialShapes.flower,
-                  color: darkTeal.withValues(alpha: 0.10),
+                  color: darkTeal.withValues(alpha: 0.16),
                   centerX: 0.78,
                   centerY: 0.26,
                   radiusX: 0.26,
@@ -83,7 +85,7 @@ class _MaterialBlobBackgroundState extends State<MaterialBlobBackground>
                 ),
                 _ShapeSpec(
                   polygon: MaterialShapes.sunny,
-                  color: teal.withValues(alpha: 0.13),
+                  color: teal.withValues(alpha: 0.20),
                   centerX: 0.30,
                   centerY: 0.74,
                   radiusX: 0.28,

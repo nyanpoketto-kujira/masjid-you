@@ -16,6 +16,7 @@ class TvStore {
   static const String bannersKey = 'tv_banners';
   static const String kasKey = 'tv_kas';
   static const String sideImagesKey = 'tv_sideImages';
+  static const String backgroundImagesKey = 'tv_backgroundImages';
   static const String hasDataKey = 'tv_hasData';
   static const String mutedKey = 'tv_muted';
   static const String standbyKey = 'tv_standby';
@@ -50,6 +51,11 @@ class TvStore {
           prefs.getString(sideImagesKey),
           SpecialImage.fromMap,
         ),
+        // Data lama belum punya blok ini -> daftar kosong.
+        backgroundImages: _decodeList(
+          prefs.getString(backgroundImagesKey),
+          BackgroundImage.fromMap,
+        ),
         hasData: true,
       );
     } catch (_) {
@@ -72,6 +78,9 @@ class TvStore {
 
   Future<void> saveSideImages(List<SpecialImage> images) =>
       _save(sideImagesKey, [for (final i in images) i.toMap()]);
+
+  Future<void> saveBackgroundImages(List<BackgroundImage> images) =>
+      _save(backgroundImagesKey, [for (final i in images) i.toMap()]);
 
   /// Status kontrol tampilan dari Remote (senyap & standby). Disimpan
   /// sebagai bool terpisah dan TIDAK menandai `tv_hasData` — ini preferensi

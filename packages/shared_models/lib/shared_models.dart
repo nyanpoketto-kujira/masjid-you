@@ -4,6 +4,8 @@ export 'src/prayer_schedule.dart';
 export 'src/running_text.dart';
 export 'src/media_banner.dart';
 export 'src/special_image.dart';
+export 'src/background_image.dart';
+export 'src/chunked_transfer.dart';
 export 'src/kas_transaction.dart';
 export 'src/sync_packet.dart';
 export 'src/state_snapshot.dart';

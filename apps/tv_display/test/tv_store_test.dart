@@ -117,5 +117,22 @@ void main() {
       // Flag perangkat, bukan data resmi DKM.
       expect(await store.load(), isNull);
     });
+
+    test('gambar latar: simpan lalu muat kembali lewat load() (ADR-031)',
+        () async {
+      final store = TvStore();
+      await store.saveBackgroundImages(const [
+        BackgroundImage(id: 'bg1', base64Image: 'QUJD'),
+        BackgroundImage(id: 'bg2', base64Image: 'REVG', isActive: false),
+      ]);
+
+      final loaded = await TvStore().load();
+      expect(loaded, isNotNull);
+      expect(loaded!.backgroundImages.length, 2);
+      expect(loaded.backgroundImages.first.base64Image, 'QUJD');
+      expect(loaded.backgroundImages.last.isActive, isFalse);
+      // Menyimpan gambar latar adalah data resmi -> hasData terpasang.
+      expect(loaded.hasData, isTrue);
+    });
   });
 }

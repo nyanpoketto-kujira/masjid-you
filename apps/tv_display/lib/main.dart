@@ -15,6 +15,7 @@ import 'widgets/running_text_bar.dart';
 import 'widgets/prayer_state_overlay.dart';
 import 'widgets/material_blob_background.dart';
 import 'widgets/admin_menu_overlay.dart';
+import 'widgets/background_slideshow.dart';
 import 'state/prayer_state_machine.dart';
 import 'state/tv_store.dart';
 import 'state/local_ip.dart';
@@ -99,6 +100,14 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
 
   /// Kartu gambar khusus slot samping (dikelola dari Remote).
   List<SpecialImage> _sideImages = const [];
+
+  /// Gambar latar slideshow (dikelola dari Remote, ADR-031).
+  List<BackgroundImage> _backgroundImages = const [];
+
+  /// Perangkai transfer ter-chunk Bluetooth (ADR-031): paket gambar
+  /// besar tiba sebagai rangkaian `chunkedData` dan baru diterapkan
+  /// setelah lengkap.
+  final ChunkReassembler _chunkReassembler = ChunkReassembler();
 
   List<RunningTextMessage> _runningTexts = const [
     RunningTextMessage(
@@ -218,6 +227,7 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
         _banners = snapshot.banners;
         _kasTransactions = snapshot.kasTransactions;
         _sideImages = snapshot.sideImages;
+        _backgroundImages = snapshot.backgroundImages;
         _hasStoredData = true;
       });
       _recalculateSchedule();
@@ -258,6 +268,19 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
   /// Aplikasi paket sync yang masuk (via WebSocket LAN atau Bluetooth).
   void _handleSyncPacket(SyncPacket packet) {
     if (!mounted) return;
+    // Transfer ter-chunk (ADR-031): rangkai dulu; paket aslinya baru
+    // diproses setelah lengkap. Chunk yang gagal dirangkai dibuang —
+    // gambar korup tidak pernah diterapkan.
+    if (packet.action == SyncAction.chunkedData) {
+      final assembled = _chunkReassembler.addChunk(packet);
+      if (assembled != null) {
+        _handleSyncPacket(assembled);
+      } else if (_chunkReassembler.lastError != null) {
+        debugPrint(
+            'Chunk transfer dibuang: ${_chunkReassembler.lastError}');
+      }
+      return;
+    }
     switch (packet.action) {
       case SyncAction.updateConfig:
         _config = MosqueConfig.fromMap(packet.payload);
@@ -326,6 +349,22 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
         _sideImages = list;
         _hasStoredData = true;
         _store.saveSideImages(list);
+        break;
+      case SyncAction.updateBackgroundImages:
+        final list = (packet.payload['images'] as List?)
+                ?.map((e) {
+                  if (e is Map) {
+                    return BackgroundImage.fromMap(
+                        Map<String, dynamic>.from(e));
+                  }
+                  return null;
+                })
+                .whereType<BackgroundImage>()
+                .toList() ??
+            [];
+        _backgroundImages = list;
+        _hasStoredData = true;
+        _store.saveBackgroundImages(list);
         break;
       case SyncAction.skipAdhan:
         _prayerStateMachine.skipAdhan(now: _now);
@@ -487,6 +526,7 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
         banners: _banners,
         kasTransactions: _kasTransactions,
         sideImages: _sideImages,
+        backgroundImages: _backgroundImages,
         hasData: _hasStoredData,
       ).toMap(),
     );
@@ -603,17 +643,26 @@ class _MasjidDisplayScreenState extends State<MasjidDisplayScreen> {
         body: Stack(
           fit: StackFit.expand,
           children: [
-            // Background Mosque Wallpaper with dark overlay for readability
-            Image.asset(
-              'assets/images/bg_mosque.jpg',
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) => Container(
-                color: colorScheme.surfaceContainerLowest,
+            // Latar TV: slideshow gambar dari Remote (ADR-031); kosong ->
+            // fallback wallpaper masjid bawaan. Overlay gelap 0.60 di
+            // atasnya menjaga keterbacaan teks (diterangkan dari 0.85
+            // agar latar lebih hidup, ADR-031).
+            BackgroundSlideshow(
+              images: _backgroundImages,
+              intervalSeconds: _config.backgroundSlideSeconds,
+              fallback: Image.asset(
+                'assets/images/bg_mosque.jpg',
+                fit: BoxFit.cover,
+                width: double.infinity,
+                height: double.infinity,
+                errorBuilder: (context, error, stackTrace) => Container(
+                  color: colorScheme.surfaceContainerLowest,
+                ),
               ),
             ),
             Container(
               color: Colors.black
-                  .withValues(alpha: 0.85), // Soft dark filter for contrast
+                  .withValues(alpha: 0.60), // Filter gelap keterbacaan
             ),
 
             // Material You Dynamic Blob Background — di atas overlay, di bawah konten
