@@ -2,18 +2,18 @@
 
 > Dibuat otomatis oleh `dart run tools/codebase_index.dart`. Jangan edit manual — regenerate setelah perubahan kode.
 
-Total simbol: **1138**
+Total simbol: **1155**
 
 | Kategori | Jumlah |
 |---|---:|
-| `class` | 115 |
-| `field` | 527 |
-| `method` | 397 |
-| `getter` | 46 |
+| `class` | 117 |
+| `field` | 535 |
+| `method` | 398 |
+| `getter` | 47 |
 | `function` | 25 |
 | `constructor` | 2 |
-| `typedef` | 2 |
-| `enum` | 10 |
+| `typedef` | 6 |
+| `enum` | 11 |
 | `operator` | 12 |
 | `extension` | 2 |
 
@@ -137,54 +137,54 @@ Total simbol: **1138**
 - `method` **_sendQuickAction (_RemoteHomeScreenState)** — baris 1186 — `  void _sendQuickAction(SyncAction action) {`
 - `method` **_sendForcePhase (_RemoteHomeScreenState)** — baris 1206 — `  void _sendForcePhase(PrayerPhase phase) {`
 - `method` **_getLocationFromGps (_RemoteHomeScreenState)** — baris 1214 — `  Future<void> _getLocationFromGps() async {`
-- `method` **_addRunningText (_RemoteHomeScreenState)** — baris 1273 — `  void _addRunningText() {`
-- `method` **_removeRunningText (_RemoteHomeScreenState)** — baris 1297 — `  void _removeRunningText(String id) {`
-- `method` **_editRunningText (_RemoteHomeScreenState)** — baris 1317 — `  void _editRunningText(RunningTextMessage item) {`
-- `method` **_addBanner (_RemoteHomeScreenState)** — baris 1352 — `  void _addBanner(String? base64Image) {`
-- `method` **_removeBanner (_RemoteHomeScreenState)** — baris 1387 — `  void _removeBanner(String id) {`
-- `method` **_toggleBanner (_RemoteHomeScreenState)** — baris 1405 — `  void _toggleBanner(String id, bool val) {`
-- `method` **_sendSideImagesIfConnected (_RemoteHomeScreenState)** — baris 1424 — `  void _sendSideImagesIfConnected() {`
-- `method` **_addSideImage (_RemoteHomeScreenState)** — baris 1433 — `  void _addSideImage(String caption, String base64Image) {`
-- `method` **_removeSideImage (_RemoteHomeScreenState)** — baris 1446 — `  void _removeSideImage(String id) {`
-- `method` **_toggleSideImage (_RemoteHomeScreenState)** — baris 1464 — `  void _toggleSideImage(String id, bool val) {`
-- `method` **_reorderRunningTexts (_RemoteHomeScreenState)** — baris 1479 — `  void _reorderRunningTexts(int oldIndex, int newIndex) {`
-- `method` **_reorderBanners (_RemoteHomeScreenState)** — baris 1488 — `  void _reorderBanners(int oldIndex, int newIndex) {`
-- `method` **_reorderSideImages (_RemoteHomeScreenState)** — baris 1497 — `  void _reorderSideImages(int oldIndex, int newIndex) {`
-- `method` **_sendBackgroundImagesIfConnected (_RemoteHomeScreenState)** — baris 1510 — `  void _sendBackgroundImagesIfConnected() {`
-- `method` **_mirrorBackgroundImagesToBt (_RemoteHomeScreenState)** — baris 1528 — `  Future<void> _mirrorBackgroundImagesToBt(SyncPacket packet) async {`
-- `method` **_addBackgroundImage (_RemoteHomeScreenState)** — baris 1556 — `  void _addBackgroundImage(String base64Image) {`
-- `method` **_removeBackgroundImage (_RemoteHomeScreenState)** — baris 1568 — `  void _removeBackgroundImage(String id) {`
-- `method` **_toggleBackgroundImage (_RemoteHomeScreenState)** — baris 1586 — `  void _toggleBackgroundImage(String id, bool val) {`
-- `method` **_reorderBackgroundImages (_RemoteHomeScreenState)** — baris 1598 — `  void _reorderBackgroundImages(int oldIndex, int newIndex) {`
-- `method` **_onBgSendUncompressedChanged (_RemoteHomeScreenState)** — baris 1609 — `  void _onBgSendUncompressedChanged(bool value) {`
-- `method` **_editBanner (_RemoteHomeScreenState)** — baris 1616 — `  void _editBanner(MediaBanner banner) {`
-- `method` **_addKasTransaction (_RemoteHomeScreenState)** — baris 1705 — `  void _addKasTransaction() {`
-- `method` **_removeKasTransaction (_RemoteHomeScreenState)** — baris 1732 — `  void _removeKasTransaction(String id) {`
-- `method` **_startBtScan (_RemoteHomeScreenState)** — baris 1750 — `  void _startBtScan() {`
-- `method` **_stopBtScan (_RemoteHomeScreenState)** — baris 1758 — `  void _stopBtScan() {`
-- `method` **_connectBt (_RemoteHomeScreenState)** — baris 1766 — `  void _connectBt(BluetoothDeviceInfo device) {`
-- `method` **_showScheduleSimulation (_RemoteHomeScreenState)** — baris 1776 — `  void _showScheduleSimulation(MosqueConfig formConfig) {`
-- `method` **_formatDurationShort (_RemoteHomeScreenState)** — baris 1921 — `  String _formatDurationShort(Duration? duration) {`
-- `method` **dispose (_RemoteHomeScreenState)** — baris 1929 — `  void dispose() {`
-- `method` **build (_RemoteHomeScreenState)** — baris 1964 — `  Widget build(BuildContext context) {`
-- `method` **_handleDestinationSelected (_RemoteHomeScreenState)** — baris 2202 — `  Future<void> _handleDestinationSelected(int index) async {`
-- `getter` **_transportLabel (_RemoteHomeScreenState)** — baris 2240 — `  String get _transportLabel =>`
-- `method` **_buildConnectionStatusStrip (_RemoteHomeScreenState)** — baris 2245 — `  Widget _buildConnectionStatusStrip(ThemeData theme, ColorScheme colorScheme) {`
-- `method` **_showConnectionSheet (_RemoteHomeScreenState)** — baris 2288 — `  void _showConnectionSheet() {`
-- `method` **_buildDisconnectedBanner (_RemoteHomeScreenState)** — baris 2362 — `  Widget _buildDisconnectedBanner(ThemeData theme, ColorScheme colorScheme) {`
-- `method` **_buildContentTabBar (_RemoteHomeScreenState)** — baris 2389 — `  Widget _buildContentTabBar(ThemeData theme, ColorScheme colorScheme) {`
-- `method` **_buildUnsyncedBanner (_RemoteHomeScreenState)** — baris 2420 — `  Widget _buildUnsyncedBanner(ThemeData theme, ColorScheme colorScheme) {`
-- `class` **MasjidYouRemoteApp** — baris 2448 — `class MasjidYouRemoteApp extends StatefulWidget {`
-- `method` **createState (MasjidYouRemoteApp)** — baris 2452 — `  State<MasjidYouRemoteApp> createState() => _MasjidYouRemoteAppState();`
-- `class` **_MasjidYouRemoteAppState** — baris 2455 — `class _MasjidYouRemoteAppState extends State<MasjidYouRemoteApp> {`
-- `field` **_themeMode (_MasjidYouRemoteAppState)** — baris 2456 — `  ThemeMode _themeMode = ThemeMode.system;`
-- `field` **_colorSource (_MasjidYouRemoteAppState)** — baris 2457 — `  AppColorSource _colorSource = AppColorSource.dynamic;`
-- `method` **initState (_MasjidYouRemoteAppState)** — baris 2460 — `  void initState() {`
-- `method` **_loadThemePreferences (_MasjidYouRemoteAppState)** — baris 2465 — `  Future<void> _loadThemePreferences() async {`
-- `method` **_setThemeMode (_MasjidYouRemoteAppState)** — baris 2475 — `  Future<void> _setThemeMode(ThemeMode mode) async {`
-- `method` **_setColorSource (_MasjidYouRemoteAppState)** — baris 2480 — `  Future<void> _setColorSource(AppColorSource source) async {`
-- `method` **build (_MasjidYouRemoteAppState)** — baris 2486 — `  Widget build(BuildContext context) {`
-- `function` **main** — baris 2522 — `void main() {`
+- `method` **_addRunningText (_RemoteHomeScreenState)** — baris 1256 — `  void _addRunningText() {`
+- `method` **_removeRunningText (_RemoteHomeScreenState)** — baris 1280 — `  void _removeRunningText(String id) {`
+- `method` **_editRunningText (_RemoteHomeScreenState)** — baris 1300 — `  void _editRunningText(RunningTextMessage item) {`
+- `method` **_addBanner (_RemoteHomeScreenState)** — baris 1335 — `  void _addBanner(String? base64Image) {`
+- `method` **_removeBanner (_RemoteHomeScreenState)** — baris 1370 — `  void _removeBanner(String id) {`
+- `method` **_toggleBanner (_RemoteHomeScreenState)** — baris 1388 — `  void _toggleBanner(String id, bool val) {`
+- `method` **_sendSideImagesIfConnected (_RemoteHomeScreenState)** — baris 1407 — `  void _sendSideImagesIfConnected() {`
+- `method` **_addSideImage (_RemoteHomeScreenState)** — baris 1416 — `  void _addSideImage(String caption, String base64Image) {`
+- `method` **_removeSideImage (_RemoteHomeScreenState)** — baris 1429 — `  void _removeSideImage(String id) {`
+- `method` **_toggleSideImage (_RemoteHomeScreenState)** — baris 1447 — `  void _toggleSideImage(String id, bool val) {`
+- `method` **_reorderRunningTexts (_RemoteHomeScreenState)** — baris 1462 — `  void _reorderRunningTexts(int oldIndex, int newIndex) {`
+- `method` **_reorderBanners (_RemoteHomeScreenState)** — baris 1471 — `  void _reorderBanners(int oldIndex, int newIndex) {`
+- `method` **_reorderSideImages (_RemoteHomeScreenState)** — baris 1480 — `  void _reorderSideImages(int oldIndex, int newIndex) {`
+- `method` **_sendBackgroundImagesIfConnected (_RemoteHomeScreenState)** — baris 1493 — `  void _sendBackgroundImagesIfConnected() {`
+- `method` **_mirrorBackgroundImagesToBt (_RemoteHomeScreenState)** — baris 1511 — `  Future<void> _mirrorBackgroundImagesToBt(SyncPacket packet) async {`
+- `method` **_addBackgroundImage (_RemoteHomeScreenState)** — baris 1539 — `  void _addBackgroundImage(String base64Image) {`
+- `method` **_removeBackgroundImage (_RemoteHomeScreenState)** — baris 1551 — `  void _removeBackgroundImage(String id) {`
+- `method` **_toggleBackgroundImage (_RemoteHomeScreenState)** — baris 1569 — `  void _toggleBackgroundImage(String id, bool val) {`
+- `method` **_reorderBackgroundImages (_RemoteHomeScreenState)** — baris 1581 — `  void _reorderBackgroundImages(int oldIndex, int newIndex) {`
+- `method` **_onBgSendUncompressedChanged (_RemoteHomeScreenState)** — baris 1592 — `  void _onBgSendUncompressedChanged(bool value) {`
+- `method` **_editBanner (_RemoteHomeScreenState)** — baris 1599 — `  void _editBanner(MediaBanner banner) {`
+- `method` **_addKasTransaction (_RemoteHomeScreenState)** — baris 1688 — `  void _addKasTransaction() {`
+- `method` **_removeKasTransaction (_RemoteHomeScreenState)** — baris 1715 — `  void _removeKasTransaction(String id) {`
+- `method` **_startBtScan (_RemoteHomeScreenState)** — baris 1733 — `  void _startBtScan() {`
+- `method` **_stopBtScan (_RemoteHomeScreenState)** — baris 1741 — `  void _stopBtScan() {`
+- `method` **_connectBt (_RemoteHomeScreenState)** — baris 1749 — `  void _connectBt(BluetoothDeviceInfo device) {`
+- `method` **_showScheduleSimulation (_RemoteHomeScreenState)** — baris 1759 — `  void _showScheduleSimulation(MosqueConfig formConfig) {`
+- `method` **_formatDurationShort (_RemoteHomeScreenState)** — baris 1904 — `  String _formatDurationShort(Duration? duration) {`
+- `method` **dispose (_RemoteHomeScreenState)** — baris 1912 — `  void dispose() {`
+- `method` **build (_RemoteHomeScreenState)** — baris 1947 — `  Widget build(BuildContext context) {`
+- `method` **_handleDestinationSelected (_RemoteHomeScreenState)** — baris 2185 — `  Future<void> _handleDestinationSelected(int index) async {`
+- `getter` **_transportLabel (_RemoteHomeScreenState)** — baris 2223 — `  String get _transportLabel =>`
+- `method` **_buildConnectionStatusStrip (_RemoteHomeScreenState)** — baris 2228 — `  Widget _buildConnectionStatusStrip(ThemeData theme, ColorScheme colorScheme) {`
+- `method` **_showConnectionSheet (_RemoteHomeScreenState)** — baris 2271 — `  void _showConnectionSheet() {`
+- `method` **_buildDisconnectedBanner (_RemoteHomeScreenState)** — baris 2345 — `  Widget _buildDisconnectedBanner(ThemeData theme, ColorScheme colorScheme) {`
+- `method` **_buildContentTabBar (_RemoteHomeScreenState)** — baris 2372 — `  Widget _buildContentTabBar(ThemeData theme, ColorScheme colorScheme) {`
+- `method` **_buildUnsyncedBanner (_RemoteHomeScreenState)** — baris 2403 — `  Widget _buildUnsyncedBanner(ThemeData theme, ColorScheme colorScheme) {`
+- `class` **MasjidYouRemoteApp** — baris 2431 — `class MasjidYouRemoteApp extends StatefulWidget {`
+- `method` **createState (MasjidYouRemoteApp)** — baris 2435 — `  State<MasjidYouRemoteApp> createState() => _MasjidYouRemoteAppState();`
+- `class` **_MasjidYouRemoteAppState** — baris 2438 — `class _MasjidYouRemoteAppState extends State<MasjidYouRemoteApp> {`
+- `field` **_themeMode (_MasjidYouRemoteAppState)** — baris 2439 — `  ThemeMode _themeMode = ThemeMode.system;`
+- `field` **_colorSource (_MasjidYouRemoteAppState)** — baris 2440 — `  AppColorSource _colorSource = AppColorSource.dynamic;`
+- `method` **initState (_MasjidYouRemoteAppState)** — baris 2443 — `  void initState() {`
+- `method` **_loadThemePreferences (_MasjidYouRemoteAppState)** — baris 2448 — `  Future<void> _loadThemePreferences() async {`
+- `method` **_setThemeMode (_MasjidYouRemoteAppState)** — baris 2458 — `  Future<void> _setThemeMode(ThemeMode mode) async {`
+- `method` **_setColorSource (_MasjidYouRemoteAppState)** — baris 2463 — `  Future<void> _setColorSource(AppColorSource source) async {`
+- `method` **build (_MasjidYouRemoteAppState)** — baris 2469 — `  Widget build(BuildContext context) {`
+- `function` **main** — baris 2505 — `void main() {`
 
 ### `apps/mobile_remote/lib/screens/connection/connection_gateway_screen.dart`
 - `class` **ConnectionGatewayScreen** — baris 4 — `class ConnectionGatewayScreen extends StatelessWidget {`
@@ -486,6 +486,25 @@ Total simbol: **1138**
 - `method` **_subscribeEvents (BluetoothClientService)** — baris 504 — `  void _subscribeEvents() {`
 - `method` **disconnect (BluetoothClientService)** — baris 514 — `  Future<void> disconnect() async {`
 - `method` **dispose (BluetoothClientService)** — baris 534 — `  Future<void> dispose() async {`
+
+### `apps/mobile_remote/lib/services/gps_location_service.dart`
+- `enum` **GpsLocationStatus** — baris 17 — `enum GpsLocationStatus {`
+- `class` **GpsLocationResult** — baris 40 — `class GpsLocationResult {`
+- `field` **status (GpsLocationResult)** — baris 43 — `  final GpsLocationStatus status;`
+- `field` **latitude (GpsLocationResult)** — baris 44 — `  final double? latitude;`
+- `field` **longitude (GpsLocationResult)** — baris 45 — `  final double? longitude;`
+- `getter` **hasCoordinates (GpsLocationResult)** — baris 48 — `  bool get hasCoordinates =>`
+- `typedef` **GpsServiceEnabledCheck** — baris 53 — `typedef GpsServiceEnabledCheck = Future<bool> Function();`
+- `typedef` **GpsPermissionCheck** — baris 54 — `typedef GpsPermissionCheck = Future<LocationPermission> Function();`
+- `typedef` **GpsCurrentPositionFetch** — baris 55 — `typedef GpsCurrentPositionFetch = Future<Position> Function();`
+- `typedef` **GpsLastKnownPositionFetch** — baris 56 — `typedef GpsLastKnownPositionFetch = Future<Position?> Function();`
+- `class` **GpsLocationService** — baris 70 — `class GpsLocationService {`
+- `field` **_isServiceEnabled (GpsLocationService)** — baris 92 — `  final GpsServiceEnabledCheck _isServiceEnabled;`
+- `field` **_checkPermission (GpsLocationService)** — baris 93 — `  final GpsPermissionCheck _checkPermission;`
+- `field` **_requestPermission (GpsLocationService)** — baris 94 — `  final GpsPermissionCheck _requestPermission;`
+- `field` **_getCurrentPosition (GpsLocationService)** — baris 95 — `  final GpsCurrentPositionFetch _getCurrentPosition;`
+- `field` **_getLastKnownPosition (GpsLocationService)** — baris 96 — `  final GpsLastKnownPositionFetch _getLastKnownPosition;`
+- `method` **fetchCoordinates (GpsLocationService)** — baris 100 — `  Future<GpsLocationResult> fetchCoordinates() async {`
 
 ### `apps/mobile_remote/lib/services/remote_cache_store.dart`
 - `class` **RemoteCacheStore** — baris 12 — `class RemoteCacheStore {`

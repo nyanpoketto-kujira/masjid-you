@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-17T04:54:28.564792",
+  "generatedAt": "2026-11-17T12:38:09.646336",
   "roots": [
     "apps/tv_display/lib",
     "apps/mobile_remote/lib",
@@ -7,7 +7,7 @@
     "packages/bluetooth_sync/lib",
     "packages/flutter_p2p_connection/lib"
   ],
-  "symbolCount": 1138,
+  "symbolCount": 1155,
   "symbols": [
     {
       "kind": "class",
@@ -953,7 +953,7 @@
       "kind": "method",
       "name": "_addRunningText",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1273,
+      "line": 1256,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _addRunningText() {"
     },
@@ -961,7 +961,7 @@
       "kind": "method",
       "name": "_removeRunningText",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1297,
+      "line": 1280,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _removeRunningText(String id) {"
     },
@@ -969,7 +969,7 @@
       "kind": "method",
       "name": "_editRunningText",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1317,
+      "line": 1300,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _editRunningText(RunningTextMessage item) {"
     },
@@ -977,7 +977,7 @@
       "kind": "method",
       "name": "_addBanner",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1352,
+      "line": 1335,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _addBanner(String? base64Image) {"
     },
@@ -985,7 +985,7 @@
       "kind": "method",
       "name": "_removeBanner",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1387,
+      "line": 1370,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _removeBanner(String id) {"
     },
@@ -993,7 +993,7 @@
       "kind": "method",
       "name": "_toggleBanner",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1405,
+      "line": 1388,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _toggleBanner(String id, bool val) {"
     },
@@ -1001,7 +1001,7 @@
       "kind": "method",
       "name": "_sendSideImagesIfConnected",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1424,
+      "line": 1407,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _sendSideImagesIfConnected() {"
     },
@@ -1009,7 +1009,7 @@
       "kind": "method",
       "name": "_addSideImage",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1433,
+      "line": 1416,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _addSideImage(String caption, String base64Image) {"
     },
@@ -1017,7 +1017,7 @@
       "kind": "method",
       "name": "_removeSideImage",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1446,
+      "line": 1429,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _removeSideImage(String id) {"
     },
@@ -1025,7 +1025,7 @@
       "kind": "method",
       "name": "_toggleSideImage",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1464,
+      "line": 1447,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _toggleSideImage(String id, bool val) {"
     },
@@ -1033,7 +1033,7 @@
       "kind": "method",
       "name": "_reorderRunningTexts",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1479,
+      "line": 1462,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _reorderRunningTexts(int oldIndex, int newIndex) {"
     },
@@ -1041,7 +1041,7 @@
       "kind": "method",
       "name": "_reorderBanners",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1488,
+      "line": 1471,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _reorderBanners(int oldIndex, int newIndex) {"
     },
@@ -1049,7 +1049,7 @@
       "kind": "method",
       "name": "_reorderSideImages",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1497,
+      "line": 1480,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _reorderSideImages(int oldIndex, int newIndex) {"
     },
@@ -1057,7 +1057,7 @@
       "kind": "method",
       "name": "_sendBackgroundImagesIfConnected",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1510,
+      "line": 1493,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _sendBackgroundImagesIfConnected() {"
     },
@@ -1065,7 +1065,7 @@
       "kind": "method",
       "name": "_mirrorBackgroundImagesToBt",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1528,
+      "line": 1511,
       "parent": "_RemoteHomeScreenState",
       "signature": "  Future<void> _mirrorBackgroundImagesToBt(SyncPacket packet) async {"
     },
@@ -1073,7 +1073,7 @@
       "kind": "method",
       "name": "_addBackgroundImage",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1556,
+      "line": 1539,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _addBackgroundImage(String base64Image) {"
     },
@@ -1081,7 +1081,7 @@
       "kind": "method",
       "name": "_removeBackgroundImage",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1568,
+      "line": 1551,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _removeBackgroundImage(String id) {"
     },
@@ -1089,7 +1089,7 @@
       "kind": "method",
       "name": "_toggleBackgroundImage",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1586,
+      "line": 1569,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _toggleBackgroundImage(String id, bool val) {"
     },
@@ -1097,7 +1097,7 @@
       "kind": "method",
       "name": "_reorderBackgroundImages",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1598,
+      "line": 1581,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _reorderBackgroundImages(int oldIndex, int newIndex) {"
     },
@@ -1105,7 +1105,7 @@
       "kind": "method",
       "name": "_onBgSendUncompressedChanged",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1609,
+      "line": 1592,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _onBgSendUncompressedChanged(bool value) {"
     },
@@ -1113,7 +1113,7 @@
       "kind": "method",
       "name": "_editBanner",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1616,
+      "line": 1599,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _editBanner(MediaBanner banner) {"
     },
@@ -1121,7 +1121,7 @@
       "kind": "method",
       "name": "_addKasTransaction",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1705,
+      "line": 1688,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _addKasTransaction() {"
     },
@@ -1129,7 +1129,7 @@
       "kind": "method",
       "name": "_removeKasTransaction",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1732,
+      "line": 1715,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _removeKasTransaction(String id) {"
     },
@@ -1137,7 +1137,7 @@
       "kind": "method",
       "name": "_startBtScan",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1750,
+      "line": 1733,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _startBtScan() {"
     },
@@ -1145,7 +1145,7 @@
       "kind": "method",
       "name": "_stopBtScan",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1758,
+      "line": 1741,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _stopBtScan() {"
     },
@@ -1153,7 +1153,7 @@
       "kind": "method",
       "name": "_connectBt",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1766,
+      "line": 1749,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _connectBt(BluetoothDeviceInfo device) {"
     },
@@ -1161,7 +1161,7 @@
       "kind": "method",
       "name": "_showScheduleSimulation",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1776,
+      "line": 1759,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _showScheduleSimulation(MosqueConfig formConfig) {"
     },
@@ -1169,7 +1169,7 @@
       "kind": "method",
       "name": "_formatDurationShort",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1921,
+      "line": 1904,
       "parent": "_RemoteHomeScreenState",
       "signature": "  String _formatDurationShort(Duration? duration) {"
     },
@@ -1177,7 +1177,7 @@
       "kind": "method",
       "name": "dispose",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1929,
+      "line": 1912,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void dispose() {"
     },
@@ -1185,7 +1185,7 @@
       "kind": "method",
       "name": "build",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 1964,
+      "line": 1947,
       "parent": "_RemoteHomeScreenState",
       "signature": "  Widget build(BuildContext context) {"
     },
@@ -1193,7 +1193,7 @@
       "kind": "method",
       "name": "_handleDestinationSelected",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 2202,
+      "line": 2185,
       "parent": "_RemoteHomeScreenState",
       "signature": "  Future<void> _handleDestinationSelected(int index) async {"
     },
@@ -1201,7 +1201,7 @@
       "kind": "getter",
       "name": "_transportLabel",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 2240,
+      "line": 2223,
       "parent": "_RemoteHomeScreenState",
       "signature": "  String get _transportLabel =>"
     },
@@ -1209,7 +1209,7 @@
       "kind": "method",
       "name": "_buildConnectionStatusStrip",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 2245,
+      "line": 2228,
       "parent": "_RemoteHomeScreenState",
       "signature": "  Widget _buildConnectionStatusStrip(ThemeData theme, ColorScheme colorScheme) {"
     },
@@ -1217,7 +1217,7 @@
       "kind": "method",
       "name": "_showConnectionSheet",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 2288,
+      "line": 2271,
       "parent": "_RemoteHomeScreenState",
       "signature": "  void _showConnectionSheet() {"
     },
@@ -1225,7 +1225,7 @@
       "kind": "method",
       "name": "_buildDisconnectedBanner",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 2362,
+      "line": 2345,
       "parent": "_RemoteHomeScreenState",
       "signature": "  Widget _buildDisconnectedBanner(ThemeData theme, ColorScheme colorScheme) {"
     },
@@ -1233,7 +1233,7 @@
       "kind": "method",
       "name": "_buildContentTabBar",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 2389,
+      "line": 2372,
       "parent": "_RemoteHomeScreenState",
       "signature": "  Widget _buildContentTabBar(ThemeData theme, ColorScheme colorScheme) {"
     },
@@ -1241,7 +1241,7 @@
       "kind": "method",
       "name": "_buildUnsyncedBanner",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 2420,
+      "line": 2403,
       "parent": "_RemoteHomeScreenState",
       "signature": "  Widget _buildUnsyncedBanner(ThemeData theme, ColorScheme colorScheme) {"
     },
@@ -1249,14 +1249,14 @@
       "kind": "class",
       "name": "MasjidYouRemoteApp",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 2448,
+      "line": 2431,
       "signature": "class MasjidYouRemoteApp extends StatefulWidget {"
     },
     {
       "kind": "method",
       "name": "createState",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 2452,
+      "line": 2435,
       "parent": "MasjidYouRemoteApp",
       "signature": "  State<MasjidYouRemoteApp> createState() => _MasjidYouRemoteAppState();"
     },
@@ -1264,14 +1264,14 @@
       "kind": "class",
       "name": "_MasjidYouRemoteAppState",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 2455,
+      "line": 2438,
       "signature": "class _MasjidYouRemoteAppState extends State<MasjidYouRemoteApp> {"
     },
     {
       "kind": "field",
       "name": "_themeMode",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 2456,
+      "line": 2439,
       "parent": "_MasjidYouRemoteAppState",
       "signature": "  ThemeMode _themeMode = ThemeMode.system;"
     },
@@ -1279,7 +1279,7 @@
       "kind": "field",
       "name": "_colorSource",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 2457,
+      "line": 2440,
       "parent": "_MasjidYouRemoteAppState",
       "signature": "  AppColorSource _colorSource = AppColorSource.dynamic;"
     },
@@ -1287,7 +1287,7 @@
       "kind": "method",
       "name": "initState",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 2460,
+      "line": 2443,
       "parent": "_MasjidYouRemoteAppState",
       "signature": "  void initState() {"
     },
@@ -1295,7 +1295,7 @@
       "kind": "method",
       "name": "_loadThemePreferences",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 2465,
+      "line": 2448,
       "parent": "_MasjidYouRemoteAppState",
       "signature": "  Future<void> _loadThemePreferences() async {"
     },
@@ -1303,7 +1303,7 @@
       "kind": "method",
       "name": "_setThemeMode",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 2475,
+      "line": 2458,
       "parent": "_MasjidYouRemoteAppState",
       "signature": "  Future<void> _setThemeMode(ThemeMode mode) async {"
     },
@@ -1311,7 +1311,7 @@
       "kind": "method",
       "name": "_setColorSource",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 2480,
+      "line": 2463,
       "parent": "_MasjidYouRemoteAppState",
       "signature": "  Future<void> _setColorSource(AppColorSource source) async {"
     },
@@ -1319,7 +1319,7 @@
       "kind": "method",
       "name": "build",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 2486,
+      "line": 2469,
       "parent": "_MasjidYouRemoteAppState",
       "signature": "  Widget build(BuildContext context) {"
     },
@@ -1327,7 +1327,7 @@
       "kind": "function",
       "name": "main",
       "file": "apps/mobile_remote/lib/main.dart",
-      "line": 2522,
+      "line": 2505,
       "signature": "void main() {"
     },
     {
@@ -3501,6 +3501,135 @@
       "line": 534,
       "parent": "BluetoothClientService",
       "signature": "  Future<void> dispose() async {"
+    },
+    {
+      "kind": "enum",
+      "name": "GpsLocationStatus",
+      "file": "apps/mobile_remote/lib/services/gps_location_service.dart",
+      "line": 17,
+      "signature": "enum GpsLocationStatus {"
+    },
+    {
+      "kind": "class",
+      "name": "GpsLocationResult",
+      "file": "apps/mobile_remote/lib/services/gps_location_service.dart",
+      "line": 40,
+      "signature": "class GpsLocationResult {"
+    },
+    {
+      "kind": "field",
+      "name": "status",
+      "file": "apps/mobile_remote/lib/services/gps_location_service.dart",
+      "line": 43,
+      "parent": "GpsLocationResult",
+      "signature": "  final GpsLocationStatus status;"
+    },
+    {
+      "kind": "field",
+      "name": "latitude",
+      "file": "apps/mobile_remote/lib/services/gps_location_service.dart",
+      "line": 44,
+      "parent": "GpsLocationResult",
+      "signature": "  final double? latitude;"
+    },
+    {
+      "kind": "field",
+      "name": "longitude",
+      "file": "apps/mobile_remote/lib/services/gps_location_service.dart",
+      "line": 45,
+      "parent": "GpsLocationResult",
+      "signature": "  final double? longitude;"
+    },
+    {
+      "kind": "getter",
+      "name": "hasCoordinates",
+      "file": "apps/mobile_remote/lib/services/gps_location_service.dart",
+      "line": 48,
+      "parent": "GpsLocationResult",
+      "signature": "  bool get hasCoordinates =>"
+    },
+    {
+      "kind": "typedef",
+      "name": "GpsServiceEnabledCheck",
+      "file": "apps/mobile_remote/lib/services/gps_location_service.dart",
+      "line": 53,
+      "signature": "typedef GpsServiceEnabledCheck = Future<bool> Function();"
+    },
+    {
+      "kind": "typedef",
+      "name": "GpsPermissionCheck",
+      "file": "apps/mobile_remote/lib/services/gps_location_service.dart",
+      "line": 54,
+      "signature": "typedef GpsPermissionCheck = Future<LocationPermission> Function();"
+    },
+    {
+      "kind": "typedef",
+      "name": "GpsCurrentPositionFetch",
+      "file": "apps/mobile_remote/lib/services/gps_location_service.dart",
+      "line": 55,
+      "signature": "typedef GpsCurrentPositionFetch = Future<Position> Function();"
+    },
+    {
+      "kind": "typedef",
+      "name": "GpsLastKnownPositionFetch",
+      "file": "apps/mobile_remote/lib/services/gps_location_service.dart",
+      "line": 56,
+      "signature": "typedef GpsLastKnownPositionFetch = Future<Position?> Function();"
+    },
+    {
+      "kind": "class",
+      "name": "GpsLocationService",
+      "file": "apps/mobile_remote/lib/services/gps_location_service.dart",
+      "line": 70,
+      "signature": "class GpsLocationService {"
+    },
+    {
+      "kind": "field",
+      "name": "_isServiceEnabled",
+      "file": "apps/mobile_remote/lib/services/gps_location_service.dart",
+      "line": 92,
+      "parent": "GpsLocationService",
+      "signature": "  final GpsServiceEnabledCheck _isServiceEnabled;"
+    },
+    {
+      "kind": "field",
+      "name": "_checkPermission",
+      "file": "apps/mobile_remote/lib/services/gps_location_service.dart",
+      "line": 93,
+      "parent": "GpsLocationService",
+      "signature": "  final GpsPermissionCheck _checkPermission;"
+    },
+    {
+      "kind": "field",
+      "name": "_requestPermission",
+      "file": "apps/mobile_remote/lib/services/gps_location_service.dart",
+      "line": 94,
+      "parent": "GpsLocationService",
+      "signature": "  final GpsPermissionCheck _requestPermission;"
+    },
+    {
+      "kind": "field",
+      "name": "_getCurrentPosition",
+      "file": "apps/mobile_remote/lib/services/gps_location_service.dart",
+      "line": 95,
+      "parent": "GpsLocationService",
+      "signature": "  final GpsCurrentPositionFetch _getCurrentPosition;"
+    },
+    {
+      "kind": "field",
+      "name": "_getLastKnownPosition",
+      "file": "apps/mobile_remote/lib/services/gps_location_service.dart",
+      "line": 96,
+      "parent": "GpsLocationService",
+      "signature": "  final GpsLastKnownPositionFetch _getLastKnownPosition;"
+    },
+    {
+      "kind": "method",
+      "name": "fetchCoordinates",
+      "file": "apps/mobile_remote/lib/services/gps_location_service.dart",
+      "line": 100,
+      "parent": "GpsLocationService",
+      "signature": "  Future<GpsLocationResult> fetchCoordinates() async {"
     },
     {
       "kind": "class",

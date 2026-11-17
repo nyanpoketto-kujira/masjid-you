@@ -3,7 +3,6 @@ import 'package:animations/animations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:shared_models/shared_models.dart';
 import 'package:bluetooth_sync/bluetooth_sync.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -12,6 +11,7 @@ import 'package:dynamic_color/dynamic_color.dart';
 import '../services/ws_client.dart';
 import '../services/bluetooth_client_service.dart';
 import '../services/background_send_service.dart';
+import '../services/gps_location_service.dart';
 import '../services/remote_cache_store.dart';
 import '../services/backup_service.dart';
 import '../theme/remote_theme.dart';
@@ -1216,50 +1216,33 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen>
       _isFetchingLocation = true;
     });
     try {
-      final isEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!isEnabled) {
-        if (mounted) {
-          _showSnack('Layanan lokasi (GPS) tidak aktif.');
-        }
-        return;
-      }
-
-      var permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied) {
-          if (mounted) {
-            _showSnack('Izin lokasi GPS ditolak.');
-          }
-          return;
-        }
-      }
-
-      if (permission == LocationPermission.deniedForever) {
-        if (mounted) {
-          _showSnack('Izin GPS ditolak permanen.');
-        }
-        return;
-      }
-
-      final pos = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.high,
-          timeLimit: Duration(seconds: 15),
-        ),
-      );
-
-      if (mounted) {
-        setState(() {
-          _latitudeController.text = pos.latitude.toStringAsFixed(6);
-          _longitudeController.text = pos.longitude.toStringAsFixed(6);
-          _hasUnsyncedChanges = true;
-        });
-        _showSnack('Koordinat GPS berhasil diambil!');
-      }
-    } catch (e) {
-      if (mounted) {
-        _showSnack('Gagal mengambil GPS: $e');
+      // Alur GPS (izin, akurasi, fallback posisi terakhir) ada di
+      // GpsLocationService; di sini hasilnya dipetakan ke SnackBar.
+      final result = await GpsLocationService().fetchCoordinates();
+      if (!mounted) return;
+      switch (result.status) {
+        case GpsLocationStatus.success:
+        case GpsLocationStatus.successLastKnown:
+          setState(() {
+            _latitudeController.text = result.latitude!.toStringAsFixed(6);
+            _longitudeController.text = result.longitude!.toStringAsFixed(6);
+            _hasUnsyncedChanges = true;
+          });
+          _showSnack(result.status == GpsLocationStatus.success
+              ? 'Koordinat GPS berhasil diambil!'
+              : 'Sinyal GPS lambat — memakai lokasi terakhir yang '
+                  'diketahui.');
+        case GpsLocationStatus.serviceDisabled:
+          _showSnack('Layanan lokasi (GPS) tidak aktif. Nyalakan dulu, '
+              'lalu coba lagi.');
+        case GpsLocationStatus.permissionDenied:
+          _showSnack('Izin lokasi GPS ditolak.');
+        case GpsLocationStatus.permissionDeniedForever:
+          _showSnack('Izin GPS ditolak permanen. Aktifkan dari '
+              'Pengaturan Android.');
+        case GpsLocationStatus.unavailable:
+          _showSnack('Sinyal GPS tidak ditemukan. Coba di area yang '
+              'lebih terbuka, atau isi koordinat secara manual.');
       }
     } finally {
       if (mounted) {
