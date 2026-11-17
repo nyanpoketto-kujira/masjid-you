@@ -859,3 +859,19 @@ Laporan DKM 17 Nov 2026: dialog "Simulasi Perhitungan Jadwal" (tab Pengaturan �
 - Regresi dikunci oleh test yang **sengaja tidak** menginisialisasi locale: mobile_remote +5 (`schedule_simulation_dialog_test.dart`: dialog terbangun tanpa error + label tanggal Indonesia, enam baris jadwal dengan sorotan SELANJUTNYA, label Jumat/Dzuhur dua arah, Subuh besok saat larut malam), tv_display +1 (setelah `initializeDateFormatting`, `HeaderClock` menampilkan "Selasa, 17 November 2026").
 
 ---
+
+## ADR-034 — Test Jadwal Harus Kebal Zona Waktu Mesin
+
+### Konteks
+CI pada PR #14 (pool → main, 17 Nov 2026) gagal pada 3 test mobile_remote yang semuanya lolos di mesin pengembangan: dua test `nextPrayerInfo` di `home_tab_test.dart` dan satu test dialog simulasi. Polanya identik: mengharapkan Subuh, mendapat Dzuhur, atau selisih satu hari. Reproduksi lokal dengan `TZ=UTC` menghasilkan 3 kegagalan yang sama persis; dengan `TZ=Asia/Jakarta` semuanya hijau.
+
+Akar masalahnya ada di **asumsi test, bukan di kode produksi**: `PrayerSchedule.calculate` (paket adhan) mengembalikan **instan absolut** yang benar — waktu shalat Jakarta sebagai momen absolut — sedangkan test meng-hardcode jam dinding lokal ("pukul 00.30/03.00 pasti sebelum Subuh", "pukul 23.59 pasti setelah Isya", "hari kalender berikutnya pasti tanggal +1"). Makna jam dinding itu hanya benar bila zona waktu mesin sama dengan zona waktu masjid. Di runner CI (UTC), pukul 00.30 UTC memang sudah melewati Subuh Jakarta (04.03 WIB = 21.03 UTC hari sebelumnya), sehingga shalat berikutnya secara sah adalah Dzuhur — helper produksi benar, premis test yang salah. Di HP DKM (zona Indonesia) perilaku app tidak berubah dan tidak pernah bermasalah.
+
+### Keputusan
+Test yang menyangkut "shalat berikutnya" **tidak boleh meng-hardcode jam dinding lokal**. Waktu acuan diturunkan dari jadwal terhitung itu sendiri: "pagi hari" = 30 menit sebelum Subuh hasil `PrayerSchedule.calculate` pada tanggal acuan; "larut malam" = 30 menit setelah Isya. Ekspektasi dibandingkan sebagai instan (kesetaraan `DateTime` hasil hitung), bukan komponen kalender lokal seperti `.day`. Berlaku untuk `home_tab_test.dart` dan `schedule_simulation_dialog_test.dart`; test lain yang premisnya murni kalender lokal eksplisit (label tanggal, label Jumat) tidak berubah.
+
+### Konsekuensi
+- Test "shalat berikutnya" terverifikasi hijau lokal di `TZ=UTC` (zona runner CI) dan `TZ=Asia/Jakarta` (zona pemakaian app); CI PR tidak lagi bergantung zona runner selama zona itu tidak lebih barat dari masjid secara ekstrem. Test label Jumat/tanggal tetap memakai premis kalender lokal secara sadar — meniru semantik app sendiri yang mengunci tanggal jadwal dari kalender lokal HP (di zona Indonesia, target pemakaian app, selalu konsisten).
+- Aturan ini menjadi konvensi penulisan test jadwal berikutnya: turunkan waktu acuan dari jadwal, jangan dari jam dinding.
+
+---

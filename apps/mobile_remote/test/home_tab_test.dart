@@ -31,17 +31,32 @@ void main() {
       );
     });
 
+    // CATATAN ZONA WAKTU (ADR-034): PrayerSchedule mengembalikan instan
+    // absolut (waktu shalat Jakarta sebagai momen UTC yang benar),
+    // sedangkan makna jam dinding seperti "pagi hari"/"larut malam"
+    // bergantung zona waktu mesin. Test yang meng-hardcode jam dinding
+    // lokal gagal di runner CI (UTC). Karena itu waktu acuan di dua test
+    // berikut DITURUNKAN dari jadwal terhitung itu sendiri, sehingga
+    // berlaku di zona waktu mana pun.
     test('nextPrayerInfo: pagi hari -> sholat berikutnya hari ini', () {
       const config = MosqueConfig(
         latitude: -6.1754,
         longitude: 106.8272,
       );
-      final now = DateTime(2026, 11, 16, 0, 30);
+      final schedule = PrayerSchedule.calculate(
+        config,
+        DateTime(2026, 11, 16, 12, 0),
+      );
+      final fajr = schedule.items
+          .firstWhere((item) => item.type == PrayerType.fajr)
+          .time;
+      // 30 menit sebelum Subuh: sholat berikutnya adalah Subuh hari ini.
+      final now = fajr.subtract(const Duration(minutes: 30));
       final next = nextPrayerInfo(config, now);
       expect(next, isNotNull);
       expect(next!.type, PrayerType.fajr);
+      expect(next.time, fajr);
       expect(next.time.isAfter(now), isTrue);
-      expect(next.time.day, 16);
     });
 
     test('nextPrayerInfo: larut malam -> Subuh besok', () {
@@ -49,11 +64,25 @@ void main() {
         latitude: -6.1754,
         longitude: 106.8272,
       );
-      final now = DateTime(2026, 11, 16, 23, 59);
+      final schedule = PrayerSchedule.calculate(
+        config,
+        DateTime(2026, 11, 16, 12, 0),
+      );
+      final isya = schedule.items
+          .firstWhere((item) => item.type == PrayerType.isha)
+          .time;
+      // 30 menit setelah Isya: semua jadwal hari ini sudah lewat,
+      // sholat berikutnya adalah Subuh besok.
+      final now = isya.add(const Duration(minutes: 30));
       final next = nextPrayerInfo(config, now);
       expect(next, isNotNull);
       expect(next!.type, PrayerType.fajr);
-      expect(next.time.day, 17);
+      final tomorrowFajr = PrayerSchedule.calculate(
+        config,
+        now.add(const Duration(days: 1)),
+      ).items.firstWhere((item) => item.type == PrayerType.fajr).time;
+      expect(next.time, tomorrowFajr);
+      expect(next.time.isAfter(now), isTrue);
     });
   });
 

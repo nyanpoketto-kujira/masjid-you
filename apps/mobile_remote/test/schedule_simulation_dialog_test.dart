@@ -50,7 +50,16 @@ void main() {
 
   testWidgets('enam baris jadwal tampil dan shalat berikutnya disorot',
       (tester) async {
-    final at = DateTime(2026, 11, 17, 3, 0);
+    // Waktu simulasi diturunkan dari jadwal terhitung (30 menit sebelum
+    // Subuh) agar tidak bergantung zona waktu mesin — lihat ADR-034.
+    final reference = PrayerSchedule.calculate(
+      config,
+      DateTime(2026, 11, 17, 12, 0),
+    );
+    final fajr = reference.items
+        .firstWhere((item) => item.type == PrayerType.fajr)
+        .time;
+    final at = fajr.subtract(const Duration(minutes: 30));
     await pumpDialog(tester, at: at);
     final expected = PrayerSchedule.calculate(config, at);
     expect(expected.items, hasLength(6));
@@ -93,7 +102,16 @@ void main() {
 
   testWidgets('larut malam: shalat berikutnya Subuh besok tetap disorot',
       (tester) async {
-    final at = DateTime(2026, 11, 17, 23, 30);
+    // 30 menit setelah Isya — semua jadwal hari ini sudah lewat
+    // (diturunkan dari jadwal terhitung, kebal zona waktu; ADR-034).
+    final reference = PrayerSchedule.calculate(
+      config,
+      DateTime(2026, 11, 17, 12, 0),
+    );
+    final isya = reference.items
+        .firstWhere((item) => item.type == PrayerType.isha)
+        .time;
+    final at = isya.add(const Duration(minutes: 30));
     await pumpDialog(tester, at: at);
     final expected = PrayerSchedule.calculate(config, at);
     expect(expected.nextPrayer, PrayerType.fajr);
