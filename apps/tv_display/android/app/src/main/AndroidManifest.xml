@@ -1,6 +1,14 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- Jaringan: WAJIB di manifest utama agar server WebSocket LAN
+         (port 8080) bisa bind pada build release. Tanpa izin ini Android
+         menolak pembuatan server socket (SocketException: Operation not
+         permitted, errno 1) — selama ini tertutup oleh izin INTERNET dari
+         manifest debug/profile bawaan template Flutter, sehingga jalur
+         Wi-Fi diam-diam mati di semua build release. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <!-- Bluetooth Classic (RFCOMM): discovery (Remote) + discoverable (TV).
          Lokasi untuk discovery Android <=11 dideklarasikan oleh plugin
          bluetooth_sync (ACCESS_FINE_LOCATION, maxSdkVersion=30). -->
