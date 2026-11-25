@@ -162,3 +162,69 @@ jobs:
             mobile_remote-arm64-v8a.apk
           draft: false
           prerelease: false
+
+  build-windows:
+    name: Build tv_display (Windows x64)
+    # Build desktop Windows hanya untuk PR / manual — release di main
+    # tetap Android saja.
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.4'
+          channel: stable
+
+      - name: Cache pub get
+        uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache
+          key: ${{ runner.os }}-flutter-pub-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-flutter-pub-
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Build tv_display Windows (release)
+        working-directory: apps/tv_display
+        run: flutter build windows --release
+
+      # Zip harus portabel: aplikasi Flutter Windows butuh runtime
+      # Visual C++ (msvcp140/vcruntime140) yang TIDAK selalu ada di PC
+      # tujuan — terbukti di PC pameran nekios-school 2026-11-19 (gagal
+      # jalan, 0xC0000135). Salin 3 DLL redist dari runner ke sebelah
+      # .exe (Windows mencari DLL di folder aplikasi lebih dulu), jadi
+      # zip jalan di PC mana pun tanpa memasang redistributable.
+      # Gagal keras bila ada DLL yang tidak ditemukan supaya zip
+      # non-portabel tidak pernah terkirim diam-diam.
+      - name: Bundle VC++ runtime DLLs (zip portabel)
+        working-directory: apps/tv_display
+        shell: pwsh
+        run: |
+          $bundle = 'build/windows/x64/runner/Release'
+          foreach ($dll in 'msvcp140.dll', 'vcruntime140.dll', 'vcruntime140_1.dll') {
+            $src = Join-Path $env:SystemRoot "System32\$dll"
+            if (-not (Test-Path $src)) { throw "DLL tidak ditemukan di runner: $src" }
+            Copy-Item $src (Join-Path $bundle $dll) -Force
+          }
+          Get-ChildItem $bundle -Filter *.dll | Select-Object Name, Length
+
+      - name: Zip bundle
+        working-directory: apps/tv_display
+        shell: pwsh
+        run: |
+          Compress-Archive `
+            -Path build/windows/x64/runner/Release/* `
+            -DestinationPath tv_display-windows-x64.zip
+
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tv_display-windows-x64
+          path: apps/tv_display/tv_display-windows-x64.zip
+          retention-days: 14
